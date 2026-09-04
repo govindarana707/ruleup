@@ -3,6 +3,8 @@ import 'package:drift_flutter/drift_flutter.dart';
 import 'package:ruleup/core/database/database_uuid.dart';
 import 'package:ruleup/core/database/tables/categories.dart';
 import 'package:ruleup/core/database/tables/habits.dart';
+import 'package:ruleup/core/database/tables/habit_options.dart';
+import 'package:ruleup/core/database/tables/habit_schedules.dart';
 import 'package:ruleup/core/database/tables/local_users.dart';
 import 'package:ruleup/core/database/tables/sync_metadata.dart';
 import 'package:ruleup/core/database/tables/sync_queue.dart';
@@ -10,7 +12,15 @@ import 'package:ruleup/core/database/tables/sync_queue.dart';
 part 'app_database.g.dart';
 
 @DriftDatabase(
-  tables: [LocalUsers, SyncQueue, SyncMetadata, Categories, Habits],
+  tables: [
+    LocalUsers,
+    SyncQueue,
+    SyncMetadata,
+    Categories,
+    Habits,
+    HabitOptions,
+    HabitSchedules,
+  ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.executor);
@@ -18,7 +28,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.defaults() : super(driftDatabase(name: 'ruleup'));
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -45,6 +55,18 @@ class AppDatabase extends _$AppDatabase {
           );
           await customStatement(
             'CREATE INDEX habits_category_idx ON habits (category_id)',
+          );
+        case 3:
+          await migrator.createTable(habitOptions);
+          await migrator.createTable(habitSchedules);
+          await customStatement(
+            'CREATE INDEX habit_options_user_habit_order_idx '
+            'ON habit_options '
+            '(user_id, habit_id, archived_at, sort_order)',
+          );
+          await customStatement(
+            'CREATE INDEX habit_schedules_user_habit_idx '
+            'ON habit_schedules (user_id, habit_id)',
           );
       }
     }

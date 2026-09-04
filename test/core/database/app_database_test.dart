@@ -11,23 +11,25 @@ void main() {
 
   tearDown(() => database.close());
 
-  test('initializes the version 2 local schema', () async {
+  test('initializes the version 3 local schema', () async {
     final tables = await database
         .customSelect(
           "SELECT name FROM sqlite_master "
           "WHERE type = 'table' AND name IN "
           "('local_users', 'sync_queue', 'sync_metadata', "
-          "'categories', 'habits')",
+          "'categories', 'habits', 'habit_options', 'habit_schedules')",
         )
         .get();
 
-    expect(database.schemaVersion, 2);
+    expect(database.schemaVersion, 3);
     expect(tables.map((row) => row.read<String>('name')).toSet(), {
       'local_users',
       'sync_queue',
       'sync_metadata',
       'categories',
       'habits',
+      'habit_options',
+      'habit_schedules',
     });
   });
 
@@ -52,7 +54,7 @@ void main() {
     expect(queued.single.id, original.id);
   });
 
-  test('migrates a version 1 database to category and habit schema', () async {
+  test('migrates a version 1 database through the latest schema', () async {
     await database.close();
     final upgraded = AppDatabase(
       NativeDatabase.memory(
@@ -73,7 +75,10 @@ void main() {
         .customSelect(
           "SELECT name FROM sqlite_master WHERE name IN "
           "('categories', 'habits', 'categories_user_order_idx', "
-          "'habits_user_order_idx', 'habits_category_idx')",
+          "'habits_user_order_idx', 'habits_category_idx', "
+          "'habit_options', 'habit_schedules', "
+          "'habit_options_user_habit_order_idx', "
+          "'habit_schedules_user_habit_idx')",
         )
         .get();
 
@@ -83,6 +88,10 @@ void main() {
       'categories_user_order_idx',
       'habits_user_order_idx',
       'habits_category_idx',
+      'habit_options',
+      'habit_schedules',
+      'habit_options_user_habit_order_idx',
+      'habit_schedules_user_habit_idx',
     });
   });
 }
