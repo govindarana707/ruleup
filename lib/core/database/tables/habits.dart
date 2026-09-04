@@ -2,8 +2,9 @@ import 'package:drift/drift.dart';
 import 'package:ruleup/core/database/database_uuid.dart';
 import 'package:ruleup/core/database/tables/categories.dart';
 import 'package:ruleup/core/database/tables/local_users.dart';
+import 'package:ruleup/features/habits/domain/measurement_type.dart';
 
-enum MeasurementType { yesNo, duration, count, value }
+export 'package:ruleup/features/habits/domain/measurement_type.dart';
 
 class MeasurementTypeConverter extends TypeConverter<MeasurementType, String> {
   const MeasurementTypeConverter();

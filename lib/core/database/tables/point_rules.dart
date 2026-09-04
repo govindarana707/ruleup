@@ -2,8 +2,9 @@ import 'package:drift/drift.dart';
 import 'package:ruleup/core/database/database_uuid.dart';
 import 'package:ruleup/core/database/tables/habits.dart';
 import 'package:ruleup/core/database/tables/local_users.dart';
+import 'package:ruleup/features/points/domain/point_rule_operator.dart';
 
-enum PointRuleOperator { completed, eq, lt, lte, gt, gte, between }
+export 'package:ruleup/features/points/domain/point_rule_operator.dart';
 
 class PointRuleOperatorConverter
     extends TypeConverter<PointRuleOperator, String> {
