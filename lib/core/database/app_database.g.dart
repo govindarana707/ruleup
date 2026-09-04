@@ -3280,6 +3280,662 @@ class HabitSchedulesCompanion extends UpdateCompanion<HabitSchedule> {
   }
 }
 
+class $PointRulesTable extends PointRules
+    with TableInfo<$PointRulesTable, PointRule> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PointRulesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    clientDefault: createDatabaseUuid,
+  );
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+    'user_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES local_users (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _habitIdMeta = const VerificationMeta(
+    'habitId',
+  );
+  @override
+  late final GeneratedColumn<String> habitId = GeneratedColumn<String>(
+    'habit_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES habits (id) ON DELETE CASCADE',
+    ),
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<PointRuleOperator, String>
+  operator = GeneratedColumn<String>(
+    'operator',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  ).withConverter<PointRuleOperator>($PointRulesTable.$converteroperator);
+  static const VerificationMeta _valueMinMeta = const VerificationMeta(
+    'valueMin',
+  );
+  @override
+  late final GeneratedColumn<double> valueMin = GeneratedColumn<double>(
+    'value_min',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _valueMaxMeta = const VerificationMeta(
+    'valueMax',
+  );
+  @override
+  late final GeneratedColumn<double> valueMax = GeneratedColumn<double>(
+    'value_max',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _pointsMeta = const VerificationMeta('points');
+  @override
+  late final GeneratedColumn<int> points = GeneratedColumn<int>(
+    'points',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sortOrderMeta = const VerificationMeta(
+    'sortOrder',
+  );
+  @override
+  late final GeneratedColumn<int> sortOrder = GeneratedColumn<int>(
+    'sort_order',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _archivedAtMeta = const VerificationMeta(
+    'archivedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> archivedAt = GeneratedColumn<DateTime>(
+    'archived_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    userId,
+    habitId,
+    operator,
+    valueMin,
+    valueMax,
+    points,
+    sortOrder,
+    createdAt,
+    updatedAt,
+    archivedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'point_rules';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<PointRule> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(
+        _userIdMeta,
+        userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
+    if (data.containsKey('habit_id')) {
+      context.handle(
+        _habitIdMeta,
+        habitId.isAcceptableOrUnknown(data['habit_id']!, _habitIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_habitIdMeta);
+    }
+    if (data.containsKey('value_min')) {
+      context.handle(
+        _valueMinMeta,
+        valueMin.isAcceptableOrUnknown(data['value_min']!, _valueMinMeta),
+      );
+    }
+    if (data.containsKey('value_max')) {
+      context.handle(
+        _valueMaxMeta,
+        valueMax.isAcceptableOrUnknown(data['value_max']!, _valueMaxMeta),
+      );
+    }
+    if (data.containsKey('points')) {
+      context.handle(
+        _pointsMeta,
+        points.isAcceptableOrUnknown(data['points']!, _pointsMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_pointsMeta);
+    }
+    if (data.containsKey('sort_order')) {
+      context.handle(
+        _sortOrderMeta,
+        sortOrder.isAcceptableOrUnknown(data['sort_order']!, _sortOrderMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    if (data.containsKey('archived_at')) {
+      context.handle(
+        _archivedAtMeta,
+        archivedAt.isAcceptableOrUnknown(data['archived_at']!, _archivedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  PointRule map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return PointRule(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      userId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}user_id'],
+      )!,
+      habitId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}habit_id'],
+      )!,
+      operator: $PointRulesTable.$converteroperator.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}operator'],
+        )!,
+      ),
+      valueMin: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}value_min'],
+      ),
+      valueMax: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}value_max'],
+      ),
+      points: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}points'],
+      )!,
+      sortOrder: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}sort_order'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      archivedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}archived_at'],
+      ),
+    );
+  }
+
+  @override
+  $PointRulesTable createAlias(String alias) {
+    return $PointRulesTable(attachedDatabase, alias);
+  }
+
+  static TypeConverter<PointRuleOperator, String> $converteroperator =
+      const PointRuleOperatorConverter();
+}
+
+class PointRule extends DataClass implements Insertable<PointRule> {
+  final String id;
+  final String userId;
+  final String habitId;
+  final PointRuleOperator operator;
+  final double? valueMin;
+  final double? valueMax;
+  final int points;
+  final int sortOrder;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final DateTime? archivedAt;
+  const PointRule({
+    required this.id,
+    required this.userId,
+    required this.habitId,
+    required this.operator,
+    this.valueMin,
+    this.valueMax,
+    required this.points,
+    required this.sortOrder,
+    required this.createdAt,
+    required this.updatedAt,
+    this.archivedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['user_id'] = Variable<String>(userId);
+    map['habit_id'] = Variable<String>(habitId);
+    {
+      map['operator'] = Variable<String>(
+        $PointRulesTable.$converteroperator.toSql(operator),
+      );
+    }
+    if (!nullToAbsent || valueMin != null) {
+      map['value_min'] = Variable<double>(valueMin);
+    }
+    if (!nullToAbsent || valueMax != null) {
+      map['value_max'] = Variable<double>(valueMax);
+    }
+    map['points'] = Variable<int>(points);
+    map['sort_order'] = Variable<int>(sortOrder);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || archivedAt != null) {
+      map['archived_at'] = Variable<DateTime>(archivedAt);
+    }
+    return map;
+  }
+
+  PointRulesCompanion toCompanion(bool nullToAbsent) {
+    return PointRulesCompanion(
+      id: Value(id),
+      userId: Value(userId),
+      habitId: Value(habitId),
+      operator: Value(operator),
+      valueMin: valueMin == null && nullToAbsent
+          ? const Value.absent()
+          : Value(valueMin),
+      valueMax: valueMax == null && nullToAbsent
+          ? const Value.absent()
+          : Value(valueMax),
+      points: Value(points),
+      sortOrder: Value(sortOrder),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      archivedAt: archivedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(archivedAt),
+    );
+  }
+
+  factory PointRule.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return PointRule(
+      id: serializer.fromJson<String>(json['id']),
+      userId: serializer.fromJson<String>(json['userId']),
+      habitId: serializer.fromJson<String>(json['habitId']),
+      operator: serializer.fromJson<PointRuleOperator>(json['operator']),
+      valueMin: serializer.fromJson<double?>(json['valueMin']),
+      valueMax: serializer.fromJson<double?>(json['valueMax']),
+      points: serializer.fromJson<int>(json['points']),
+      sortOrder: serializer.fromJson<int>(json['sortOrder']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      archivedAt: serializer.fromJson<DateTime?>(json['archivedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'userId': serializer.toJson<String>(userId),
+      'habitId': serializer.toJson<String>(habitId),
+      'operator': serializer.toJson<PointRuleOperator>(operator),
+      'valueMin': serializer.toJson<double?>(valueMin),
+      'valueMax': serializer.toJson<double?>(valueMax),
+      'points': serializer.toJson<int>(points),
+      'sortOrder': serializer.toJson<int>(sortOrder),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'archivedAt': serializer.toJson<DateTime?>(archivedAt),
+    };
+  }
+
+  PointRule copyWith({
+    String? id,
+    String? userId,
+    String? habitId,
+    PointRuleOperator? operator,
+    Value<double?> valueMin = const Value.absent(),
+    Value<double?> valueMax = const Value.absent(),
+    int? points,
+    int? sortOrder,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    Value<DateTime?> archivedAt = const Value.absent(),
+  }) => PointRule(
+    id: id ?? this.id,
+    userId: userId ?? this.userId,
+    habitId: habitId ?? this.habitId,
+    operator: operator ?? this.operator,
+    valueMin: valueMin.present ? valueMin.value : this.valueMin,
+    valueMax: valueMax.present ? valueMax.value : this.valueMax,
+    points: points ?? this.points,
+    sortOrder: sortOrder ?? this.sortOrder,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    archivedAt: archivedAt.present ? archivedAt.value : this.archivedAt,
+  );
+  PointRule copyWithCompanion(PointRulesCompanion data) {
+    return PointRule(
+      id: data.id.present ? data.id.value : this.id,
+      userId: data.userId.present ? data.userId.value : this.userId,
+      habitId: data.habitId.present ? data.habitId.value : this.habitId,
+      operator: data.operator.present ? data.operator.value : this.operator,
+      valueMin: data.valueMin.present ? data.valueMin.value : this.valueMin,
+      valueMax: data.valueMax.present ? data.valueMax.value : this.valueMax,
+      points: data.points.present ? data.points.value : this.points,
+      sortOrder: data.sortOrder.present ? data.sortOrder.value : this.sortOrder,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      archivedAt: data.archivedAt.present
+          ? data.archivedAt.value
+          : this.archivedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PointRule(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('habitId: $habitId, ')
+          ..write('operator: $operator, ')
+          ..write('valueMin: $valueMin, ')
+          ..write('valueMax: $valueMax, ')
+          ..write('points: $points, ')
+          ..write('sortOrder: $sortOrder, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('archivedAt: $archivedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    userId,
+    habitId,
+    operator,
+    valueMin,
+    valueMax,
+    points,
+    sortOrder,
+    createdAt,
+    updatedAt,
+    archivedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is PointRule &&
+          other.id == this.id &&
+          other.userId == this.userId &&
+          other.habitId == this.habitId &&
+          other.operator == this.operator &&
+          other.valueMin == this.valueMin &&
+          other.valueMax == this.valueMax &&
+          other.points == this.points &&
+          other.sortOrder == this.sortOrder &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.archivedAt == this.archivedAt);
+}
+
+class PointRulesCompanion extends UpdateCompanion<PointRule> {
+  final Value<String> id;
+  final Value<String> userId;
+  final Value<String> habitId;
+  final Value<PointRuleOperator> operator;
+  final Value<double?> valueMin;
+  final Value<double?> valueMax;
+  final Value<int> points;
+  final Value<int> sortOrder;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> archivedAt;
+  final Value<int> rowid;
+  const PointRulesCompanion({
+    this.id = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.habitId = const Value.absent(),
+    this.operator = const Value.absent(),
+    this.valueMin = const Value.absent(),
+    this.valueMax = const Value.absent(),
+    this.points = const Value.absent(),
+    this.sortOrder = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.archivedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  PointRulesCompanion.insert({
+    this.id = const Value.absent(),
+    required String userId,
+    required String habitId,
+    required PointRuleOperator operator,
+    this.valueMin = const Value.absent(),
+    this.valueMax = const Value.absent(),
+    required int points,
+    this.sortOrder = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.archivedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : userId = Value(userId),
+       habitId = Value(habitId),
+       operator = Value(operator),
+       points = Value(points);
+  static Insertable<PointRule> custom({
+    Expression<String>? id,
+    Expression<String>? userId,
+    Expression<String>? habitId,
+    Expression<String>? operator,
+    Expression<double>? valueMin,
+    Expression<double>? valueMax,
+    Expression<int>? points,
+    Expression<int>? sortOrder,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? archivedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (userId != null) 'user_id': userId,
+      if (habitId != null) 'habit_id': habitId,
+      if (operator != null) 'operator': operator,
+      if (valueMin != null) 'value_min': valueMin,
+      if (valueMax != null) 'value_max': valueMax,
+      if (points != null) 'points': points,
+      if (sortOrder != null) 'sort_order': sortOrder,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (archivedAt != null) 'archived_at': archivedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  PointRulesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? userId,
+    Value<String>? habitId,
+    Value<PointRuleOperator>? operator,
+    Value<double?>? valueMin,
+    Value<double?>? valueMax,
+    Value<int>? points,
+    Value<int>? sortOrder,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<DateTime?>? archivedAt,
+    Value<int>? rowid,
+  }) {
+    return PointRulesCompanion(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      habitId: habitId ?? this.habitId,
+      operator: operator ?? this.operator,
+      valueMin: valueMin ?? this.valueMin,
+      valueMax: valueMax ?? this.valueMax,
+      points: points ?? this.points,
+      sortOrder: sortOrder ?? this.sortOrder,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      archivedAt: archivedAt ?? this.archivedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (habitId.present) {
+      map['habit_id'] = Variable<String>(habitId.value);
+    }
+    if (operator.present) {
+      map['operator'] = Variable<String>(
+        $PointRulesTable.$converteroperator.toSql(operator.value),
+      );
+    }
+    if (valueMin.present) {
+      map['value_min'] = Variable<double>(valueMin.value);
+    }
+    if (valueMax.present) {
+      map['value_max'] = Variable<double>(valueMax.value);
+    }
+    if (points.present) {
+      map['points'] = Variable<int>(points.value);
+    }
+    if (sortOrder.present) {
+      map['sort_order'] = Variable<int>(sortOrder.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (archivedAt.present) {
+      map['archived_at'] = Variable<DateTime>(archivedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PointRulesCompanion(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('habitId: $habitId, ')
+          ..write('operator: $operator, ')
+          ..write('valueMin: $valueMin, ')
+          ..write('valueMax: $valueMax, ')
+          ..write('points: $points, ')
+          ..write('sortOrder: $sortOrder, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('archivedAt: $archivedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -3290,6 +3946,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $HabitsTable habits = $HabitsTable(this);
   late final $HabitOptionsTable habitOptions = $HabitOptionsTable(this);
   late final $HabitSchedulesTable habitSchedules = $HabitSchedulesTable(this);
+  late final $PointRulesTable pointRules = $PointRulesTable(this);
   late final Index categoriesUserOrderIdx = Index(
     'categories_user_order_idx',
     'CREATE INDEX categories_user_order_idx ON categories (user_id, archived_at, sort_order)',
@@ -3310,6 +3967,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     'habit_schedules_user_habit_idx',
     'CREATE INDEX habit_schedules_user_habit_idx ON habit_schedules (user_id, habit_id)',
   );
+  late final Index pointRulesUserHabitOrderIdx = Index(
+    'point_rules_user_habit_order_idx',
+    'CREATE INDEX point_rules_user_habit_order_idx ON point_rules (user_id, habit_id, archived_at, sort_order)',
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -3322,11 +3983,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     habits,
     habitOptions,
     habitSchedules,
+    pointRules,
     categoriesUserOrderIdx,
     habitsUserOrderIdx,
     habitsCategoryIdx,
     habitOptionsUserHabitOrderIdx,
     habitSchedulesUserHabitIdx,
+    pointRulesUserHabitOrderIdx,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -3392,6 +4055,20 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('habit_schedules', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'local_users',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('point_rules', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'habits',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('point_rules', kind: UpdateKind.delete)],
     ),
   ]);
 }
@@ -3517,6 +4194,24 @@ final class $$LocalUsersTableReferences
     ).filter((f) => f.userId.id.sqlEquals($_itemColumn<String>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_habitSchedulesRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$PointRulesTable, List<PointRule>>
+  _pointRulesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.pointRules,
+    aliasName: 'local_users__id__point_rules__user_id',
+  );
+
+  $$PointRulesTableProcessedTableManager get pointRulesRefs {
+    final manager = $$PointRulesTableTableManager(
+      $_db,
+      $_db.pointRules,
+    ).filter((f) => f.userId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_pointRulesRefsTable($_db));
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -3688,6 +4383,31 @@ class $$LocalUsersTableFilterComposer
           }) => $$HabitSchedulesTableFilterComposer(
             $db: $db,
             $table: $db.habitSchedules,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> pointRulesRefs(
+    Expression<bool> Function($$PointRulesTableFilterComposer f) f,
+  ) {
+    final $$PointRulesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.pointRules,
+      getReferencedColumn: (t) => t.userId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PointRulesTableFilterComposer(
+            $db: $db,
+            $table: $db.pointRules,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -3890,6 +4610,31 @@ class $$LocalUsersTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> pointRulesRefs<T extends Object>(
+    Expression<T> Function($$PointRulesTableAnnotationComposer a) f,
+  ) {
+    final $$PointRulesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.pointRules,
+      getReferencedColumn: (t) => t.userId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PointRulesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.pointRules,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$LocalUsersTableTableManager
@@ -3912,6 +4657,7 @@ class $$LocalUsersTableTableManager
             bool habitsRefs,
             bool habitOptionsRefs,
             bool habitSchedulesRefs,
+            bool pointRulesRefs,
           })
         > {
   $$LocalUsersTableTableManager(_$AppDatabase db, $LocalUsersTable table)
@@ -3965,6 +4711,7 @@ class $$LocalUsersTableTableManager
                 habitsRefs = false,
                 habitOptionsRefs = false,
                 habitSchedulesRefs = false,
+                pointRulesRefs = false,
               }) {
                 return PrefetchHooks(
                   db: db,
@@ -3975,6 +4722,7 @@ class $$LocalUsersTableTableManager
                     if (habitsRefs) db.habits,
                     if (habitOptionsRefs) db.habitOptions,
                     if (habitSchedulesRefs) db.habitSchedules,
+                    if (pointRulesRefs) db.pointRules,
                   ],
                   addJoins: null,
                   getPrefetchedDataCallback: (items) async {
@@ -4105,6 +4853,27 @@ class $$LocalUsersTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (pointRulesRefs)
+                        await $_getPrefetchedData<
+                          LocalUser,
+                          $LocalUsersTable,
+                          PointRule
+                        >(
+                          currentTable: table,
+                          referencedTable: $$LocalUsersTableReferences
+                              ._pointRulesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$LocalUsersTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).pointRulesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.userId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -4132,6 +4901,7 @@ typedef $$LocalUsersTableProcessedTableManager =
         bool habitsRefs,
         bool habitOptionsRefs,
         bool habitSchedulesRefs,
+        bool pointRulesRefs,
       })
     >;
 typedef $$SyncQueueTableCreateCompanionBuilder = SyncQueueCompanion Function({
@@ -5396,6 +6166,24 @@ final class $$HabitsTableReferences
       manager.$state.copyWith(prefetchedData: cache),
     );
   }
+
+  static MultiTypedResultKey<$PointRulesTable, List<PointRule>>
+  _pointRulesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.pointRules,
+    aliasName: 'habits__id__point_rules__habit_id',
+  );
+
+  $$PointRulesTableProcessedTableManager get pointRulesRefs {
+    final manager = $$PointRulesTableTableManager(
+      $_db,
+      $_db.pointRules,
+    ).filter((f) => f.habitId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_pointRulesRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $$HabitsTableFilterComposer
@@ -5530,6 +6318,31 @@ class $$HabitsTableFilterComposer
           }) => $$HabitSchedulesTableFilterComposer(
             $db: $db,
             $table: $db.habitSchedules,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> pointRulesRefs(
+    Expression<bool> Function($$PointRulesTableFilterComposer f) f,
+  ) {
+    final $$PointRulesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.pointRules,
+      getReferencedColumn: (t) => t.habitId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PointRulesTableFilterComposer(
+            $db: $db,
+            $table: $db.pointRules,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -5761,6 +6574,31 @@ class $$HabitsTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> pointRulesRefs<T extends Object>(
+    Expression<T> Function($$PointRulesTableAnnotationComposer a) f,
+  ) {
+    final $$PointRulesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.pointRules,
+      getReferencedColumn: (t) => t.habitId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PointRulesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.pointRules,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$HabitsTableTableManager
@@ -5781,6 +6619,7 @@ class $$HabitsTableTableManager
             bool categoryId,
             bool habitOptionsRefs,
             bool habitSchedulesRefs,
+            bool pointRulesRefs,
           })
         > {
   $$HabitsTableTableManager(_$AppDatabase db, $HabitsTable table)
@@ -5856,12 +6695,14 @@ class $$HabitsTableTableManager
                 categoryId = false,
                 habitOptionsRefs = false,
                 habitSchedulesRefs = false,
+                pointRulesRefs = false,
               }) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
                     if (habitOptionsRefs) db.habitOptions,
                     if (habitSchedulesRefs) db.habitSchedules,
+                    if (pointRulesRefs) db.pointRules,
                   ],
                   addJoins:
                       <
@@ -5948,6 +6789,27 @@ class $$HabitsTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (pointRulesRefs)
+                        await $_getPrefetchedData<
+                          Habit,
+                          $HabitsTable,
+                          PointRule
+                        >(
+                          currentTable: table,
+                          referencedTable: $$HabitsTableReferences
+                              ._pointRulesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$HabitsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).pointRulesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.habitId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -5973,6 +6835,7 @@ typedef $$HabitsTableProcessedTableManager =
         bool categoryId,
         bool habitOptionsRefs,
         bool habitSchedulesRefs,
+        bool pointRulesRefs,
       })
     >;
 typedef $$HabitOptionsTableCreateCompanionBuilder =
@@ -6903,6 +7766,520 @@ typedef $$HabitSchedulesTableProcessedTableManager =
       HabitSchedule,
       PrefetchHooks Function({bool userId, bool habitId})
     >;
+typedef $$PointRulesTableCreateCompanionBuilder = PointRulesCompanion Function({
+  Value<String> id,
+  required String userId,
+  required String habitId,
+  required PointRuleOperator operator,
+  Value<double?> valueMin,
+  Value<double?> valueMax,
+  required int points,
+  Value<int> sortOrder,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<DateTime?> archivedAt,
+  Value<int> rowid,
+});
+typedef $$PointRulesTableUpdateCompanionBuilder = PointRulesCompanion Function({
+  Value<String> id,
+  Value<String> userId,
+  Value<String> habitId,
+  Value<PointRuleOperator> operator,
+  Value<double?> valueMin,
+  Value<double?> valueMax,
+  Value<int> points,
+  Value<int> sortOrder,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<DateTime?> archivedAt,
+  Value<int> rowid,
+});
+
+final class $$PointRulesTableReferences
+    extends BaseReferences<_$AppDatabase, $PointRulesTable, PointRule> {
+  $$PointRulesTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $LocalUsersTable _userIdTable(_$AppDatabase db) =>
+      db.localUsers.createAlias('point_rules__user_id__local_users__id');
+
+  $$LocalUsersTableProcessedTableManager get userId {
+    final $_column = $_itemColumn<String>('user_id')!;
+
+    final manager = $$LocalUsersTableTableManager(
+      $_db,
+      $_db.localUsers,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_userIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $HabitsTable _habitIdTable(_$AppDatabase db) =>
+      db.habits.createAlias('point_rules__habit_id__habits__id');
+
+  $$HabitsTableProcessedTableManager get habitId {
+    final $_column = $_itemColumn<String>('habit_id')!;
+
+    final manager = $$HabitsTableTableManager(
+      $_db,
+      $_db.habits,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_habitIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$PointRulesTableFilterComposer
+    extends Composer<_$AppDatabase, $PointRulesTable> {
+  $$PointRulesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<PointRuleOperator, PointRuleOperator, String>
+  get operator => $composableBuilder(
+    column: $table.operator,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnFilters<double> get valueMin => $composableBuilder(
+    column: $table.valueMin,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get valueMax => $composableBuilder(
+    column: $table.valueMax,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get points => $composableBuilder(
+    column: $table.points,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get sortOrder => $composableBuilder(
+    column: $table.sortOrder,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get archivedAt => $composableBuilder(
+    column: $table.archivedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$LocalUsersTableFilterComposer get userId {
+    final $$LocalUsersTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userId,
+      referencedTable: $db.localUsers,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalUsersTableFilterComposer(
+            $db: $db,
+            $table: $db.localUsers,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$HabitsTableFilterComposer get habitId {
+    final $$HabitsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.habitId,
+      referencedTable: $db.habits,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$HabitsTableFilterComposer(
+            $db: $db,
+            $table: $db.habits,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$PointRulesTableOrderingComposer
+    extends Composer<_$AppDatabase, $PointRulesTable> {
+  $$PointRulesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get operator => $composableBuilder(
+    column: $table.operator,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get valueMin => $composableBuilder(
+    column: $table.valueMin,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get valueMax => $composableBuilder(
+    column: $table.valueMax,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get points => $composableBuilder(
+    column: $table.points,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get sortOrder => $composableBuilder(
+    column: $table.sortOrder,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get archivedAt => $composableBuilder(
+    column: $table.archivedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$LocalUsersTableOrderingComposer get userId {
+    final $$LocalUsersTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userId,
+      referencedTable: $db.localUsers,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalUsersTableOrderingComposer(
+            $db: $db,
+            $table: $db.localUsers,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$HabitsTableOrderingComposer get habitId {
+    final $$HabitsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.habitId,
+      referencedTable: $db.habits,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$HabitsTableOrderingComposer(
+            $db: $db,
+            $table: $db.habits,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$PointRulesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $PointRulesTable> {
+  $$PointRulesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<PointRuleOperator, String> get operator =>
+      $composableBuilder(column: $table.operator, builder: (column) => column);
+
+  GeneratedColumn<double> get valueMin =>
+      $composableBuilder(column: $table.valueMin, builder: (column) => column);
+
+  GeneratedColumn<double> get valueMax =>
+      $composableBuilder(column: $table.valueMax, builder: (column) => column);
+
+  GeneratedColumn<int> get points =>
+      $composableBuilder(column: $table.points, builder: (column) => column);
+
+  GeneratedColumn<int> get sortOrder =>
+      $composableBuilder(column: $table.sortOrder, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get archivedAt => $composableBuilder(
+    column: $table.archivedAt,
+    builder: (column) => column,
+  );
+
+  $$LocalUsersTableAnnotationComposer get userId {
+    final $$LocalUsersTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userId,
+      referencedTable: $db.localUsers,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalUsersTableAnnotationComposer(
+            $db: $db,
+            $table: $db.localUsers,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$HabitsTableAnnotationComposer get habitId {
+    final $$HabitsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.habitId,
+      referencedTable: $db.habits,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$HabitsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.habits,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$PointRulesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $PointRulesTable,
+          PointRule,
+          $$PointRulesTableFilterComposer,
+          $$PointRulesTableOrderingComposer,
+          $$PointRulesTableAnnotationComposer,
+          $$PointRulesTableCreateCompanionBuilder,
+          $$PointRulesTableUpdateCompanionBuilder,
+          (PointRule, $$PointRulesTableReferences),
+          PointRule,
+          PrefetchHooks Function({bool userId, bool habitId})
+        > {
+  $$PointRulesTableTableManager(_$AppDatabase db, $PointRulesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$PointRulesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$PointRulesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$PointRulesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> userId = const Value.absent(),
+                Value<String> habitId = const Value.absent(),
+                Value<PointRuleOperator> operator = const Value.absent(),
+                Value<double?> valueMin = const Value.absent(),
+                Value<double?> valueMax = const Value.absent(),
+                Value<int> points = const Value.absent(),
+                Value<int> sortOrder = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> archivedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => PointRulesCompanion(
+                id: id,
+                userId: userId,
+                habitId: habitId,
+                operator: operator,
+                valueMin: valueMin,
+                valueMax: valueMax,
+                points: points,
+                sortOrder: sortOrder,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                archivedAt: archivedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                required String userId,
+                required String habitId,
+                required PointRuleOperator operator,
+                Value<double?> valueMin = const Value.absent(),
+                Value<double?> valueMax = const Value.absent(),
+                required int points,
+                Value<int> sortOrder = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> archivedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => PointRulesCompanion.insert(
+                id: id,
+                userId: userId,
+                habitId: habitId,
+                operator: operator,
+                valueMin: valueMin,
+                valueMax: valueMax,
+                points: points,
+                sortOrder: sortOrder,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                archivedAt: archivedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$PointRulesTable, PointRule>(table),
+                  $$PointRulesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({userId = false, habitId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (userId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.userId,
+                        referencedTable: $$PointRulesTableReferences
+                            ._userIdTable(db),
+                        referencedColumn: $$PointRulesTableReferences
+                            ._userIdTable(db)
+                            .id,
+                      ) as T;
+                    }
+                    if (habitId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.habitId,
+                        referencedTable: $$PointRulesTableReferences
+                            ._habitIdTable(db),
+                        referencedColumn: $$PointRulesTableReferences
+                            ._habitIdTable(db)
+                            .id,
+                      ) as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$PointRulesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $PointRulesTable,
+      PointRule,
+      $$PointRulesTableFilterComposer,
+      $$PointRulesTableOrderingComposer,
+      $$PointRulesTableAnnotationComposer,
+      $$PointRulesTableCreateCompanionBuilder,
+      $$PointRulesTableUpdateCompanionBuilder,
+      (PointRule, $$PointRulesTableReferences),
+      PointRule,
+      PrefetchHooks Function({bool userId, bool habitId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -6921,4 +8298,6 @@ class $AppDatabaseManager {
       $$HabitOptionsTableTableManager(_db, _db.habitOptions);
   $$HabitSchedulesTableTableManager get habitSchedules =>
       $$HabitSchedulesTableTableManager(_db, _db.habitSchedules);
+  $$PointRulesTableTableManager get pointRules =>
+      $$PointRulesTableTableManager(_db, _db.pointRules);
 }

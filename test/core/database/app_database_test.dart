@@ -11,17 +11,18 @@ void main() {
 
   tearDown(() => database.close());
 
-  test('initializes the version 3 local schema', () async {
+  test('initializes the version 4 local schema', () async {
     final tables = await database
         .customSelect(
           "SELECT name FROM sqlite_master "
           "WHERE type = 'table' AND name IN "
           "('local_users', 'sync_queue', 'sync_metadata', "
-          "'categories', 'habits', 'habit_options', 'habit_schedules')",
+          "'categories', 'habits', 'habit_options', 'habit_schedules', "
+          "'point_rules')",
         )
         .get();
 
-    expect(database.schemaVersion, 3);
+    expect(database.schemaVersion, 4);
     expect(tables.map((row) => row.read<String>('name')).toSet(), {
       'local_users',
       'sync_queue',
@@ -30,6 +31,7 @@ void main() {
       'habits',
       'habit_options',
       'habit_schedules',
+      'point_rules',
     });
   });
 
@@ -78,7 +80,8 @@ void main() {
           "'habits_user_order_idx', 'habits_category_idx', "
           "'habit_options', 'habit_schedules', "
           "'habit_options_user_habit_order_idx', "
-          "'habit_schedules_user_habit_idx')",
+          "'habit_schedules_user_habit_idx', 'point_rules', "
+          "'point_rules_user_habit_order_idx')",
         )
         .get();
 
@@ -92,6 +95,8 @@ void main() {
       'habit_schedules',
       'habit_options_user_habit_order_idx',
       'habit_schedules_user_habit_idx',
+      'point_rules',
+      'point_rules_user_habit_order_idx',
     });
   });
 }

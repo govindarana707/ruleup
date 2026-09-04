@@ -6,6 +6,7 @@ import 'package:ruleup/core/database/tables/habits.dart';
 import 'package:ruleup/core/database/tables/habit_options.dart';
 import 'package:ruleup/core/database/tables/habit_schedules.dart';
 import 'package:ruleup/core/database/tables/local_users.dart';
+import 'package:ruleup/core/database/tables/point_rules.dart';
 import 'package:ruleup/core/database/tables/sync_metadata.dart';
 import 'package:ruleup/core/database/tables/sync_queue.dart';
 
@@ -20,6 +21,7 @@ part 'app_database.g.dart';
     Habits,
     HabitOptions,
     HabitSchedules,
+    PointRules,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -28,7 +30,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.defaults() : super(driftDatabase(name: 'ruleup'));
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -67,6 +69,13 @@ class AppDatabase extends _$AppDatabase {
           await customStatement(
             'CREATE INDEX habit_schedules_user_habit_idx '
             'ON habit_schedules (user_id, habit_id)',
+          );
+        case 4:
+          await migrator.createTable(pointRules);
+          await customStatement(
+            'CREATE INDEX point_rules_user_habit_order_idx '
+            'ON point_rules '
+            '(user_id, habit_id, archived_at, sort_order)',
           );
       }
     }
