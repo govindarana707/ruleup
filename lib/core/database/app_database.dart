@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:ruleup/core/database/database_uuid.dart';
 import 'package:ruleup/core/database/tables/categories.dart';
+import 'package:ruleup/core/database/tables/check_ins.dart';
 import 'package:ruleup/core/database/tables/habits.dart';
 import 'package:ruleup/core/database/tables/habit_options.dart';
 import 'package:ruleup/core/database/tables/habit_schedules.dart';
@@ -22,6 +23,7 @@ part 'app_database.g.dart';
     HabitOptions,
     HabitSchedules,
     PointRules,
+    CheckIns,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -30,7 +32,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.defaults() : super(driftDatabase(name: 'ruleup'));
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -76,6 +78,12 @@ class AppDatabase extends _$AppDatabase {
             'CREATE INDEX point_rules_user_habit_order_idx '
             'ON point_rules '
             '(user_id, habit_id, archived_at, sort_order)',
+          );
+        case 5:
+          await migrator.createTable(checkIns);
+          await customStatement(
+            'CREATE INDEX check_ins_user_date_idx '
+            'ON check_ins (user_id, habit_date)',
           );
       }
     }

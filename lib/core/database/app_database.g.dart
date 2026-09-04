@@ -3936,6 +3936,796 @@ class PointRulesCompanion extends UpdateCompanion<PointRule> {
   }
 }
 
+class $CheckInsTable extends CheckIns with TableInfo<$CheckInsTable, CheckIn> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CheckInsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    clientDefault: createDatabaseUuid,
+  );
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+    'user_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES local_users (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _habitIdMeta = const VerificationMeta(
+    'habitId',
+  );
+  @override
+  late final GeneratedColumn<String> habitId = GeneratedColumn<String>(
+    'habit_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES habits (id) ON DELETE CASCADE',
+    ),
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<DateTime, String> habitDate =
+      GeneratedColumn<String>(
+        'habit_date',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<DateTime>($CheckInsTable.$converterhabitDate);
+  static const VerificationMeta _optionIdMeta = const VerificationMeta(
+    'optionId',
+  );
+  @override
+  late final GeneratedColumn<String> optionId = GeneratedColumn<String>(
+    'option_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES habit_options (id) ON DELETE SET NULL',
+    ),
+  );
+  static const VerificationMeta _measuredValueMeta = const VerificationMeta(
+    'measuredValue',
+  );
+  @override
+  late final GeneratedColumn<double> measuredValue = GeneratedColumn<double>(
+    'measured_value',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _noteMeta = const VerificationMeta('note');
+  @override
+  late final GeneratedColumn<String> note = GeneratedColumn<String>(
+    'note',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _awardedPointsMeta = const VerificationMeta(
+    'awardedPoints',
+  );
+  @override
+  late final GeneratedColumn<int> awardedPoints = GeneratedColumn<int>(
+    'awarded_points',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _matchedRuleIdMeta = const VerificationMeta(
+    'matchedRuleId',
+  );
+  @override
+  late final GeneratedColumn<String> matchedRuleId = GeneratedColumn<String>(
+    'matched_rule_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES point_rules (id)',
+    ),
+  );
+  static const VerificationMeta _checkedInAtMeta = const VerificationMeta(
+    'checkedInAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> checkedInAt = GeneratedColumn<DateTime>(
+    'checked_in_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _editableUntilMeta = const VerificationMeta(
+    'editableUntil',
+  );
+  @override
+  late final GeneratedColumn<DateTime> editableUntil =
+      GeneratedColumn<DateTime>(
+        'editable_until',
+        aliasedName,
+        false,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: true,
+      );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    userId,
+    habitId,
+    habitDate,
+    optionId,
+    measuredValue,
+    note,
+    awardedPoints,
+    matchedRuleId,
+    checkedInAt,
+    editableUntil,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'check_ins';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<CheckIn> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(
+        _userIdMeta,
+        userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
+    if (data.containsKey('habit_id')) {
+      context.handle(
+        _habitIdMeta,
+        habitId.isAcceptableOrUnknown(data['habit_id']!, _habitIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_habitIdMeta);
+    }
+    if (data.containsKey('option_id')) {
+      context.handle(
+        _optionIdMeta,
+        optionId.isAcceptableOrUnknown(data['option_id']!, _optionIdMeta),
+      );
+    }
+    if (data.containsKey('measured_value')) {
+      context.handle(
+        _measuredValueMeta,
+        measuredValue.isAcceptableOrUnknown(
+          data['measured_value']!,
+          _measuredValueMeta,
+        ),
+      );
+    }
+    if (data.containsKey('note')) {
+      context.handle(
+        _noteMeta,
+        note.isAcceptableOrUnknown(data['note']!, _noteMeta),
+      );
+    }
+    if (data.containsKey('awarded_points')) {
+      context.handle(
+        _awardedPointsMeta,
+        awardedPoints.isAcceptableOrUnknown(
+          data['awarded_points']!,
+          _awardedPointsMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_awardedPointsMeta);
+    }
+    if (data.containsKey('matched_rule_id')) {
+      context.handle(
+        _matchedRuleIdMeta,
+        matchedRuleId.isAcceptableOrUnknown(
+          data['matched_rule_id']!,
+          _matchedRuleIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('checked_in_at')) {
+      context.handle(
+        _checkedInAtMeta,
+        checkedInAt.isAcceptableOrUnknown(
+          data['checked_in_at']!,
+          _checkedInAtMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_checkedInAtMeta);
+    }
+    if (data.containsKey('editable_until')) {
+      context.handle(
+        _editableUntilMeta,
+        editableUntil.isAcceptableOrUnknown(
+          data['editable_until']!,
+          _editableUntilMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_editableUntilMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+    {userId, habitId, habitDate},
+  ];
+  @override
+  CheckIn map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return CheckIn(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      userId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}user_id'],
+      )!,
+      habitId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}habit_id'],
+      )!,
+      habitDate: $CheckInsTable.$converterhabitDate.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}habit_date'],
+        )!,
+      ),
+      optionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}option_id'],
+      ),
+      measuredValue: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}measured_value'],
+      ),
+      note: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}note'],
+      ),
+      awardedPoints: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}awarded_points'],
+      )!,
+      matchedRuleId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}matched_rule_id'],
+      ),
+      checkedInAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}checked_in_at'],
+      )!,
+      editableUntil: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}editable_until'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $CheckInsTable createAlias(String alias) {
+    return $CheckInsTable(attachedDatabase, alias);
+  }
+
+  static TypeConverter<DateTime, String> $converterhabitDate =
+      const HabitDateConverter();
+}
+
+class CheckIn extends DataClass implements Insertable<CheckIn> {
+  final String id;
+  final String userId;
+  final String habitId;
+  final DateTime habitDate;
+  final String? optionId;
+  final double? measuredValue;
+  final String? note;
+  final int awardedPoints;
+  final String? matchedRuleId;
+  final DateTime checkedInAt;
+  final DateTime editableUntil;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const CheckIn({
+    required this.id,
+    required this.userId,
+    required this.habitId,
+    required this.habitDate,
+    this.optionId,
+    this.measuredValue,
+    this.note,
+    required this.awardedPoints,
+    this.matchedRuleId,
+    required this.checkedInAt,
+    required this.editableUntil,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['user_id'] = Variable<String>(userId);
+    map['habit_id'] = Variable<String>(habitId);
+    {
+      map['habit_date'] = Variable<String>(
+        $CheckInsTable.$converterhabitDate.toSql(habitDate),
+      );
+    }
+    if (!nullToAbsent || optionId != null) {
+      map['option_id'] = Variable<String>(optionId);
+    }
+    if (!nullToAbsent || measuredValue != null) {
+      map['measured_value'] = Variable<double>(measuredValue);
+    }
+    if (!nullToAbsent || note != null) {
+      map['note'] = Variable<String>(note);
+    }
+    map['awarded_points'] = Variable<int>(awardedPoints);
+    if (!nullToAbsent || matchedRuleId != null) {
+      map['matched_rule_id'] = Variable<String>(matchedRuleId);
+    }
+    map['checked_in_at'] = Variable<DateTime>(checkedInAt);
+    map['editable_until'] = Variable<DateTime>(editableUntil);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  CheckInsCompanion toCompanion(bool nullToAbsent) {
+    return CheckInsCompanion(
+      id: Value(id),
+      userId: Value(userId),
+      habitId: Value(habitId),
+      habitDate: Value(habitDate),
+      optionId: optionId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(optionId),
+      measuredValue: measuredValue == null && nullToAbsent
+          ? const Value.absent()
+          : Value(measuredValue),
+      note: note == null && nullToAbsent ? const Value.absent() : Value(note),
+      awardedPoints: Value(awardedPoints),
+      matchedRuleId: matchedRuleId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(matchedRuleId),
+      checkedInAt: Value(checkedInAt),
+      editableUntil: Value(editableUntil),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory CheckIn.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return CheckIn(
+      id: serializer.fromJson<String>(json['id']),
+      userId: serializer.fromJson<String>(json['userId']),
+      habitId: serializer.fromJson<String>(json['habitId']),
+      habitDate: serializer.fromJson<DateTime>(json['habitDate']),
+      optionId: serializer.fromJson<String?>(json['optionId']),
+      measuredValue: serializer.fromJson<double?>(json['measuredValue']),
+      note: serializer.fromJson<String?>(json['note']),
+      awardedPoints: serializer.fromJson<int>(json['awardedPoints']),
+      matchedRuleId: serializer.fromJson<String?>(json['matchedRuleId']),
+      checkedInAt: serializer.fromJson<DateTime>(json['checkedInAt']),
+      editableUntil: serializer.fromJson<DateTime>(json['editableUntil']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'userId': serializer.toJson<String>(userId),
+      'habitId': serializer.toJson<String>(habitId),
+      'habitDate': serializer.toJson<DateTime>(habitDate),
+      'optionId': serializer.toJson<String?>(optionId),
+      'measuredValue': serializer.toJson<double?>(measuredValue),
+      'note': serializer.toJson<String?>(note),
+      'awardedPoints': serializer.toJson<int>(awardedPoints),
+      'matchedRuleId': serializer.toJson<String?>(matchedRuleId),
+      'checkedInAt': serializer.toJson<DateTime>(checkedInAt),
+      'editableUntil': serializer.toJson<DateTime>(editableUntil),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  CheckIn copyWith({
+    String? id,
+    String? userId,
+    String? habitId,
+    DateTime? habitDate,
+    Value<String?> optionId = const Value.absent(),
+    Value<double?> measuredValue = const Value.absent(),
+    Value<String?> note = const Value.absent(),
+    int? awardedPoints,
+    Value<String?> matchedRuleId = const Value.absent(),
+    DateTime? checkedInAt,
+    DateTime? editableUntil,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => CheckIn(
+    id: id ?? this.id,
+    userId: userId ?? this.userId,
+    habitId: habitId ?? this.habitId,
+    habitDate: habitDate ?? this.habitDate,
+    optionId: optionId.present ? optionId.value : this.optionId,
+    measuredValue: measuredValue.present
+        ? measuredValue.value
+        : this.measuredValue,
+    note: note.present ? note.value : this.note,
+    awardedPoints: awardedPoints ?? this.awardedPoints,
+    matchedRuleId: matchedRuleId.present
+        ? matchedRuleId.value
+        : this.matchedRuleId,
+    checkedInAt: checkedInAt ?? this.checkedInAt,
+    editableUntil: editableUntil ?? this.editableUntil,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  CheckIn copyWithCompanion(CheckInsCompanion data) {
+    return CheckIn(
+      id: data.id.present ? data.id.value : this.id,
+      userId: data.userId.present ? data.userId.value : this.userId,
+      habitId: data.habitId.present ? data.habitId.value : this.habitId,
+      habitDate: data.habitDate.present ? data.habitDate.value : this.habitDate,
+      optionId: data.optionId.present ? data.optionId.value : this.optionId,
+      measuredValue: data.measuredValue.present
+          ? data.measuredValue.value
+          : this.measuredValue,
+      note: data.note.present ? data.note.value : this.note,
+      awardedPoints: data.awardedPoints.present
+          ? data.awardedPoints.value
+          : this.awardedPoints,
+      matchedRuleId: data.matchedRuleId.present
+          ? data.matchedRuleId.value
+          : this.matchedRuleId,
+      checkedInAt: data.checkedInAt.present
+          ? data.checkedInAt.value
+          : this.checkedInAt,
+      editableUntil: data.editableUntil.present
+          ? data.editableUntil.value
+          : this.editableUntil,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CheckIn(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('habitId: $habitId, ')
+          ..write('habitDate: $habitDate, ')
+          ..write('optionId: $optionId, ')
+          ..write('measuredValue: $measuredValue, ')
+          ..write('note: $note, ')
+          ..write('awardedPoints: $awardedPoints, ')
+          ..write('matchedRuleId: $matchedRuleId, ')
+          ..write('checkedInAt: $checkedInAt, ')
+          ..write('editableUntil: $editableUntil, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    userId,
+    habitId,
+    habitDate,
+    optionId,
+    measuredValue,
+    note,
+    awardedPoints,
+    matchedRuleId,
+    checkedInAt,
+    editableUntil,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is CheckIn &&
+          other.id == this.id &&
+          other.userId == this.userId &&
+          other.habitId == this.habitId &&
+          other.habitDate == this.habitDate &&
+          other.optionId == this.optionId &&
+          other.measuredValue == this.measuredValue &&
+          other.note == this.note &&
+          other.awardedPoints == this.awardedPoints &&
+          other.matchedRuleId == this.matchedRuleId &&
+          other.checkedInAt == this.checkedInAt &&
+          other.editableUntil == this.editableUntil &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class CheckInsCompanion extends UpdateCompanion<CheckIn> {
+  final Value<String> id;
+  final Value<String> userId;
+  final Value<String> habitId;
+  final Value<DateTime> habitDate;
+  final Value<String?> optionId;
+  final Value<double?> measuredValue;
+  final Value<String?> note;
+  final Value<int> awardedPoints;
+  final Value<String?> matchedRuleId;
+  final Value<DateTime> checkedInAt;
+  final Value<DateTime> editableUntil;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const CheckInsCompanion({
+    this.id = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.habitId = const Value.absent(),
+    this.habitDate = const Value.absent(),
+    this.optionId = const Value.absent(),
+    this.measuredValue = const Value.absent(),
+    this.note = const Value.absent(),
+    this.awardedPoints = const Value.absent(),
+    this.matchedRuleId = const Value.absent(),
+    this.checkedInAt = const Value.absent(),
+    this.editableUntil = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  CheckInsCompanion.insert({
+    this.id = const Value.absent(),
+    required String userId,
+    required String habitId,
+    required DateTime habitDate,
+    this.optionId = const Value.absent(),
+    this.measuredValue = const Value.absent(),
+    this.note = const Value.absent(),
+    required int awardedPoints,
+    this.matchedRuleId = const Value.absent(),
+    required DateTime checkedInAt,
+    required DateTime editableUntil,
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : userId = Value(userId),
+       habitId = Value(habitId),
+       habitDate = Value(habitDate),
+       awardedPoints = Value(awardedPoints),
+       checkedInAt = Value(checkedInAt),
+       editableUntil = Value(editableUntil);
+  static Insertable<CheckIn> custom({
+    Expression<String>? id,
+    Expression<String>? userId,
+    Expression<String>? habitId,
+    Expression<String>? habitDate,
+    Expression<String>? optionId,
+    Expression<double>? measuredValue,
+    Expression<String>? note,
+    Expression<int>? awardedPoints,
+    Expression<String>? matchedRuleId,
+    Expression<DateTime>? checkedInAt,
+    Expression<DateTime>? editableUntil,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (userId != null) 'user_id': userId,
+      if (habitId != null) 'habit_id': habitId,
+      if (habitDate != null) 'habit_date': habitDate,
+      if (optionId != null) 'option_id': optionId,
+      if (measuredValue != null) 'measured_value': measuredValue,
+      if (note != null) 'note': note,
+      if (awardedPoints != null) 'awarded_points': awardedPoints,
+      if (matchedRuleId != null) 'matched_rule_id': matchedRuleId,
+      if (checkedInAt != null) 'checked_in_at': checkedInAt,
+      if (editableUntil != null) 'editable_until': editableUntil,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  CheckInsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? userId,
+    Value<String>? habitId,
+    Value<DateTime>? habitDate,
+    Value<String?>? optionId,
+    Value<double?>? measuredValue,
+    Value<String?>? note,
+    Value<int>? awardedPoints,
+    Value<String?>? matchedRuleId,
+    Value<DateTime>? checkedInAt,
+    Value<DateTime>? editableUntil,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return CheckInsCompanion(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      habitId: habitId ?? this.habitId,
+      habitDate: habitDate ?? this.habitDate,
+      optionId: optionId ?? this.optionId,
+      measuredValue: measuredValue ?? this.measuredValue,
+      note: note ?? this.note,
+      awardedPoints: awardedPoints ?? this.awardedPoints,
+      matchedRuleId: matchedRuleId ?? this.matchedRuleId,
+      checkedInAt: checkedInAt ?? this.checkedInAt,
+      editableUntil: editableUntil ?? this.editableUntil,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (habitId.present) {
+      map['habit_id'] = Variable<String>(habitId.value);
+    }
+    if (habitDate.present) {
+      map['habit_date'] = Variable<String>(
+        $CheckInsTable.$converterhabitDate.toSql(habitDate.value),
+      );
+    }
+    if (optionId.present) {
+      map['option_id'] = Variable<String>(optionId.value);
+    }
+    if (measuredValue.present) {
+      map['measured_value'] = Variable<double>(measuredValue.value);
+    }
+    if (note.present) {
+      map['note'] = Variable<String>(note.value);
+    }
+    if (awardedPoints.present) {
+      map['awarded_points'] = Variable<int>(awardedPoints.value);
+    }
+    if (matchedRuleId.present) {
+      map['matched_rule_id'] = Variable<String>(matchedRuleId.value);
+    }
+    if (checkedInAt.present) {
+      map['checked_in_at'] = Variable<DateTime>(checkedInAt.value);
+    }
+    if (editableUntil.present) {
+      map['editable_until'] = Variable<DateTime>(editableUntil.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CheckInsCompanion(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('habitId: $habitId, ')
+          ..write('habitDate: $habitDate, ')
+          ..write('optionId: $optionId, ')
+          ..write('measuredValue: $measuredValue, ')
+          ..write('note: $note, ')
+          ..write('awardedPoints: $awardedPoints, ')
+          ..write('matchedRuleId: $matchedRuleId, ')
+          ..write('checkedInAt: $checkedInAt, ')
+          ..write('editableUntil: $editableUntil, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -3947,6 +4737,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $HabitOptionsTable habitOptions = $HabitOptionsTable(this);
   late final $HabitSchedulesTable habitSchedules = $HabitSchedulesTable(this);
   late final $PointRulesTable pointRules = $PointRulesTable(this);
+  late final $CheckInsTable checkIns = $CheckInsTable(this);
   late final Index categoriesUserOrderIdx = Index(
     'categories_user_order_idx',
     'CREATE INDEX categories_user_order_idx ON categories (user_id, archived_at, sort_order)',
@@ -3971,6 +4762,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     'point_rules_user_habit_order_idx',
     'CREATE INDEX point_rules_user_habit_order_idx ON point_rules (user_id, habit_id, archived_at, sort_order)',
   );
+  late final Index checkInsUserDateIdx = Index(
+    'check_ins_user_date_idx',
+    'CREATE INDEX check_ins_user_date_idx ON check_ins (user_id, habit_date)',
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -3984,12 +4779,14 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     habitOptions,
     habitSchedules,
     pointRules,
+    checkIns,
     categoriesUserOrderIdx,
     habitsUserOrderIdx,
     habitsCategoryIdx,
     habitOptionsUserHabitOrderIdx,
     habitSchedulesUserHabitIdx,
     pointRulesUserHabitOrderIdx,
+    checkInsUserDateIdx,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -4069,6 +4866,27 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('point_rules', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'local_users',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('check_ins', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'habits',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('check_ins', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'habit_options',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('check_ins', kind: UpdateKind.update)],
     ),
   ]);
 }
@@ -4212,6 +5030,25 @@ final class $$LocalUsersTableReferences
     ).filter((f) => f.userId.id.sqlEquals($_itemColumn<String>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_pointRulesRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$CheckInsTable, List<CheckIn>> _checkInsRefsTable(
+    _$AppDatabase db,
+  ) => MultiTypedResultKey.fromTable(
+    db.checkIns,
+    aliasName: 'local_users__id__check_ins__user_id',
+  );
+
+  $$CheckInsTableProcessedTableManager get checkInsRefs {
+    final manager = $$CheckInsTableTableManager(
+      $_db,
+      $_db.checkIns,
+    ).filter((f) => f.userId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_checkInsRefsTable($_db));
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -4408,6 +5245,31 @@ class $$LocalUsersTableFilterComposer
           }) => $$PointRulesTableFilterComposer(
             $db: $db,
             $table: $db.pointRules,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> checkInsRefs(
+    Expression<bool> Function($$CheckInsTableFilterComposer f) f,
+  ) {
+    final $$CheckInsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.checkIns,
+      getReferencedColumn: (t) => t.userId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CheckInsTableFilterComposer(
+            $db: $db,
+            $table: $db.checkIns,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -4635,6 +5497,31 @@ class $$LocalUsersTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> checkInsRefs<T extends Object>(
+    Expression<T> Function($$CheckInsTableAnnotationComposer a) f,
+  ) {
+    final $$CheckInsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.checkIns,
+      getReferencedColumn: (t) => t.userId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CheckInsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.checkIns,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$LocalUsersTableTableManager
@@ -4658,6 +5545,7 @@ class $$LocalUsersTableTableManager
             bool habitOptionsRefs,
             bool habitSchedulesRefs,
             bool pointRulesRefs,
+            bool checkInsRefs,
           })
         > {
   $$LocalUsersTableTableManager(_$AppDatabase db, $LocalUsersTable table)
@@ -4712,6 +5600,7 @@ class $$LocalUsersTableTableManager
                 habitOptionsRefs = false,
                 habitSchedulesRefs = false,
                 pointRulesRefs = false,
+                checkInsRefs = false,
               }) {
                 return PrefetchHooks(
                   db: db,
@@ -4723,6 +5612,7 @@ class $$LocalUsersTableTableManager
                     if (habitOptionsRefs) db.habitOptions,
                     if (habitSchedulesRefs) db.habitSchedules,
                     if (pointRulesRefs) db.pointRules,
+                    if (checkInsRefs) db.checkIns,
                   ],
                   addJoins: null,
                   getPrefetchedDataCallback: (items) async {
@@ -4874,6 +5764,27 @@ class $$LocalUsersTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (checkInsRefs)
+                        await $_getPrefetchedData<
+                          LocalUser,
+                          $LocalUsersTable,
+                          CheckIn
+                        >(
+                          currentTable: table,
+                          referencedTable: $$LocalUsersTableReferences
+                              ._checkInsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$LocalUsersTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).checkInsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.userId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -4902,6 +5813,7 @@ typedef $$LocalUsersTableProcessedTableManager =
         bool habitOptionsRefs,
         bool habitSchedulesRefs,
         bool pointRulesRefs,
+        bool checkInsRefs,
       })
     >;
 typedef $$SyncQueueTableCreateCompanionBuilder = SyncQueueCompanion Function({
@@ -6184,6 +7096,25 @@ final class $$HabitsTableReferences
       manager.$state.copyWith(prefetchedData: cache),
     );
   }
+
+  static MultiTypedResultKey<$CheckInsTable, List<CheckIn>> _checkInsRefsTable(
+    _$AppDatabase db,
+  ) => MultiTypedResultKey.fromTable(
+    db.checkIns,
+    aliasName: 'habits__id__check_ins__habit_id',
+  );
+
+  $$CheckInsTableProcessedTableManager get checkInsRefs {
+    final manager = $$CheckInsTableTableManager(
+      $_db,
+      $_db.checkIns,
+    ).filter((f) => f.habitId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_checkInsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $$HabitsTableFilterComposer
@@ -6343,6 +7274,31 @@ class $$HabitsTableFilterComposer
           }) => $$PointRulesTableFilterComposer(
             $db: $db,
             $table: $db.pointRules,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> checkInsRefs(
+    Expression<bool> Function($$CheckInsTableFilterComposer f) f,
+  ) {
+    final $$CheckInsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.checkIns,
+      getReferencedColumn: (t) => t.habitId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CheckInsTableFilterComposer(
+            $db: $db,
+            $table: $db.checkIns,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -6599,6 +7555,31 @@ class $$HabitsTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> checkInsRefs<T extends Object>(
+    Expression<T> Function($$CheckInsTableAnnotationComposer a) f,
+  ) {
+    final $$CheckInsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.checkIns,
+      getReferencedColumn: (t) => t.habitId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CheckInsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.checkIns,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$HabitsTableTableManager
@@ -6620,6 +7601,7 @@ class $$HabitsTableTableManager
             bool habitOptionsRefs,
             bool habitSchedulesRefs,
             bool pointRulesRefs,
+            bool checkInsRefs,
           })
         > {
   $$HabitsTableTableManager(_$AppDatabase db, $HabitsTable table)
@@ -6696,6 +7678,7 @@ class $$HabitsTableTableManager
                 habitOptionsRefs = false,
                 habitSchedulesRefs = false,
                 pointRulesRefs = false,
+                checkInsRefs = false,
               }) {
                 return PrefetchHooks(
                   db: db,
@@ -6703,6 +7686,7 @@ class $$HabitsTableTableManager
                     if (habitOptionsRefs) db.habitOptions,
                     if (habitSchedulesRefs) db.habitSchedules,
                     if (pointRulesRefs) db.pointRules,
+                    if (checkInsRefs) db.checkIns,
                   ],
                   addJoins:
                       <
@@ -6810,6 +7794,23 @@ class $$HabitsTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (checkInsRefs)
+                        await $_getPrefetchedData<Habit, $HabitsTable, CheckIn>(
+                          currentTable: table,
+                          referencedTable: $$HabitsTableReferences
+                              ._checkInsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$HabitsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).checkInsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.habitId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -6836,6 +7837,7 @@ typedef $$HabitsTableProcessedTableManager =
         bool habitOptionsRefs,
         bool habitSchedulesRefs,
         bool pointRulesRefs,
+        bool checkInsRefs,
       })
     >;
 typedef $$HabitOptionsTableCreateCompanionBuilder =
@@ -6900,6 +7902,25 @@ final class $$HabitOptionsTableReferences
     if (item == null) return manager;
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static MultiTypedResultKey<$CheckInsTable, List<CheckIn>> _checkInsRefsTable(
+    _$AppDatabase db,
+  ) => MultiTypedResultKey.fromTable(
+    db.checkIns,
+    aliasName: 'habit_options__id__check_ins__option_id',
+  );
+
+  $$CheckInsTableProcessedTableManager get checkInsRefs {
+    final manager = $$CheckInsTableTableManager(
+      $_db,
+      $_db.checkIns,
+    ).filter((f) => f.optionId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_checkInsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
     );
   }
 }
@@ -6992,6 +8013,31 @@ class $$HabitOptionsTableFilterComposer
           ),
     );
     return composer;
+  }
+
+  Expression<bool> checkInsRefs(
+    Expression<bool> Function($$CheckInsTableFilterComposer f) f,
+  ) {
+    final $$CheckInsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.checkIns,
+      getReferencedColumn: (t) => t.optionId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CheckInsTableFilterComposer(
+            $db: $db,
+            $table: $db.checkIns,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
   }
 }
 
@@ -7165,6 +8211,31 @@ class $$HabitOptionsTableAnnotationComposer
     );
     return composer;
   }
+
+  Expression<T> checkInsRefs<T extends Object>(
+    Expression<T> Function($$CheckInsTableAnnotationComposer a) f,
+  ) {
+    final $$CheckInsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.checkIns,
+      getReferencedColumn: (t) => t.optionId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CheckInsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.checkIns,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$HabitOptionsTableTableManager
@@ -7180,7 +8251,7 @@ class $$HabitOptionsTableTableManager
           $$HabitOptionsTableUpdateCompanionBuilder,
           (HabitOption, $$HabitOptionsTableReferences),
           HabitOption,
-          PrefetchHooks Function({bool userId, bool habitId})
+          PrefetchHooks Function({bool userId, bool habitId, bool checkInsRefs})
         > {
   $$HabitOptionsTableTableManager(_$AppDatabase db, $HabitOptionsTable table)
     : super(
@@ -7249,56 +8320,79 @@ class $$HabitOptionsTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({userId = false, habitId = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [],
-              addJoins:
-                  <
-                    T extends TableManagerState<
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic
-                    >
-                  >(state) {
-                    if (userId) {
-                      state = state.withJoin(
-                        currentTable: table,
-                        currentColumn: table.userId,
-                        referencedTable: $$HabitOptionsTableReferences
-                            ._userIdTable(db),
-                        referencedColumn: $$HabitOptionsTableReferences
-                            ._userIdTable(db)
-                            .id,
-                      ) as T;
-                    }
-                    if (habitId) {
-                      state = state.withJoin(
-                        currentTable: table,
-                        currentColumn: table.habitId,
-                        referencedTable: $$HabitOptionsTableReferences
-                            ._habitIdTable(db),
-                        referencedColumn: $$HabitOptionsTableReferences
-                            ._habitIdTable(db)
-                            .id,
-                      ) as T;
-                    }
+          prefetchHooksCallback:
+              ({userId = false, habitId = false, checkInsRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [if (checkInsRefs) db.checkIns],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (userId) {
+                          state = state.withJoin(
+                            currentTable: table,
+                            currentColumn: table.userId,
+                            referencedTable: $$HabitOptionsTableReferences
+                                ._userIdTable(db),
+                            referencedColumn: $$HabitOptionsTableReferences
+                                ._userIdTable(db)
+                                .id,
+                          ) as T;
+                        }
+                        if (habitId) {
+                          state = state.withJoin(
+                            currentTable: table,
+                            currentColumn: table.habitId,
+                            referencedTable: $$HabitOptionsTableReferences
+                                ._habitIdTable(db),
+                            referencedColumn: $$HabitOptionsTableReferences
+                                ._habitIdTable(db)
+                                .id,
+                          ) as T;
+                        }
 
-                    return state;
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (checkInsRefs)
+                        await $_getPrefetchedData<
+                          HabitOption,
+                          $HabitOptionsTable,
+                          CheckIn
+                        >(
+                          currentTable: table,
+                          referencedTable: $$HabitOptionsTableReferences
+                              ._checkInsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$HabitOptionsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).checkInsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.optionId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
                   },
-              getPrefetchedDataCallback: (items) async {
-                return [];
+                );
               },
-            );
-          },
         ),
       );
 }
@@ -7315,7 +8409,7 @@ typedef $$HabitOptionsTableProcessedTableManager =
       $$HabitOptionsTableUpdateCompanionBuilder,
       (HabitOption, $$HabitOptionsTableReferences),
       HabitOption,
-      PrefetchHooks Function({bool userId, bool habitId})
+      PrefetchHooks Function({bool userId, bool habitId, bool checkInsRefs})
     >;
 typedef $$HabitSchedulesTableCreateCompanionBuilder =
     HabitSchedulesCompanion Function({
@@ -7832,6 +8926,25 @@ final class $$PointRulesTableReferences
       manager.$state.copyWith(prefetchedData: [item]),
     );
   }
+
+  static MultiTypedResultKey<$CheckInsTable, List<CheckIn>> _checkInsRefsTable(
+    _$AppDatabase db,
+  ) => MultiTypedResultKey.fromTable(
+    db.checkIns,
+    aliasName: 'point_rules__id__check_ins__matched_rule_id',
+  );
+
+  $$CheckInsTableProcessedTableManager get checkInsRefs {
+    final manager = $$CheckInsTableTableManager(
+      $_db,
+      $_db.checkIns,
+    ).filter((f) => f.matchedRuleId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_checkInsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $$PointRulesTableFilterComposer
@@ -7933,6 +9046,31 @@ class $$PointRulesTableFilterComposer
           ),
     );
     return composer;
+  }
+
+  Expression<bool> checkInsRefs(
+    Expression<bool> Function($$CheckInsTableFilterComposer f) f,
+  ) {
+    final $$CheckInsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.checkIns,
+      getReferencedColumn: (t) => t.matchedRuleId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CheckInsTableFilterComposer(
+            $db: $db,
+            $table: $db.checkIns,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
   }
 }
 
@@ -8120,6 +9258,31 @@ class $$PointRulesTableAnnotationComposer
     );
     return composer;
   }
+
+  Expression<T> checkInsRefs<T extends Object>(
+    Expression<T> Function($$CheckInsTableAnnotationComposer a) f,
+  ) {
+    final $$CheckInsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.checkIns,
+      getReferencedColumn: (t) => t.matchedRuleId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CheckInsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.checkIns,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$PointRulesTableTableManager
@@ -8135,7 +9298,7 @@ class $$PointRulesTableTableManager
           $$PointRulesTableUpdateCompanionBuilder,
           (PointRule, $$PointRulesTableReferences),
           PointRule,
-          PrefetchHooks Function({bool userId, bool habitId})
+          PrefetchHooks Function({bool userId, bool habitId, bool checkInsRefs})
         > {
   $$PointRulesTableTableManager(_$AppDatabase db, $PointRulesTable table)
     : super(
@@ -8212,56 +9375,79 @@ class $$PointRulesTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({userId = false, habitId = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [],
-              addJoins:
-                  <
-                    T extends TableManagerState<
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic
-                    >
-                  >(state) {
-                    if (userId) {
-                      state = state.withJoin(
-                        currentTable: table,
-                        currentColumn: table.userId,
-                        referencedTable: $$PointRulesTableReferences
-                            ._userIdTable(db),
-                        referencedColumn: $$PointRulesTableReferences
-                            ._userIdTable(db)
-                            .id,
-                      ) as T;
-                    }
-                    if (habitId) {
-                      state = state.withJoin(
-                        currentTable: table,
-                        currentColumn: table.habitId,
-                        referencedTable: $$PointRulesTableReferences
-                            ._habitIdTable(db),
-                        referencedColumn: $$PointRulesTableReferences
-                            ._habitIdTable(db)
-                            .id,
-                      ) as T;
-                    }
+          prefetchHooksCallback:
+              ({userId = false, habitId = false, checkInsRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [if (checkInsRefs) db.checkIns],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (userId) {
+                          state = state.withJoin(
+                            currentTable: table,
+                            currentColumn: table.userId,
+                            referencedTable: $$PointRulesTableReferences
+                                ._userIdTable(db),
+                            referencedColumn: $$PointRulesTableReferences
+                                ._userIdTable(db)
+                                .id,
+                          ) as T;
+                        }
+                        if (habitId) {
+                          state = state.withJoin(
+                            currentTable: table,
+                            currentColumn: table.habitId,
+                            referencedTable: $$PointRulesTableReferences
+                                ._habitIdTable(db),
+                            referencedColumn: $$PointRulesTableReferences
+                                ._habitIdTable(db)
+                                .id,
+                          ) as T;
+                        }
 
-                    return state;
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (checkInsRefs)
+                        await $_getPrefetchedData<
+                          PointRule,
+                          $PointRulesTable,
+                          CheckIn
+                        >(
+                          currentTable: table,
+                          referencedTable: $$PointRulesTableReferences
+                              ._checkInsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$PointRulesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).checkInsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.matchedRuleId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
                   },
-              getPrefetchedDataCallback: (items) async {
-                return [];
+                );
               },
-            );
-          },
         ),
       );
 }
@@ -8278,7 +9464,749 @@ typedef $$PointRulesTableProcessedTableManager =
       $$PointRulesTableUpdateCompanionBuilder,
       (PointRule, $$PointRulesTableReferences),
       PointRule,
-      PrefetchHooks Function({bool userId, bool habitId})
+      PrefetchHooks Function({bool userId, bool habitId, bool checkInsRefs})
+    >;
+typedef $$CheckInsTableCreateCompanionBuilder = CheckInsCompanion Function({
+  Value<String> id,
+  required String userId,
+  required String habitId,
+  required DateTime habitDate,
+  Value<String?> optionId,
+  Value<double?> measuredValue,
+  Value<String?> note,
+  required int awardedPoints,
+  Value<String?> matchedRuleId,
+  required DateTime checkedInAt,
+  required DateTime editableUntil,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<int> rowid,
+});
+typedef $$CheckInsTableUpdateCompanionBuilder = CheckInsCompanion Function({
+  Value<String> id,
+  Value<String> userId,
+  Value<String> habitId,
+  Value<DateTime> habitDate,
+  Value<String?> optionId,
+  Value<double?> measuredValue,
+  Value<String?> note,
+  Value<int> awardedPoints,
+  Value<String?> matchedRuleId,
+  Value<DateTime> checkedInAt,
+  Value<DateTime> editableUntil,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<int> rowid,
+});
+
+final class $$CheckInsTableReferences
+    extends BaseReferences<_$AppDatabase, $CheckInsTable, CheckIn> {
+  $$CheckInsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $LocalUsersTable _userIdTable(_$AppDatabase db) =>
+      db.localUsers.createAlias('check_ins__user_id__local_users__id');
+
+  $$LocalUsersTableProcessedTableManager get userId {
+    final $_column = $_itemColumn<String>('user_id')!;
+
+    final manager = $$LocalUsersTableTableManager(
+      $_db,
+      $_db.localUsers,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_userIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $HabitsTable _habitIdTable(_$AppDatabase db) =>
+      db.habits.createAlias('check_ins__habit_id__habits__id');
+
+  $$HabitsTableProcessedTableManager get habitId {
+    final $_column = $_itemColumn<String>('habit_id')!;
+
+    final manager = $$HabitsTableTableManager(
+      $_db,
+      $_db.habits,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_habitIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $HabitOptionsTable _optionIdTable(_$AppDatabase db) =>
+      db.habitOptions.createAlias('check_ins__option_id__habit_options__id');
+
+  $$HabitOptionsTableProcessedTableManager? get optionId {
+    final $_column = $_itemColumn<String>('option_id');
+    if ($_column == null) return null;
+    final manager = $$HabitOptionsTableTableManager(
+      $_db,
+      $_db.habitOptions,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_optionIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $PointRulesTable _matchedRuleIdTable(_$AppDatabase db) =>
+      db.pointRules.createAlias('check_ins__matched_rule_id__point_rules__id');
+
+  $$PointRulesTableProcessedTableManager? get matchedRuleId {
+    final $_column = $_itemColumn<String>('matched_rule_id');
+    if ($_column == null) return null;
+    final manager = $$PointRulesTableTableManager(
+      $_db,
+      $_db.pointRules,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_matchedRuleIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$CheckInsTableFilterComposer
+    extends Composer<_$AppDatabase, $CheckInsTable> {
+  $$CheckInsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<DateTime, DateTime, String> get habitDate =>
+      $composableBuilder(
+        column: $table.habitDate,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnFilters<double> get measuredValue => $composableBuilder(
+    column: $table.measuredValue,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get awardedPoints => $composableBuilder(
+    column: $table.awardedPoints,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get checkedInAt => $composableBuilder(
+    column: $table.checkedInAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get editableUntil => $composableBuilder(
+    column: $table.editableUntil,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$LocalUsersTableFilterComposer get userId {
+    final $$LocalUsersTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userId,
+      referencedTable: $db.localUsers,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalUsersTableFilterComposer(
+            $db: $db,
+            $table: $db.localUsers,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$HabitsTableFilterComposer get habitId {
+    final $$HabitsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.habitId,
+      referencedTable: $db.habits,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$HabitsTableFilterComposer(
+            $db: $db,
+            $table: $db.habits,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$HabitOptionsTableFilterComposer get optionId {
+    final $$HabitOptionsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.optionId,
+      referencedTable: $db.habitOptions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$HabitOptionsTableFilterComposer(
+            $db: $db,
+            $table: $db.habitOptions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$PointRulesTableFilterComposer get matchedRuleId {
+    final $$PointRulesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.matchedRuleId,
+      referencedTable: $db.pointRules,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PointRulesTableFilterComposer(
+            $db: $db,
+            $table: $db.pointRules,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$CheckInsTableOrderingComposer
+    extends Composer<_$AppDatabase, $CheckInsTable> {
+  $$CheckInsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get habitDate => $composableBuilder(
+    column: $table.habitDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get measuredValue => $composableBuilder(
+    column: $table.measuredValue,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get awardedPoints => $composableBuilder(
+    column: $table.awardedPoints,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get checkedInAt => $composableBuilder(
+    column: $table.checkedInAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get editableUntil => $composableBuilder(
+    column: $table.editableUntil,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$LocalUsersTableOrderingComposer get userId {
+    final $$LocalUsersTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userId,
+      referencedTable: $db.localUsers,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalUsersTableOrderingComposer(
+            $db: $db,
+            $table: $db.localUsers,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$HabitsTableOrderingComposer get habitId {
+    final $$HabitsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.habitId,
+      referencedTable: $db.habits,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$HabitsTableOrderingComposer(
+            $db: $db,
+            $table: $db.habits,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$HabitOptionsTableOrderingComposer get optionId {
+    final $$HabitOptionsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.optionId,
+      referencedTable: $db.habitOptions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$HabitOptionsTableOrderingComposer(
+            $db: $db,
+            $table: $db.habitOptions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$PointRulesTableOrderingComposer get matchedRuleId {
+    final $$PointRulesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.matchedRuleId,
+      referencedTable: $db.pointRules,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PointRulesTableOrderingComposer(
+            $db: $db,
+            $table: $db.pointRules,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$CheckInsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $CheckInsTable> {
+  $$CheckInsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<DateTime, String> get habitDate =>
+      $composableBuilder(column: $table.habitDate, builder: (column) => column);
+
+  GeneratedColumn<double> get measuredValue => $composableBuilder(
+    column: $table.measuredValue,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get note =>
+      $composableBuilder(column: $table.note, builder: (column) => column);
+
+  GeneratedColumn<int> get awardedPoints => $composableBuilder(
+    column: $table.awardedPoints,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get checkedInAt => $composableBuilder(
+    column: $table.checkedInAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get editableUntil => $composableBuilder(
+    column: $table.editableUntil,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  $$LocalUsersTableAnnotationComposer get userId {
+    final $$LocalUsersTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userId,
+      referencedTable: $db.localUsers,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalUsersTableAnnotationComposer(
+            $db: $db,
+            $table: $db.localUsers,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$HabitsTableAnnotationComposer get habitId {
+    final $$HabitsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.habitId,
+      referencedTable: $db.habits,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$HabitsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.habits,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$HabitOptionsTableAnnotationComposer get optionId {
+    final $$HabitOptionsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.optionId,
+      referencedTable: $db.habitOptions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$HabitOptionsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.habitOptions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$PointRulesTableAnnotationComposer get matchedRuleId {
+    final $$PointRulesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.matchedRuleId,
+      referencedTable: $db.pointRules,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PointRulesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.pointRules,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$CheckInsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $CheckInsTable,
+          CheckIn,
+          $$CheckInsTableFilterComposer,
+          $$CheckInsTableOrderingComposer,
+          $$CheckInsTableAnnotationComposer,
+          $$CheckInsTableCreateCompanionBuilder,
+          $$CheckInsTableUpdateCompanionBuilder,
+          (CheckIn, $$CheckInsTableReferences),
+          CheckIn,
+          PrefetchHooks Function({
+            bool userId,
+            bool habitId,
+            bool optionId,
+            bool matchedRuleId,
+          })
+        > {
+  $$CheckInsTableTableManager(_$AppDatabase db, $CheckInsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$CheckInsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$CheckInsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$CheckInsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> userId = const Value.absent(),
+                Value<String> habitId = const Value.absent(),
+                Value<DateTime> habitDate = const Value.absent(),
+                Value<String?> optionId = const Value.absent(),
+                Value<double?> measuredValue = const Value.absent(),
+                Value<String?> note = const Value.absent(),
+                Value<int> awardedPoints = const Value.absent(),
+                Value<String?> matchedRuleId = const Value.absent(),
+                Value<DateTime> checkedInAt = const Value.absent(),
+                Value<DateTime> editableUntil = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => CheckInsCompanion(
+                id: id,
+                userId: userId,
+                habitId: habitId,
+                habitDate: habitDate,
+                optionId: optionId,
+                measuredValue: measuredValue,
+                note: note,
+                awardedPoints: awardedPoints,
+                matchedRuleId: matchedRuleId,
+                checkedInAt: checkedInAt,
+                editableUntil: editableUntil,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                required String userId,
+                required String habitId,
+                required DateTime habitDate,
+                Value<String?> optionId = const Value.absent(),
+                Value<double?> measuredValue = const Value.absent(),
+                Value<String?> note = const Value.absent(),
+                required int awardedPoints,
+                Value<String?> matchedRuleId = const Value.absent(),
+                required DateTime checkedInAt,
+                required DateTime editableUntil,
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => CheckInsCompanion.insert(
+                id: id,
+                userId: userId,
+                habitId: habitId,
+                habitDate: habitDate,
+                optionId: optionId,
+                measuredValue: measuredValue,
+                note: note,
+                awardedPoints: awardedPoints,
+                matchedRuleId: matchedRuleId,
+                checkedInAt: checkedInAt,
+                editableUntil: editableUntil,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$CheckInsTable, CheckIn>(table),
+                  $$CheckInsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback:
+              ({
+                userId = false,
+                habitId = false,
+                optionId = false,
+                matchedRuleId = false,
+              }) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (userId) {
+                          state = state.withJoin(
+                            currentTable: table,
+                            currentColumn: table.userId,
+                            referencedTable: $$CheckInsTableReferences
+                                ._userIdTable(db),
+                            referencedColumn: $$CheckInsTableReferences
+                                ._userIdTable(db)
+                                .id,
+                          ) as T;
+                        }
+                        if (habitId) {
+                          state = state.withJoin(
+                            currentTable: table,
+                            currentColumn: table.habitId,
+                            referencedTable: $$CheckInsTableReferences
+                                ._habitIdTable(db),
+                            referencedColumn: $$CheckInsTableReferences
+                                ._habitIdTable(db)
+                                .id,
+                          ) as T;
+                        }
+                        if (optionId) {
+                          state = state.withJoin(
+                            currentTable: table,
+                            currentColumn: table.optionId,
+                            referencedTable: $$CheckInsTableReferences
+                                ._optionIdTable(db),
+                            referencedColumn: $$CheckInsTableReferences
+                                ._optionIdTable(db)
+                                .id,
+                          ) as T;
+                        }
+                        if (matchedRuleId) {
+                          state = state.withJoin(
+                            currentTable: table,
+                            currentColumn: table.matchedRuleId,
+                            referencedTable: $$CheckInsTableReferences
+                                ._matchedRuleIdTable(db),
+                            referencedColumn: $$CheckInsTableReferences
+                                ._matchedRuleIdTable(db)
+                                .id,
+                          ) as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $$CheckInsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $CheckInsTable,
+      CheckIn,
+      $$CheckInsTableFilterComposer,
+      $$CheckInsTableOrderingComposer,
+      $$CheckInsTableAnnotationComposer,
+      $$CheckInsTableCreateCompanionBuilder,
+      $$CheckInsTableUpdateCompanionBuilder,
+      (CheckIn, $$CheckInsTableReferences),
+      CheckIn,
+      PrefetchHooks Function({
+        bool userId,
+        bool habitId,
+        bool optionId,
+        bool matchedRuleId,
+      })
     >;
 
 class $AppDatabaseManager {
@@ -8300,4 +10228,6 @@ class $AppDatabaseManager {
       $$HabitSchedulesTableTableManager(_db, _db.habitSchedules);
   $$PointRulesTableTableManager get pointRules =>
       $$PointRulesTableTableManager(_db, _db.pointRules);
+  $$CheckInsTableTableManager get checkIns =>
+      $$CheckInsTableTableManager(_db, _db.checkIns);
 }
