@@ -11,18 +11,18 @@ void main() {
 
   tearDown(() => database.close());
 
-  test('initializes the version 5 local schema', () async {
+  test('initializes the version 6 local schema', () async {
     final tables = await database
         .customSelect(
           "SELECT name FROM sqlite_master "
           "WHERE type = 'table' AND name IN "
           "('local_users', 'sync_queue', 'sync_metadata', "
           "'categories', 'habits', 'habit_options', 'habit_schedules', "
-          "'point_rules', 'check_ins')",
+          "'point_rules', 'check_ins', 'point_ledger')",
         )
         .get();
 
-    expect(database.schemaVersion, 5);
+    expect(database.schemaVersion, 6);
     expect(tables.map((row) => row.read<String>('name')).toSet(), {
       'local_users',
       'sync_queue',
@@ -33,6 +33,7 @@ void main() {
       'habit_schedules',
       'point_rules',
       'check_ins',
+      'point_ledger',
     });
   });
 
@@ -83,7 +84,8 @@ void main() {
           "'habit_options_user_habit_order_idx', "
           "'habit_schedules_user_habit_idx', 'point_rules', "
           "'point_rules_user_habit_order_idx', 'check_ins', "
-          "'check_ins_user_date_idx')",
+          "'check_ins_user_date_idx', 'point_ledger', "
+          "'point_ledger_user_created_idx')",
         )
         .get();
 
@@ -101,6 +103,8 @@ void main() {
       'point_rules_user_habit_order_idx',
       'check_ins',
       'check_ins_user_date_idx',
+      'point_ledger',
+      'point_ledger_user_created_idx',
     });
   });
 }

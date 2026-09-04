@@ -107,7 +107,10 @@ void main() {
     expect(await checkIns.listForDate(userId, created.habitDate), hasLength(1));
 
     final queue = await database.select(database.syncQueue).get();
-    expect(queue.map((item) => item.entityType).toSet(), {'check_in'});
+    expect(queue.map((item) => item.entityType).toSet(), {
+      'check_in',
+      'point_ledger',
+    });
     expect(queue.map((item) => item.operation).toSet(), {'create', 'update'});
   });
 

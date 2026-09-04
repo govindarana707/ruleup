@@ -2,19 +2,23 @@ import 'package:drift/drift.dart';
 import 'package:ruleup/core/database/app_database.dart';
 import 'package:ruleup/core/database/tables/check_ins.dart';
 import 'package:ruleup/core/sync/sync_service.dart';
+import 'package:ruleup/features/points/data/point_ledger_repository.dart';
 import 'package:ruleup/features/points/domain/point_rule_evaluator.dart';
 
 class CheckInRepository {
   CheckInRepository(
     this._database,
     this._sync, {
+    PointLedgerRepository? pointLedger,
     PointRuleEvaluator? evaluator,
     DateTime Function()? now,
-  }) : _evaluator = evaluator ?? const PointRuleEvaluator(),
+  }) : _pointLedger = pointLedger ?? PointLedgerRepository(_database, _sync),
+       _evaluator = evaluator ?? const PointRuleEvaluator(),
        _now = now ?? DateTime.now;
 
   final AppDatabase _database;
   final SyncService _sync;
+  final PointLedgerRepository _pointLedger;
   final PointRuleEvaluator _evaluator;
   final DateTime Function() _now;
 
@@ -57,6 +61,7 @@ class CheckInRepository {
           ),
         );
     await _enqueue(checkIn, 'create');
+    await _pointLedger.reconcileCheckIn(userId: userId, checkInId: checkIn.id);
     return checkIn;
   });
 
@@ -137,6 +142,7 @@ class CheckInRepository {
     );
     final updated = await getById(userId, id);
     await _enqueue(updated!, 'update');
+    await _pointLedger.reconcileCheckIn(userId: userId, checkInId: updated.id);
     return updated;
   });
 

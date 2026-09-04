@@ -4726,6 +4726,469 @@ class CheckInsCompanion extends UpdateCompanion<CheckIn> {
   }
 }
 
+class $PointLedgerTable extends PointLedger
+    with TableInfo<$PointLedgerTable, PointLedgerData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PointLedgerTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    clientDefault: createDatabaseUuid,
+  );
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+    'user_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES local_users (id) ON DELETE CASCADE',
+    ),
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<PointLedgerSourceType, String>
+  sourceType =
+      GeneratedColumn<String>(
+        'source_type',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<PointLedgerSourceType>(
+        $PointLedgerTable.$convertersourceType,
+      );
+  static const VerificationMeta _sourceIdMeta = const VerificationMeta(
+    'sourceId',
+  );
+  @override
+  late final GeneratedColumn<String> sourceId = GeneratedColumn<String>(
+    'source_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _pointsMeta = const VerificationMeta('points');
+  @override
+  late final GeneratedColumn<int> points = GeneratedColumn<int>(
+    'points',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _reasonMeta = const VerificationMeta('reason');
+  @override
+  late final GeneratedColumn<String> reason = GeneratedColumn<String>(
+    'reason',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    userId,
+    sourceType,
+    sourceId,
+    points,
+    reason,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'point_ledger';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<PointLedgerData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(
+        _userIdMeta,
+        userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
+    if (data.containsKey('source_id')) {
+      context.handle(
+        _sourceIdMeta,
+        sourceId.isAcceptableOrUnknown(data['source_id']!, _sourceIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sourceIdMeta);
+    }
+    if (data.containsKey('points')) {
+      context.handle(
+        _pointsMeta,
+        points.isAcceptableOrUnknown(data['points']!, _pointsMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_pointsMeta);
+    }
+    if (data.containsKey('reason')) {
+      context.handle(
+        _reasonMeta,
+        reason.isAcceptableOrUnknown(data['reason']!, _reasonMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+    {userId, sourceType, sourceId},
+  ];
+  @override
+  PointLedgerData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return PointLedgerData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      userId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}user_id'],
+      )!,
+      sourceType: $PointLedgerTable.$convertersourceType.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}source_type'],
+        )!,
+      ),
+      sourceId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source_id'],
+      )!,
+      points: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}points'],
+      )!,
+      reason: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}reason'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $PointLedgerTable createAlias(String alias) {
+    return $PointLedgerTable(attachedDatabase, alias);
+  }
+
+  static TypeConverter<PointLedgerSourceType, String> $convertersourceType =
+      const PointLedgerSourceTypeConverter();
+}
+
+class PointLedgerData extends DataClass implements Insertable<PointLedgerData> {
+  final String id;
+  final String userId;
+  final PointLedgerSourceType sourceType;
+  final String sourceId;
+  final int points;
+  final String? reason;
+  final DateTime createdAt;
+  const PointLedgerData({
+    required this.id,
+    required this.userId,
+    required this.sourceType,
+    required this.sourceId,
+    required this.points,
+    this.reason,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['user_id'] = Variable<String>(userId);
+    {
+      map['source_type'] = Variable<String>(
+        $PointLedgerTable.$convertersourceType.toSql(sourceType),
+      );
+    }
+    map['source_id'] = Variable<String>(sourceId);
+    map['points'] = Variable<int>(points);
+    if (!nullToAbsent || reason != null) {
+      map['reason'] = Variable<String>(reason);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  PointLedgerCompanion toCompanion(bool nullToAbsent) {
+    return PointLedgerCompanion(
+      id: Value(id),
+      userId: Value(userId),
+      sourceType: Value(sourceType),
+      sourceId: Value(sourceId),
+      points: Value(points),
+      reason: reason == null && nullToAbsent
+          ? const Value.absent()
+          : Value(reason),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory PointLedgerData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return PointLedgerData(
+      id: serializer.fromJson<String>(json['id']),
+      userId: serializer.fromJson<String>(json['userId']),
+      sourceType: serializer.fromJson<PointLedgerSourceType>(
+        json['sourceType'],
+      ),
+      sourceId: serializer.fromJson<String>(json['sourceId']),
+      points: serializer.fromJson<int>(json['points']),
+      reason: serializer.fromJson<String?>(json['reason']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'userId': serializer.toJson<String>(userId),
+      'sourceType': serializer.toJson<PointLedgerSourceType>(sourceType),
+      'sourceId': serializer.toJson<String>(sourceId),
+      'points': serializer.toJson<int>(points),
+      'reason': serializer.toJson<String?>(reason),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  PointLedgerData copyWith({
+    String? id,
+    String? userId,
+    PointLedgerSourceType? sourceType,
+    String? sourceId,
+    int? points,
+    Value<String?> reason = const Value.absent(),
+    DateTime? createdAt,
+  }) => PointLedgerData(
+    id: id ?? this.id,
+    userId: userId ?? this.userId,
+    sourceType: sourceType ?? this.sourceType,
+    sourceId: sourceId ?? this.sourceId,
+    points: points ?? this.points,
+    reason: reason.present ? reason.value : this.reason,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  PointLedgerData copyWithCompanion(PointLedgerCompanion data) {
+    return PointLedgerData(
+      id: data.id.present ? data.id.value : this.id,
+      userId: data.userId.present ? data.userId.value : this.userId,
+      sourceType: data.sourceType.present
+          ? data.sourceType.value
+          : this.sourceType,
+      sourceId: data.sourceId.present ? data.sourceId.value : this.sourceId,
+      points: data.points.present ? data.points.value : this.points,
+      reason: data.reason.present ? data.reason.value : this.reason,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PointLedgerData(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('sourceType: $sourceType, ')
+          ..write('sourceId: $sourceId, ')
+          ..write('points: $points, ')
+          ..write('reason: $reason, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, userId, sourceType, sourceId, points, reason, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is PointLedgerData &&
+          other.id == this.id &&
+          other.userId == this.userId &&
+          other.sourceType == this.sourceType &&
+          other.sourceId == this.sourceId &&
+          other.points == this.points &&
+          other.reason == this.reason &&
+          other.createdAt == this.createdAt);
+}
+
+class PointLedgerCompanion extends UpdateCompanion<PointLedgerData> {
+  final Value<String> id;
+  final Value<String> userId;
+  final Value<PointLedgerSourceType> sourceType;
+  final Value<String> sourceId;
+  final Value<int> points;
+  final Value<String?> reason;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const PointLedgerCompanion({
+    this.id = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.sourceType = const Value.absent(),
+    this.sourceId = const Value.absent(),
+    this.points = const Value.absent(),
+    this.reason = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  PointLedgerCompanion.insert({
+    this.id = const Value.absent(),
+    required String userId,
+    required PointLedgerSourceType sourceType,
+    required String sourceId,
+    required int points,
+    this.reason = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : userId = Value(userId),
+       sourceType = Value(sourceType),
+       sourceId = Value(sourceId),
+       points = Value(points);
+  static Insertable<PointLedgerData> custom({
+    Expression<String>? id,
+    Expression<String>? userId,
+    Expression<String>? sourceType,
+    Expression<String>? sourceId,
+    Expression<int>? points,
+    Expression<String>? reason,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (userId != null) 'user_id': userId,
+      if (sourceType != null) 'source_type': sourceType,
+      if (sourceId != null) 'source_id': sourceId,
+      if (points != null) 'points': points,
+      if (reason != null) 'reason': reason,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  PointLedgerCompanion copyWith({
+    Value<String>? id,
+    Value<String>? userId,
+    Value<PointLedgerSourceType>? sourceType,
+    Value<String>? sourceId,
+    Value<int>? points,
+    Value<String?>? reason,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return PointLedgerCompanion(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      sourceType: sourceType ?? this.sourceType,
+      sourceId: sourceId ?? this.sourceId,
+      points: points ?? this.points,
+      reason: reason ?? this.reason,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (sourceType.present) {
+      map['source_type'] = Variable<String>(
+        $PointLedgerTable.$convertersourceType.toSql(sourceType.value),
+      );
+    }
+    if (sourceId.present) {
+      map['source_id'] = Variable<String>(sourceId.value);
+    }
+    if (points.present) {
+      map['points'] = Variable<int>(points.value);
+    }
+    if (reason.present) {
+      map['reason'] = Variable<String>(reason.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PointLedgerCompanion(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('sourceType: $sourceType, ')
+          ..write('sourceId: $sourceId, ')
+          ..write('points: $points, ')
+          ..write('reason: $reason, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -4738,6 +5201,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $HabitSchedulesTable habitSchedules = $HabitSchedulesTable(this);
   late final $PointRulesTable pointRules = $PointRulesTable(this);
   late final $CheckInsTable checkIns = $CheckInsTable(this);
+  late final $PointLedgerTable pointLedger = $PointLedgerTable(this);
   late final Index categoriesUserOrderIdx = Index(
     'categories_user_order_idx',
     'CREATE INDEX categories_user_order_idx ON categories (user_id, archived_at, sort_order)',
@@ -4766,6 +5230,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     'check_ins_user_date_idx',
     'CREATE INDEX check_ins_user_date_idx ON check_ins (user_id, habit_date)',
   );
+  late final Index pointLedgerUserCreatedIdx = Index(
+    'point_ledger_user_created_idx',
+    'CREATE INDEX point_ledger_user_created_idx ON point_ledger (user_id, created_at)',
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -4780,6 +5248,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     habitSchedules,
     pointRules,
     checkIns,
+    pointLedger,
     categoriesUserOrderIdx,
     habitsUserOrderIdx,
     habitsCategoryIdx,
@@ -4787,6 +5256,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     habitSchedulesUserHabitIdx,
     pointRulesUserHabitOrderIdx,
     checkInsUserDateIdx,
+    pointLedgerUserCreatedIdx,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -4887,6 +5357,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('check_ins', kind: UpdateKind.update)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'local_users',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('point_ledger', kind: UpdateKind.delete)],
     ),
   ]);
 }
@@ -5049,6 +5526,24 @@ final class $$LocalUsersTableReferences
     ).filter((f) => f.userId.id.sqlEquals($_itemColumn<String>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_checkInsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$PointLedgerTable, List<PointLedgerData>>
+  _pointLedgerRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.pointLedger,
+    aliasName: 'local_users__id__point_ledger__user_id',
+  );
+
+  $$PointLedgerTableProcessedTableManager get pointLedgerRefs {
+    final manager = $$PointLedgerTableTableManager(
+      $_db,
+      $_db.pointLedger,
+    ).filter((f) => f.userId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_pointLedgerRefsTable($_db));
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -5270,6 +5765,31 @@ class $$LocalUsersTableFilterComposer
           }) => $$CheckInsTableFilterComposer(
             $db: $db,
             $table: $db.checkIns,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> pointLedgerRefs(
+    Expression<bool> Function($$PointLedgerTableFilterComposer f) f,
+  ) {
+    final $$PointLedgerTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.pointLedger,
+      getReferencedColumn: (t) => t.userId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PointLedgerTableFilterComposer(
+            $db: $db,
+            $table: $db.pointLedger,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -5522,6 +6042,31 @@ class $$LocalUsersTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> pointLedgerRefs<T extends Object>(
+    Expression<T> Function($$PointLedgerTableAnnotationComposer a) f,
+  ) {
+    final $$PointLedgerTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.pointLedger,
+      getReferencedColumn: (t) => t.userId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PointLedgerTableAnnotationComposer(
+            $db: $db,
+            $table: $db.pointLedger,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$LocalUsersTableTableManager
@@ -5546,6 +6091,7 @@ class $$LocalUsersTableTableManager
             bool habitSchedulesRefs,
             bool pointRulesRefs,
             bool checkInsRefs,
+            bool pointLedgerRefs,
           })
         > {
   $$LocalUsersTableTableManager(_$AppDatabase db, $LocalUsersTable table)
@@ -5601,6 +6147,7 @@ class $$LocalUsersTableTableManager
                 habitSchedulesRefs = false,
                 pointRulesRefs = false,
                 checkInsRefs = false,
+                pointLedgerRefs = false,
               }) {
                 return PrefetchHooks(
                   db: db,
@@ -5613,6 +6160,7 @@ class $$LocalUsersTableTableManager
                     if (habitSchedulesRefs) db.habitSchedules,
                     if (pointRulesRefs) db.pointRules,
                     if (checkInsRefs) db.checkIns,
+                    if (pointLedgerRefs) db.pointLedger,
                   ],
                   addJoins: null,
                   getPrefetchedDataCallback: (items) async {
@@ -5785,6 +6333,27 @@ class $$LocalUsersTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (pointLedgerRefs)
+                        await $_getPrefetchedData<
+                          LocalUser,
+                          $LocalUsersTable,
+                          PointLedgerData
+                        >(
+                          currentTable: table,
+                          referencedTable: $$LocalUsersTableReferences
+                              ._pointLedgerRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$LocalUsersTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).pointLedgerRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.userId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -5814,6 +6383,7 @@ typedef $$LocalUsersTableProcessedTableManager =
         bool habitSchedulesRefs,
         bool pointRulesRefs,
         bool checkInsRefs,
+        bool pointLedgerRefs,
       })
     >;
 typedef $$SyncQueueTableCreateCompanionBuilder = SyncQueueCompanion Function({
@@ -10208,6 +10778,367 @@ typedef $$CheckInsTableProcessedTableManager =
         bool matchedRuleId,
       })
     >;
+typedef $$PointLedgerTableCreateCompanionBuilder =
+    PointLedgerCompanion Function({
+      Value<String> id,
+      required String userId,
+      required PointLedgerSourceType sourceType,
+      required String sourceId,
+      required int points,
+      Value<String?> reason,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+typedef $$PointLedgerTableUpdateCompanionBuilder =
+    PointLedgerCompanion Function({
+      Value<String> id,
+      Value<String> userId,
+      Value<PointLedgerSourceType> sourceType,
+      Value<String> sourceId,
+      Value<int> points,
+      Value<String?> reason,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+
+final class $$PointLedgerTableReferences
+    extends BaseReferences<_$AppDatabase, $PointLedgerTable, PointLedgerData> {
+  $$PointLedgerTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $LocalUsersTable _userIdTable(_$AppDatabase db) =>
+      db.localUsers.createAlias('point_ledger__user_id__local_users__id');
+
+  $$LocalUsersTableProcessedTableManager get userId {
+    final $_column = $_itemColumn<String>('user_id')!;
+
+    final manager = $$LocalUsersTableTableManager(
+      $_db,
+      $_db.localUsers,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_userIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$PointLedgerTableFilterComposer
+    extends Composer<_$AppDatabase, $PointLedgerTable> {
+  $$PointLedgerTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<
+    PointLedgerSourceType,
+    PointLedgerSourceType,
+    String
+  >
+  get sourceType => $composableBuilder(
+    column: $table.sourceType,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnFilters<String> get sourceId => $composableBuilder(
+    column: $table.sourceId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get points => $composableBuilder(
+    column: $table.points,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get reason => $composableBuilder(
+    column: $table.reason,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$LocalUsersTableFilterComposer get userId {
+    final $$LocalUsersTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userId,
+      referencedTable: $db.localUsers,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalUsersTableFilterComposer(
+            $db: $db,
+            $table: $db.localUsers,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$PointLedgerTableOrderingComposer
+    extends Composer<_$AppDatabase, $PointLedgerTable> {
+  $$PointLedgerTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get sourceType => $composableBuilder(
+    column: $table.sourceType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get sourceId => $composableBuilder(
+    column: $table.sourceId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get points => $composableBuilder(
+    column: $table.points,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get reason => $composableBuilder(
+    column: $table.reason,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$LocalUsersTableOrderingComposer get userId {
+    final $$LocalUsersTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userId,
+      referencedTable: $db.localUsers,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalUsersTableOrderingComposer(
+            $db: $db,
+            $table: $db.localUsers,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$PointLedgerTableAnnotationComposer
+    extends Composer<_$AppDatabase, $PointLedgerTable> {
+  $$PointLedgerTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<PointLedgerSourceType, String>
+  get sourceType => $composableBuilder(
+    column: $table.sourceType,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get sourceId =>
+      $composableBuilder(column: $table.sourceId, builder: (column) => column);
+
+  GeneratedColumn<int> get points =>
+      $composableBuilder(column: $table.points, builder: (column) => column);
+
+  GeneratedColumn<String> get reason =>
+      $composableBuilder(column: $table.reason, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  $$LocalUsersTableAnnotationComposer get userId {
+    final $$LocalUsersTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userId,
+      referencedTable: $db.localUsers,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalUsersTableAnnotationComposer(
+            $db: $db,
+            $table: $db.localUsers,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$PointLedgerTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $PointLedgerTable,
+          PointLedgerData,
+          $$PointLedgerTableFilterComposer,
+          $$PointLedgerTableOrderingComposer,
+          $$PointLedgerTableAnnotationComposer,
+          $$PointLedgerTableCreateCompanionBuilder,
+          $$PointLedgerTableUpdateCompanionBuilder,
+          (PointLedgerData, $$PointLedgerTableReferences),
+          PointLedgerData,
+          PrefetchHooks Function({bool userId})
+        > {
+  $$PointLedgerTableTableManager(_$AppDatabase db, $PointLedgerTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$PointLedgerTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$PointLedgerTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$PointLedgerTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> userId = const Value.absent(),
+                Value<PointLedgerSourceType> sourceType = const Value.absent(),
+                Value<String> sourceId = const Value.absent(),
+                Value<int> points = const Value.absent(),
+                Value<String?> reason = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => PointLedgerCompanion(
+                id: id,
+                userId: userId,
+                sourceType: sourceType,
+                sourceId: sourceId,
+                points: points,
+                reason: reason,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                required String userId,
+                required PointLedgerSourceType sourceType,
+                required String sourceId,
+                required int points,
+                Value<String?> reason = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => PointLedgerCompanion.insert(
+                id: id,
+                userId: userId,
+                sourceType: sourceType,
+                sourceId: sourceId,
+                points: points,
+                reason: reason,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$PointLedgerTable, PointLedgerData>(table),
+                  $$PointLedgerTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({userId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (userId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.userId,
+                        referencedTable: $$PointLedgerTableReferences
+                            ._userIdTable(db),
+                        referencedColumn: $$PointLedgerTableReferences
+                            ._userIdTable(db)
+                            .id,
+                      ) as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$PointLedgerTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $PointLedgerTable,
+      PointLedgerData,
+      $$PointLedgerTableFilterComposer,
+      $$PointLedgerTableOrderingComposer,
+      $$PointLedgerTableAnnotationComposer,
+      $$PointLedgerTableCreateCompanionBuilder,
+      $$PointLedgerTableUpdateCompanionBuilder,
+      (PointLedgerData, $$PointLedgerTableReferences),
+      PointLedgerData,
+      PrefetchHooks Function({bool userId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -10230,4 +11161,6 @@ class $AppDatabaseManager {
       $$PointRulesTableTableManager(_db, _db.pointRules);
   $$CheckInsTableTableManager get checkIns =>
       $$CheckInsTableTableManager(_db, _db.checkIns);
+  $$PointLedgerTableTableManager get pointLedger =>
+      $$PointLedgerTableTableManager(_db, _db.pointLedger);
 }

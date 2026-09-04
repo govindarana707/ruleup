@@ -8,6 +8,7 @@ import 'package:ruleup/core/database/tables/habit_options.dart';
 import 'package:ruleup/core/database/tables/habit_schedules.dart';
 import 'package:ruleup/core/database/tables/local_users.dart';
 import 'package:ruleup/core/database/tables/point_rules.dart';
+import 'package:ruleup/core/database/tables/point_ledger.dart';
 import 'package:ruleup/core/database/tables/sync_metadata.dart';
 import 'package:ruleup/core/database/tables/sync_queue.dart';
 
@@ -24,6 +25,7 @@ part 'app_database.g.dart';
     HabitSchedules,
     PointRules,
     CheckIns,
+    PointLedger,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -32,7 +34,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.defaults() : super(driftDatabase(name: 'ruleup'));
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -84,6 +86,12 @@ class AppDatabase extends _$AppDatabase {
           await customStatement(
             'CREATE INDEX check_ins_user_date_idx '
             'ON check_ins (user_id, habit_date)',
+          );
+        case 6:
+          await migrator.createTable(pointLedger);
+          await customStatement(
+            'CREATE INDEX point_ledger_user_created_idx '
+            'ON point_ledger (user_id, created_at)',
           );
       }
     }
