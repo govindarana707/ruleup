@@ -4,6 +4,7 @@ import 'package:ruleup/features/auth/presentation/auth_controller.dart';
 import 'package:ruleup/features/check_ins/presentation/daily_check_in_screen.dart';
 import 'package:ruleup/features/habits/presentation/habit_list_screen.dart';
 import 'package:ruleup/features/home/presentation/home_dashboard.dart';
+import 'package:ruleup/features/rewards/presentation/rewards_wallet_screen.dart';
 
 class AppShell extends ConsumerStatefulWidget {
   const AppShell({super.key, required this.userId, required this.username});
@@ -56,11 +57,7 @@ class _AppShellState extends ConsumerState<AppShell> {
       ),
       HabitListScreen(userId: widget.userId),
       DailyCheckInScreen(userId: widget.userId),
-      const _ShellPlaceholder(
-        icon: Icons.card_giftcard_outlined,
-        title: 'Rewards',
-        message: 'Reward management and redemption will live here.',
-      ),
+      RewardsWalletScreen(userId: widget.userId),
       const _ShellPlaceholder(
         icon: Icons.history_outlined,
         title: 'History',

@@ -96,6 +96,23 @@ class RewardRepository {
         return true;
       });
 
+  Future<bool> restore(String userId, String id) => _database.transaction(
+    () async {
+      final existing = await getById(userId, id);
+      if (existing == null) return false;
+      if (existing.archivedAt == null) return true;
+      final now = DateTime.now().toUtc();
+      await (_database.update(
+        _database.rewards,
+      )..where((row) => row.id.equals(id) & row.userId.equals(userId))).write(
+        RewardsCompanion(archivedAt: const Value(null), updatedAt: Value(now)),
+      );
+      final updated = await getById(userId, id);
+      await _enqueueReward(updated!, 'update');
+      return true;
+    },
+  );
+
   Future<PointLedgerData> redeem({
     required String userId,
     required String rewardId,

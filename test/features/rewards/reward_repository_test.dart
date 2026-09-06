@@ -109,6 +109,13 @@ void main() {
           .getSingleOrNull(),
       isNotNull,
     );
+
+    expect(await rewards.restore(userId, first.id), isTrue);
+    expect((await rewards.getById(userId, first.id))?.archivedAt, isNull);
+    expect((await rewards.list(userId)).map((reward) => reward.id), [
+      first.id,
+      second.id,
+    ]);
   });
 
   test(

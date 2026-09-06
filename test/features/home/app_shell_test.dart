@@ -9,6 +9,7 @@ import 'package:ruleup/features/habits/presentation/habit_management_provider.da
 import 'package:ruleup/features/check_ins/presentation/daily_check_in_provider.dart';
 import 'package:ruleup/features/home/presentation/app_shell.dart';
 import 'package:ruleup/features/home/presentation/home_dashboard_provider.dart';
+import 'package:ruleup/features/rewards/presentation/rewards_wallet_provider.dart';
 
 void main() {
   testWidgets('bottom navigation exposes all shell destinations', (
@@ -27,7 +28,7 @@ void main() {
 
     await tester.tap(find.text('Rewards').last);
     await tester.pump();
-    expect(find.byKey(const Key('shell-page-rewards')), findsOneWidget);
+    expect(find.byKey(const Key('rewards-wallet-screen')), findsOneWidget);
 
     await tester.tap(find.text('History').last);
     await tester.pump();
@@ -108,6 +109,14 @@ Future<void> _pumpShell(
         dailyCheckInProvider.overrideWith(
           (ref, _) async =>
               DailyCheckInData(date: DateTime(2026, 1, 5), habits: const []),
+        ),
+        rewardsWalletProvider.overrideWith(
+          (ref, _) async => const RewardsWalletData(
+            availablePoints: 0,
+            lifetimeEarned: 0,
+            spentPoints: 0,
+            rewards: [],
+          ),
         ),
         homeDashboardProvider.overrideWith((ref, _) async {
           if (dashboardError != null) throw dashboardError;

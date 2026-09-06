@@ -9,6 +9,7 @@ import 'package:ruleup/features/auth/presentation/auth_controller.dart';
 import 'package:ruleup/features/habits/presentation/habit_management_provider.dart';
 import 'package:ruleup/features/check_ins/presentation/daily_check_in_provider.dart';
 import 'package:ruleup/features/home/presentation/home_dashboard_provider.dart';
+import 'package:ruleup/features/rewards/presentation/rewards_wallet_provider.dart';
 
 void main() {
   testWidgets('authenticated RuleUp app renders Home', (tester) async {
@@ -26,6 +27,7 @@ void main() {
             (ref, _) async =>
                 DailyCheckInData(date: DateTime(2026, 1, 1), habits: const []),
           ),
+          rewardsWalletProvider.overrideWith((ref, _) async => _emptyRewards),
           homeNowProvider.overrideWithValue(DateTime(2026, 1, 1, 9)),
           syncLifecycleTriggerProvider.overrideWithValue((userId) async {
             synchronizedUsers.add(userId);
@@ -63,6 +65,7 @@ void main() {
             (ref, _) async =>
                 DailyCheckInData(date: DateTime(2026, 1, 1), habits: const []),
           ),
+          rewardsWalletProvider.overrideWith((ref, _) async => _emptyRewards),
           syncLifecycleTriggerProvider.overrideWithValue((_) async {}),
         ],
         child: const RuleUpApp(),
@@ -84,6 +87,13 @@ const _emptyDashboard = HomeDashboardData(
   completedToday: 0,
   applicableToday: 0,
   activeHabitCount: 0,
+);
+
+const _emptyRewards = RewardsWalletData(
+  availablePoints: 0,
+  lifetimeEarned: 0,
+  spentPoints: 0,
+  rewards: [],
 );
 
 class _SignedInRepository implements AuthRepository {
