@@ -32,6 +32,12 @@ async function sync(
   });
 }
 
+async function pull(token: string, cursor = '0') {
+  return SELF.fetch(`https://ruleup.local/sync/pull?cursor=${cursor}`, {
+    headers: { authorization: `Bearer ${token}` },
+  });
+}
+
 function category(
   id: string,
   updatedAt = '2026-01-01T00:00:00.000Z',
@@ -256,6 +262,119 @@ describe('authenticated entity sync', () => {
     });
     await expect(repeated.json()).resolves.toMatchObject({
       data: { status: 'unchanged' },
+    });
+  });
+
+  it('supports initial and incremental server-authoritative pulls', async () => {
+    const account = await signup('pull_incremental');
+    const id = crypto.randomUUID();
+    await sync(account.data.token, 'category', 'create', category(id));
+
+    const initial = await pull(account.data.token);
+    const initialBody = await initial.json<{
+      data: {
+        changes: Array<{
+          cursor: string;
+          entityType: string;
+          operation: string;
+          data: Record<string, unknown>;
+        }>;
+        nextCursor: string;
+        hasMore: boolean;
+      };
+    }>();
+    expect(initial.status).toBe(200);
+    expect(initialBody.data.changes).toHaveLength(1);
+    expect(initialBody.data.changes[0]).toMatchObject({
+      entityType: 'category',
+      operation: 'upsert',
+      data: { id, name: 'Health' },
+    });
+    expect(initialBody.data.changes[0].data).not.toHaveProperty('userId');
+
+    const unchanged = await pull(
+      account.data.token,
+      initialBody.data.nextCursor,
+    );
+    await expect(unchanged.json()).resolves.toMatchObject({
+      data: { changes: [], nextCursor: initialBody.data.nextCursor },
+    });
+
+    await sync(
+      account.data.token,
+      'category',
+      'update',
+      category(id, '2026-01-02T00:00:00.000Z', 'Updated'),
+    );
+    const incremental = await pull(
+      account.data.token,
+      initialBody.data.nextCursor,
+    );
+    const incrementalBody = await incremental.json<{
+      data: {
+        changes: Array<{ data: { name: string } }>;
+        nextCursor: string;
+      };
+    }>();
+    expect(incrementalBody.data.changes).toHaveLength(1);
+    expect(incrementalBody.data.changes[0].data.name).toBe('Updated');
+
+    await sync(
+      account.data.token,
+      'category',
+      'update',
+      category(id, '2026-01-01T12:00:00.000Z', 'Stale'),
+    );
+    const afterStale = await pull(
+      account.data.token,
+      incrementalBody.data.nextCursor,
+    );
+    await expect(afterStale.json()).resolves.toMatchObject({
+      data: { changes: [] },
+    });
+  });
+
+  it('pulls deletions repeatedly without crossing user boundaries', async () => {
+    const owner = await signup('pull_delete_owner');
+    const other = await signup('pull_delete_other');
+    const habitId = crypto.randomUUID();
+    await sync(owner.data.token, 'habit', 'create', habit(habitId, null));
+    const scheduleId = crypto.randomUUID();
+    await sync(owner.data.token, 'habit_schedule', 'create', {
+      id: scheduleId,
+      habitId,
+      scheduleType: 'daily',
+      scheduleConfig: '{}',
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+    });
+    const beforeDelete = await pull(owner.data.token);
+    const beforeBody = await beforeDelete.json<{
+      data: { nextCursor: string };
+    }>();
+    await sync(owner.data.token, 'habit_schedule', 'delete', {
+      id: scheduleId,
+    });
+
+    const first = await pull(owner.data.token, beforeBody.data.nextCursor);
+    const repeated = await pull(owner.data.token, beforeBody.data.nextCursor);
+    const expected = {
+      data: {
+        changes: [
+          {
+            entityType: 'habit_schedule',
+            operation: 'delete',
+            data: { id: scheduleId },
+          },
+        ],
+      },
+    };
+    await expect(first.json()).resolves.toMatchObject(expected);
+    await expect(repeated.json()).resolves.toMatchObject(expected);
+
+    const isolated = await pull(other.data.token);
+    await expect(isolated.json()).resolves.toMatchObject({
+      data: { changes: [] },
     });
   });
 });

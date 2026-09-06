@@ -4,6 +4,7 @@ import 'package:ruleup/core/sync/api_sync_transport.dart';
 import 'package:ruleup/core/sync/sync_service.dart';
 import 'package:ruleup/core/sync/sync_transport.dart';
 import 'package:ruleup/features/auth/presentation/auth_controller.dart';
+import 'package:ruleup/features/reminders/data/habit_reminder_scheduler_provider.dart';
 
 final syncTransportProvider = Provider<SyncTransport>(
   (ref) => ApiSyncTransport(
@@ -14,9 +15,15 @@ final syncTransportProvider = Provider<SyncTransport>(
 );
 
 final syncServiceProvider = Provider<SyncService>((ref) {
+  final reminderScheduler = ref.watch(habitReminderSchedulerProvider);
   return SyncService(
     ref.watch(databaseProvider),
     ref.watch(syncTransportProvider),
+    onReminderChanges: (userId, habitIds) async {
+      for (final habitId in habitIds) {
+        await reminderScheduler.rescheduleHabit(userId, habitId);
+      }
+    },
   );
 });
 
@@ -24,27 +31,46 @@ final syncControllerProvider = NotifierProvider<SyncController, SyncState>(
   SyncController.new,
 );
 
+typedef SyncLifecycleTrigger = Future<void> Function(String userId);
+
+final syncLifecycleTriggerProvider = Provider<SyncLifecycleTrigger>(
+  (ref) => ref.read(syncControllerProvider.notifier).synchronize,
+);
+
 class SyncController extends Notifier<SyncState> {
   @override
   SyncState build() => const SyncState();
 
-  Future<void> syncPending(String userId) =>
-      _sync(() => ref.read(syncServiceProvider).syncPending(userId));
+  Future<void> synchronize(String userId) =>
+      _sync(() => ref.read(syncServiceProvider).synchronize(userId));
 
-  Future<void> retryFailed(String userId) =>
-      _sync(() => ref.read(syncServiceProvider).retryFailed(userId));
+  Future<void> retryFailed(String userId) => _sync(
+    () =>
+        ref.read(syncServiceProvider).synchronize(userId, retryFailures: true),
+  );
 
   Future<void> _sync(Future<SyncResult> Function() action) async {
     state = const SyncState(status: SyncStatus.syncing);
     try {
       final result = await action();
       state = SyncState(
-        status: result.failed == 0 ? SyncStatus.succeeded : SyncStatus.failed,
+        status: result.failed == 0 && !result.pendingProtected
+            ? SyncStatus.succeeded
+            : SyncStatus.failed,
         processed: result.processed,
         failed: result.failed,
+        pulled: result.pulled,
+        pendingProtected: result.pendingProtected,
+        message: result.pendingProtected
+            ? 'Remote changes are waiting for pending local edits.'
+            : null,
       );
     } on Object catch (error) {
-      state = SyncState(status: SyncStatus.failed, message: error.toString());
+      final message = error.toString();
+      state = SyncState(
+        status: SyncStatus.failed,
+        message: message.length <= 1000 ? message : message.substring(0, 1000),
+      );
     }
   }
 }
@@ -56,11 +82,15 @@ class SyncState {
     this.status = SyncStatus.idle,
     this.processed = 0,
     this.failed = 0,
+    this.pulled = 0,
+    this.pendingProtected = false,
     this.message,
   });
 
   final SyncStatus status;
   final int processed;
   final int failed;
+  final int pulled;
+  final bool pendingProtected;
   final String? message;
 }

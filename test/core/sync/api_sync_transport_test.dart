@@ -367,6 +367,52 @@ void main() {
     },
   );
 
+  test('requests and parses an authenticated incremental pull batch', () async {
+    late http.Request captured;
+    final transport = ApiSyncTransport(
+      database,
+      _api((request) async {
+        captured = request;
+        return http.Response(
+          jsonEncode({
+            'data': {
+              'changes': [
+                {
+                  'cursor': '42',
+                  'entityType': 'category',
+                  'operation': 'upsert',
+                  'updatedAt': '2026-02-03T04:05:06.000Z',
+                  'data': {
+                    'id': categoryId,
+                    'name': 'Remote',
+                    'sortOrder': 0,
+                    'createdAt': '2026-02-03T04:05:06.000Z',
+                    'updatedAt': '2026-02-03T04:05:06.000Z',
+                    'archivedAt': null,
+                  },
+                },
+              ],
+              'nextCursor': '42',
+              'hasMore': false,
+            },
+          }),
+          200,
+        );
+      }),
+      tokens,
+    );
+
+    final batch = await transport.pull('41');
+
+    expect(captured.url.path, '/sync/pull');
+    expect(captured.url.queryParameters['cursor'], '41');
+    expect(captured.headers['authorization'], 'Bearer secure-session-token');
+    expect(batch.nextCursor, '42');
+    expect(batch.hasMore, isFalse);
+    expect(batch.changes.single.entityType, 'category');
+    expect(batch.changes.single.data['name'], 'Remote');
+  });
+
   test('requires a secure session token', () async {
     tokens.token = null;
     final transport = ApiSyncTransport(

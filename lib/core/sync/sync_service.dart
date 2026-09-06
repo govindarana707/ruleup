@@ -1,12 +1,21 @@
 import 'package:drift/drift.dart';
 import 'package:ruleup/core/database/app_database.dart';
+import 'package:ruleup/core/sync/remote_change_merger.dart';
 import 'package:ruleup/core/sync/sync_transport.dart';
 
 class SyncService {
-  SyncService(this._database, this._transport);
+  SyncService(
+    this._database,
+    this._transport, {
+    RemoteChangeMerger? merger,
+    this.onReminderChanges,
+  }) : _merger = merger ?? RemoteChangeMerger(_database);
 
   final AppDatabase _database;
   final SyncTransport _transport;
+  final RemoteChangeMerger _merger;
+  final Future<void> Function(String userId, Set<String> habitIds)?
+  onReminderChanges;
   final Set<String> _runningUsers = {};
 
   Future<void> enqueue({
@@ -26,54 +35,99 @@ class SyncService {
   }
 
   Future<SyncResult> syncPending(String userId) =>
-      _run(userId, retryFailures: false);
+      _withUserLock(userId, () => _push(userId, retryFailures: false));
 
   Future<SyncResult> retryFailed(String userId) =>
-      _run(userId, retryFailures: true);
+      _withUserLock(userId, () => _push(userId, retryFailures: true));
 
-  Future<SyncResult> _run(String userId, {required bool retryFailures}) async {
-    if (!_runningUsers.add(userId)) return const SyncResult();
-
-    var succeeded = 0;
-    var failed = 0;
-    try {
-      final query = _database.select(_database.syncQueue)
-        ..where(
-          (row) =>
-              row.userId.equals(userId) &
-              (retryFailures
-                  ? row.attempts.isBiggerThanValue(0)
-                  : row.attempts.equals(0)),
-        )
-        ..orderBy([(row) => OrderingTerm.asc(row.createdAt)]);
-      final items = await query.get();
-
-      for (final item in items) {
-        try {
-          await _transport.send(item);
-          await (_database.delete(_database.syncQueue)..where(
-                (row) => row.id.equals(item.id) & row.userId.equals(userId),
-              ))
-              .go();
-          succeeded++;
-        } on Object catch (error) {
-          final message = _boundedError(error);
-          await (_database.update(_database.syncQueue)..where(
-                (row) => row.id.equals(item.id) & row.userId.equals(userId),
-              ))
-              .write(
-                SyncQueueCompanion(
-                  attempts: Value(item.attempts + 1),
-                  lastError: Value(message),
-                  updatedAt: Value(DateTime.now().toUtc()),
-                ),
-              );
-          failed++;
+  Future<SyncResult> synchronize(String userId, {bool retryFailures = false}) =>
+      _withUserLock(userId, () async {
+        var result = await _push(userId, retryFailures: false);
+        if (retryFailures) {
+          result = result + await _push(userId, retryFailures: true);
         }
-      }
-      return SyncResult(succeeded: succeeded, failed: failed);
+        return result + await _pull(userId);
+      });
+
+  Future<SyncResult> _withUserLock(
+    String userId,
+    Future<SyncResult> Function() action,
+  ) async {
+    if (!_runningUsers.add(userId)) return const SyncResult();
+    try {
+      return await action();
     } finally {
       _runningUsers.remove(userId);
+    }
+  }
+
+  Future<SyncResult> _push(String userId, {required bool retryFailures}) async {
+    var succeeded = 0;
+    var failed = 0;
+    final query = _database.select(_database.syncQueue)
+      ..where(
+        (row) =>
+            row.userId.equals(userId) &
+            (retryFailures
+                ? row.attempts.isBiggerThanValue(0)
+                : row.attempts.equals(0)),
+      )
+      ..orderBy([(row) => OrderingTerm.asc(row.createdAt)]);
+    final items = await query.get();
+
+    for (final item in items) {
+      try {
+        await _transport.send(item);
+        await (_database.delete(_database.syncQueue)..where(
+              (row) => row.id.equals(item.id) & row.userId.equals(userId),
+            ))
+            .go();
+        succeeded++;
+      } on Object catch (error) {
+        final message = _boundedError(error);
+        await (_database.update(_database.syncQueue)..where(
+              (row) => row.id.equals(item.id) & row.userId.equals(userId),
+            ))
+            .write(
+              SyncQueueCompanion(
+                attempts: Value(item.attempts + 1),
+                lastError: Value(message),
+                updatedAt: Value(DateTime.now().toUtc()),
+              ),
+            );
+        failed++;
+      }
+    }
+    return SyncResult(succeeded: succeeded, failed: failed);
+  }
+
+  Future<SyncResult> _pull(String userId) async {
+    final transport = _transport;
+    if (transport is! PullSyncTransport) return const SyncResult();
+
+    var cursor = await _merger.readCursor(userId);
+    var pulled = 0;
+    var pendingProtected = false;
+    for (var page = 0; page < 20; page++) {
+      final batch = await transport.pull(cursor);
+      final merged = await _merger.apply(userId, cursor, batch);
+      cursor = merged.cursor;
+      pulled += merged.merged;
+      pendingProtected = merged.blockedByPendingLocalChange;
+      await _refreshReminders(userId, merged.reminderHabitIds);
+      if (pendingProtected || !batch.hasMore) {
+        return SyncResult(pulled: pulled, pendingProtected: pendingProtected);
+      }
+    }
+    throw StateError('Pull sync exceeded the 20-page safety limit.');
+  }
+
+  Future<void> _refreshReminders(String userId, Set<String> habitIds) async {
+    if (habitIds.isEmpty || onReminderChanges == null) return;
+    try {
+      await onReminderChanges!(userId, habitIds);
+    } on Object {
+      // Notification failures never make data synchronization fail.
     }
   }
 
@@ -84,9 +138,23 @@ class SyncService {
 }
 
 class SyncResult {
-  const SyncResult({this.succeeded = 0, this.failed = 0});
+  const SyncResult({
+    this.succeeded = 0,
+    this.failed = 0,
+    this.pulled = 0,
+    this.pendingProtected = false,
+  });
 
   final int succeeded;
   final int failed;
-  int get processed => succeeded + failed;
+  final int pulled;
+  final bool pendingProtected;
+  int get processed => succeeded + failed + pulled;
+
+  SyncResult operator +(SyncResult other) => SyncResult(
+    succeeded: succeeded + other.succeeded,
+    failed: failed + other.failed,
+    pulled: pulled + other.pulled,
+    pendingProtected: pendingProtected || other.pendingProtected,
+  );
 }

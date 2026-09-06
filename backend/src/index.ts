@@ -6,6 +6,7 @@ import {
 } from './auth/routes';
 import type { Env } from './env';
 import { errorResponse, jsonResponse } from './http';
+import { handlePull } from './sync/pull';
 import { handleSync } from './sync/routes';
 
 export type { Env } from './env';
@@ -28,6 +29,9 @@ export default {
     }
     if (request.method === 'GET' && pathname === '/auth/me') {
       return handleMe(request, env);
+    }
+    if (request.method === 'GET' && pathname === '/sync/pull') {
+      return handlePull(request, env);
     }
     const syncMatch = pathname.match(/^\/sync\/([a-z_]+)$/);
     if (syncMatch) {

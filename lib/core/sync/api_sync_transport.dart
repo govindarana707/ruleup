@@ -9,8 +9,22 @@ import 'package:ruleup/core/sync/sync_transport.dart';
 import 'package:ruleup/core/utils/habit_date.dart';
 import 'package:ruleup/features/auth/data/token_storage.dart';
 
-class ApiSyncTransport implements SyncTransport {
+class ApiSyncTransport implements PullSyncTransport {
   ApiSyncTransport(this._database, this._api, this._tokens);
+
+  static const _entityTypes = {
+    'category',
+    'habit',
+    'habit_option',
+    'habit_schedule',
+    'point_rule',
+    'check_in',
+    'point_ledger',
+    'habit_pause',
+    'reward',
+    'habit_reminder',
+  };
+  static const _pullOperations = {'upsert', 'archive', 'delete'};
 
   final AppDatabase _database;
   final ApiClient _api;
@@ -31,6 +45,70 @@ class ApiSyncTransport implements SyncTransport {
       '/sync/${item.entityType}',
       token: token,
       body: {'operation': item.operation, 'data': data},
+    );
+  }
+
+  @override
+  Future<PullBatch> pull(String cursor) async {
+    final token = await _tokens.read();
+    if (token == null) {
+      throw const SyncTransportException(
+        'A valid session is required before syncing.',
+      );
+    }
+    final response = await _api.get(
+      '/sync/pull?cursor=${Uri.encodeQueryComponent(cursor)}',
+      token: token,
+    );
+    final data = response['data'];
+    if (data is! Map<String, dynamic>) {
+      throw const SyncTransportException('Invalid pull-sync response.');
+    }
+    final rawChanges = data['changes'];
+    final nextCursor = data['nextCursor'];
+    final hasMore = data['hasMore'];
+    if (rawChanges is! List ||
+        nextCursor is! String ||
+        !RegExp(r'^\d+$').hasMatch(nextCursor) ||
+        hasMore is! bool) {
+      throw const SyncTransportException('Invalid pull-sync response.');
+    }
+    return PullBatch(
+      changes: rawChanges.map(_readRemoteChange).toList(growable: false),
+      nextCursor: nextCursor,
+      hasMore: hasMore,
+    );
+  }
+
+  RemoteChange _readRemoteChange(Object? value) {
+    if (value is! Map<String, dynamic>) {
+      throw const SyncTransportException('Invalid remote change.');
+    }
+    final cursor = value['cursor'];
+    final entityType = value['entityType'];
+    final operation = value['operation'];
+    final updatedAt = value['updatedAt'];
+    final data = value['data'];
+    if (cursor is! String ||
+        !RegExp(r'^\d+$').hasMatch(cursor) ||
+        entityType is! String ||
+        !_entityTypes.contains(entityType) ||
+        operation is! String ||
+        !_pullOperations.contains(operation) ||
+        updatedAt is! String ||
+        data is! Map<String, dynamic>) {
+      throw const SyncTransportException('Invalid remote change.');
+    }
+    final parsedUpdatedAt = DateTime.tryParse(updatedAt);
+    if (parsedUpdatedAt == null) {
+      throw const SyncTransportException('Invalid remote change timestamp.');
+    }
+    return RemoteChange(
+      cursor: cursor,
+      entityType: entityType,
+      operation: operation,
+      updatedAt: parsedUpdatedAt.toUtc(),
+      data: data,
     );
   }
 

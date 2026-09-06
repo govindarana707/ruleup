@@ -1,18 +1,57 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ruleup/core/network/api_client.dart';
 import 'package:ruleup/core/config/app_config.dart';
+import 'package:ruleup/core/sync/sync_provider.dart';
 import 'package:ruleup/features/auth/presentation/auth_controller.dart';
 import 'package:ruleup/features/auth/presentation/login_screen.dart';
 import 'package:ruleup/features/home/presentation/home_screen.dart';
 
-class AuthGate extends ConsumerWidget {
+class AuthGate extends ConsumerStatefulWidget {
   const AuthGate({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AuthGate> createState() => _AuthGateState();
+}
+
+class _AuthGateState extends ConsumerState<AuthGate>
+    with WidgetsBindingObserver {
+  String? _activeUserId;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state != AppLifecycleState.resumed) return;
+    ref.read(authControllerProvider).whenData((user) {
+      if (user != null) unawaited(_synchronize(user.id));
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final backendHealth = ref.watch(backendHealthProvider);
     final auth = ref.watch(authControllerProvider);
+    auth.whenData((user) {
+      if (user == null) {
+        _activeUserId = null;
+      } else if (_activeUserId != user.id) {
+        _activeUserId = user.id;
+        unawaited(_synchronize(user.id));
+      }
+    });
 
     if (AppConfig.showDevelopmentConnectionErrors && backendHealth.hasError) {
       return _DevelopmentConnectionError(
@@ -33,6 +72,9 @@ class AuthGate extends ConsumerWidget {
   String _message(Object error) => error is ApiException
       ? error.message
       : 'Something went wrong. Please try again.';
+
+  Future<void> _synchronize(String userId) =>
+      ref.read(syncLifecycleTriggerProvider)(userId);
 }
 
 class _DevelopmentConnectionError extends StatelessWidget {

@@ -122,7 +122,7 @@ export async function handleSync(
   if (relationError) return relationError;
 
   try {
-    await upsertEntity(env, contract, user.id, normalized);
+    await upsertEntity(env, contract, entityType, user.id, normalized);
   } catch (error) {
     return databaseConflict(error);
   }
@@ -273,6 +273,7 @@ async function validateRelations(
 async function upsertEntity(
   env: Env,
   contract: EntityContract,
+  entityType: string,
   userId: string,
   data: Record<string, unknown>,
 ): Promise<void> {
@@ -284,7 +285,16 @@ async function upsertEntity(
     .filter(([, field]) => field.column !== 'id')
     .map(([, field]) => `${field.column} = excluded.${field.column}`);
   const sql = `INSERT INTO ${contract.table} (${columns.join(', ')}) VALUES (${placeholders.join(', ')}) ON CONFLICT(id) DO UPDATE SET ${updates.join(', ')}`;
-  await env.DB.prepare(sql).bind(...values).run();
+  const updatedAt = data.updatedAt as string;
+  const operation = data.archivedAt ? 'archive' : 'upsert';
+  await env.DB.batch([
+    env.DB.prepare(sql).bind(...values),
+    env.DB.prepare(
+      `INSERT INTO sync_changes
+       (user_id, entity_type, entity_id, operation, updated_at)
+       VALUES (?, ?, ?, ?, ?)`,
+    ).bind(userId, entityType, data.id, operation, updatedAt),
+  ]);
 }
 
 async function deleteEntity(
@@ -314,11 +324,17 @@ async function deleteEntity(
     );
   }
   if (existing) {
-    await env.DB.prepare(
-      `DELETE FROM ${contract.table} WHERE id = ? AND user_id = ?`,
-    )
-      .bind(id, userId)
-      .run();
+    const deletedAt = new Date().toISOString();
+    await env.DB.batch([
+      env.DB.prepare(
+        `DELETE FROM ${contract.table} WHERE id = ? AND user_id = ?`,
+      ).bind(id, userId),
+      env.DB.prepare(
+        `INSERT INTO sync_changes
+         (user_id, entity_type, entity_id, operation, updated_at)
+         VALUES (?, ?, ?, 'delete', ?)`,
+      ).bind(userId, entityType, id, deletedAt),
+    ]);
   }
   return syncResult(entityType, id, existing ? 'deleted' : 'unchanged');
 }
