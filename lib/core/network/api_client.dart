@@ -77,4 +77,7 @@ class ApiException implements Exception {
   final int statusCode;
   final String code;
   final String message;
+
+  @override
+  String toString() => '$code: $message';
 }

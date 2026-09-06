@@ -1,10 +1,16 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ruleup/core/database/database_provider.dart';
+import 'package:ruleup/core/sync/api_sync_transport.dart';
 import 'package:ruleup/core/sync/sync_service.dart';
 import 'package:ruleup/core/sync/sync_transport.dart';
+import 'package:ruleup/features/auth/presentation/auth_controller.dart';
 
 final syncTransportProvider = Provider<SyncTransport>(
-  (ref) => const DeferredSyncTransport(),
+  (ref) => ApiSyncTransport(
+    ref.watch(databaseProvider),
+    ref.watch(apiClientProvider),
+    ref.watch(tokenStorageProvider),
+  ),
 );
 
 final syncServiceProvider = Provider<SyncService>((ref) {
