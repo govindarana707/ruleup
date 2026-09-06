@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:ruleup/features/auth/presentation/auth_controller.dart';
 import 'package:ruleup/core/sync/sync_provider.dart';
 import 'package:ruleup/features/habits/presentation/habit_management_provider.dart';
+import 'package:ruleup/features/check_ins/presentation/daily_check_in_provider.dart';
 import 'package:ruleup/features/home/presentation/app_shell.dart';
 import 'package:ruleup/features/home/presentation/home_dashboard_provider.dart';
 
@@ -46,7 +47,7 @@ void main() {
     await tester.tap(button);
     await tester.pump();
 
-    expect(find.byKey(const Key('shell-page-check-in')), findsOneWidget);
+    expect(find.byKey(const Key('daily-check-in-screen')), findsOneWidget);
   });
 
   testWidgets('home dashboard renders populated motivational summary', (
@@ -103,6 +104,10 @@ Future<void> _pumpShell(
         homeNowProvider.overrideWithValue(DateTime(2026, 1, 5, 9)),
         habitCatalogProvider.overrideWith(
           (ref, _) async => const HabitCatalog(habits: [], categories: []),
+        ),
+        dailyCheckInProvider.overrideWith(
+          (ref, _) async =>
+              DailyCheckInData(date: DateTime(2026, 1, 5), habits: const []),
         ),
         homeDashboardProvider.overrideWith((ref, _) async {
           if (dashboardError != null) throw dashboardError;

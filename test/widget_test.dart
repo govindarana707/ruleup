@@ -7,6 +7,7 @@ import 'package:ruleup/features/auth/data/auth_repository.dart';
 import 'package:ruleup/features/auth/domain/auth_user.dart';
 import 'package:ruleup/features/auth/presentation/auth_controller.dart';
 import 'package:ruleup/features/habits/presentation/habit_management_provider.dart';
+import 'package:ruleup/features/check_ins/presentation/daily_check_in_provider.dart';
 import 'package:ruleup/features/home/presentation/home_dashboard_provider.dart';
 
 void main() {
@@ -20,6 +21,10 @@ void main() {
           homeDashboardProvider.overrideWith((ref, _) async => _emptyDashboard),
           habitCatalogProvider.overrideWith(
             (ref, _) async => const HabitCatalog(habits: [], categories: []),
+          ),
+          dailyCheckInProvider.overrideWith(
+            (ref, _) async =>
+                DailyCheckInData(date: DateTime(2026, 1, 1), habits: const []),
           ),
           homeNowProvider.overrideWithValue(DateTime(2026, 1, 1, 9)),
           syncLifecycleTriggerProvider.overrideWithValue((userId) async {
@@ -53,6 +58,10 @@ void main() {
           homeDashboardProvider.overrideWith((ref, _) async => _emptyDashboard),
           habitCatalogProvider.overrideWith(
             (ref, _) async => const HabitCatalog(habits: [], categories: []),
+          ),
+          dailyCheckInProvider.overrideWith(
+            (ref, _) async =>
+                DailyCheckInData(date: DateTime(2026, 1, 1), habits: const []),
           ),
           syncLifecycleTriggerProvider.overrideWithValue((_) async {}),
         ],

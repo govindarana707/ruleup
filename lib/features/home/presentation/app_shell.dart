@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ruleup/features/auth/presentation/auth_controller.dart';
+import 'package:ruleup/features/check_ins/presentation/daily_check_in_screen.dart';
 import 'package:ruleup/features/habits/presentation/habit_list_screen.dart';
 import 'package:ruleup/features/home/presentation/home_dashboard.dart';
 
@@ -54,11 +55,7 @@ class _AppShellState extends ConsumerState<AppShell> {
         onQuickCheckIn: () => _select(2),
       ),
       HabitListScreen(userId: widget.userId),
-      const _ShellPlaceholder(
-        icon: Icons.add_task_outlined,
-        title: 'Check-in',
-        message: 'The focused daily check-in experience will live here.',
-      ),
+      DailyCheckInScreen(userId: widget.userId),
       const _ShellPlaceholder(
         icon: Icons.card_giftcard_outlined,
         title: 'Rewards',
