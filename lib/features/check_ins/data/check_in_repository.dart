@@ -1,8 +1,10 @@
 import 'package:drift/drift.dart';
 import 'package:ruleup/core/database/app_database.dart';
-import 'package:ruleup/core/database/tables/check_ins.dart';
+import 'package:ruleup/core/database/habit_date_converter.dart';
 import 'package:ruleup/core/sync/sync_service.dart';
+import 'package:ruleup/core/utils/habit_date.dart';
 import 'package:ruleup/features/points/data/point_ledger_repository.dart';
+import 'package:ruleup/features/habits/domain/schedule_applicability.dart';
 import 'package:ruleup/features/points/domain/point_rule_evaluator.dart';
 
 class CheckInRepository {
@@ -20,6 +22,7 @@ class CheckInRepository {
   final SyncService _sync;
   final PointLedgerRepository _pointLedger;
   final PointRuleEvaluator _evaluator;
+  final ScheduleApplicability _applicability = const ScheduleApplicability();
   final DateTime Function() _now;
 
   Future<CheckIn> create({
@@ -31,16 +34,17 @@ class CheckInRepository {
     String? note,
   }) => _database.transaction(() async {
     _validateMeasuredValue(measuredValue);
-    final normalizedDate = _normalizeDate(habitDate);
+    final normalizedDate = normalizeHabitDate(habitDate);
     if (await getForHabitDate(userId, habitId, normalizedDate) != null) {
       throw DuplicateCheckInException(habitId, normalizedDate);
     }
 
     final habit = await _verifyHabit(userId, habitId);
     final option = await _verifyOption(userId, habitId, optionId);
-    final evaluation = await _evaluate(
+    final evaluation = await _evaluateIfApplicable(
       userId: userId,
       habit: habit,
+      habitDate: normalizedDate,
       measuredValue: measuredValue ?? option?.numericValue,
     );
     final checkedInAt = _now().toUtc();
@@ -76,7 +80,7 @@ class CheckInRepository {
     String habitId,
     DateTime habitDate,
   ) {
-    final normalizedDate = _normalizeDate(habitDate);
+    final normalizedDate = normalizeHabitDate(habitDate);
     final query = _database.select(_database.checkIns)
       ..where(
         (row) =>
@@ -90,7 +94,7 @@ class CheckInRepository {
   }
 
   Future<List<CheckIn>> listForDate(String userId, DateTime habitDate) {
-    final normalizedDate = _normalizeDate(habitDate);
+    final normalizedDate = normalizeHabitDate(habitDate);
     final query = _database.select(_database.checkIns)
       ..where(
         (row) =>
@@ -123,9 +127,10 @@ class CheckInRepository {
 
     final habit = await _verifyHabit(userId, existing.habitId);
     final option = await _verifyOption(userId, habit.id, optionId);
-    final evaluation = await _evaluate(
+    final evaluation = await _evaluateIfApplicable(
       userId: userId,
       habit: habit,
+      habitDate: existing.habitDate,
       measuredValue: measuredValue ?? option?.numericValue,
     );
     await (_database.update(
@@ -202,6 +207,50 @@ class CheckInRepository {
     );
   }
 
+  Future<PointRuleEvaluation> _evaluateIfApplicable({
+    required String userId,
+    required Habit habit,
+    required DateTime habitDate,
+    required double? measuredValue,
+  }) async {
+    final dateValue = const HabitDateConverter().toSql(habitDate);
+    final pause =
+        await (_database.select(_database.habitPauses)
+              ..where(
+                (row) =>
+                    row.userId.equals(userId) &
+                    row.habitId.equals(habit.id) &
+                    row.startDate.isSmallerOrEqualValue(dateValue) &
+                    row.endDate.isBiggerOrEqualValue(dateValue),
+              )
+              ..limit(1))
+            .getSingleOrNull();
+    if (pause != null) return const PointRuleEvaluation.noMatch();
+
+    final storedSchedules =
+        await (_database.select(_database.habitSchedules)..where(
+              (row) => row.userId.equals(userId) & row.habitId.equals(habit.id),
+            ))
+            .get();
+    final schedules = storedSchedules.map(
+      (schedule) => HabitScheduleDefinition.fromConfig(
+        type: schedule.scheduleType,
+        scheduleConfig: schedule.scheduleConfig,
+      ),
+    );
+    if (!_applicability.isApplicable(
+      habitDate: habitDate,
+      schedules: schedules,
+    )) {
+      return const PointRuleEvaluation.noMatch();
+    }
+    return _evaluate(
+      userId: userId,
+      habit: habit,
+      measuredValue: measuredValue,
+    );
+  }
+
   void _validateMeasuredValue(double? measuredValue) {
     if (measuredValue != null && !measuredValue.isFinite) {
       throw ArgumentError.value(
@@ -215,10 +264,6 @@ class CheckInRepository {
   String? _normalizeNote(String? note) {
     final normalized = note?.trim();
     return normalized == null || normalized.isEmpty ? null : normalized;
-  }
-
-  DateTime _normalizeDate(DateTime date) {
-    return DateTime.utc(date.year, date.month, date.day);
   }
 
   Future<void> _enqueue(CheckIn checkIn, String operation) => _sync.enqueue(

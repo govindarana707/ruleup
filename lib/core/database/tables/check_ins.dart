@@ -1,24 +1,10 @@
 import 'package:drift/drift.dart';
 import 'package:ruleup/core/database/database_uuid.dart';
+import 'package:ruleup/core/database/habit_date_converter.dart';
 import 'package:ruleup/core/database/tables/habits.dart';
 import 'package:ruleup/core/database/tables/habit_options.dart';
 import 'package:ruleup/core/database/tables/local_users.dart';
 import 'package:ruleup/core/database/tables/point_rules.dart';
-
-class HabitDateConverter extends TypeConverter<DateTime, String> {
-  const HabitDateConverter();
-
-  @override
-  DateTime fromSql(String fromDb) => DateTime.parse('${fromDb}T00:00:00Z');
-
-  @override
-  String toSql(DateTime value) {
-    final year = value.year.toString().padLeft(4, '0');
-    final month = value.month.toString().padLeft(2, '0');
-    final day = value.day.toString().padLeft(2, '0');
-    return '$year-$month-$day';
-  }
-}
 
 @TableIndex(name: 'check_ins_user_date_idx', columns: {#userId, #habitDate})
 class CheckIns extends Table {

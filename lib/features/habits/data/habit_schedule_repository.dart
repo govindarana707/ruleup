@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:ruleup/core/database/app_database.dart';
 import 'package:ruleup/core/database/tables/habit_schedules.dart';
 import 'package:ruleup/core/sync/sync_service.dart';
+import 'package:ruleup/features/habits/domain/schedule_applicability.dart';
 
 class HabitScheduleRepository {
   HabitScheduleRepository(this._database, this._sync);
@@ -23,7 +24,7 @@ class HabitScheduleRepository {
             userId: userId,
             habitId: habitId,
             scheduleType: scheduleType,
-            scheduleConfig: _validConfig(scheduleConfig),
+            scheduleConfig: _validConfig(scheduleType, scheduleConfig),
           ),
         );
     await _enqueue(schedule, 'create');
@@ -62,7 +63,7 @@ class HabitScheduleRepository {
       HabitSchedulesCompanion(
         habitId: Value(habitId),
         scheduleType: Value(scheduleType),
-        scheduleConfig: Value(_validConfig(scheduleConfig)),
+        scheduleConfig: Value(_validConfig(scheduleType, scheduleConfig)),
         updatedAt: Value(DateTime.now().toUtc()),
       ),
     );
@@ -99,11 +100,15 @@ class HabitScheduleRepository {
         operation: operation,
       );
 
-  String _validConfig(String scheduleConfig) {
+  String _validConfig(ScheduleType scheduleType, String scheduleConfig) {
     final normalized = scheduleConfig.trim();
     if (normalized.isEmpty) {
       throw ArgumentError.value(scheduleConfig, 'scheduleConfig');
     }
+    HabitScheduleDefinition.fromConfig(
+      type: scheduleType,
+      scheduleConfig: normalized,
+    );
     return normalized;
   }
 }

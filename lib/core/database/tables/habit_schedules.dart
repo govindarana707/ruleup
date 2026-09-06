@@ -2,8 +2,9 @@ import 'package:drift/drift.dart';
 import 'package:ruleup/core/database/database_uuid.dart';
 import 'package:ruleup/core/database/tables/habits.dart';
 import 'package:ruleup/core/database/tables/local_users.dart';
+import 'package:ruleup/features/habits/domain/schedule_type.dart';
 
-enum ScheduleType { daily, specificDays, timesPerWeek, custom }
+export 'package:ruleup/features/habits/domain/schedule_type.dart';
 
 class ScheduleTypeConverter extends TypeConverter<ScheduleType, String> {
   const ScheduleTypeConverter();

@@ -5189,6 +5189,469 @@ class PointLedgerCompanion extends UpdateCompanion<PointLedgerData> {
   }
 }
 
+class $HabitPausesTable extends HabitPauses
+    with TableInfo<$HabitPausesTable, HabitPause> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $HabitPausesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    clientDefault: createDatabaseUuid,
+  );
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+    'user_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES local_users (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _habitIdMeta = const VerificationMeta(
+    'habitId',
+  );
+  @override
+  late final GeneratedColumn<String> habitId = GeneratedColumn<String>(
+    'habit_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES habits (id) ON DELETE CASCADE',
+    ),
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<DateTime, String> startDate =
+      GeneratedColumn<String>(
+        'start_date',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<DateTime>($HabitPausesTable.$converterstartDate);
+  @override
+  late final GeneratedColumnWithTypeConverter<DateTime, String> endDate =
+      GeneratedColumn<String>(
+        'end_date',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<DateTime>($HabitPausesTable.$converterendDate);
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    userId,
+    habitId,
+    startDate,
+    endDate,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'habit_pauses';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<HabitPause> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(
+        _userIdMeta,
+        userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
+    if (data.containsKey('habit_id')) {
+      context.handle(
+        _habitIdMeta,
+        habitId.isAcceptableOrUnknown(data['habit_id']!, _habitIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_habitIdMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  HabitPause map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return HabitPause(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      userId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}user_id'],
+      )!,
+      habitId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}habit_id'],
+      )!,
+      startDate: $HabitPausesTable.$converterstartDate.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}start_date'],
+        )!,
+      ),
+      endDate: $HabitPausesTable.$converterendDate.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}end_date'],
+        )!,
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $HabitPausesTable createAlias(String alias) {
+    return $HabitPausesTable(attachedDatabase, alias);
+  }
+
+  static TypeConverter<DateTime, String> $converterstartDate =
+      const HabitDateConverter();
+  static TypeConverter<DateTime, String> $converterendDate =
+      const HabitDateConverter();
+}
+
+class HabitPause extends DataClass implements Insertable<HabitPause> {
+  final String id;
+  final String userId;
+  final String habitId;
+  final DateTime startDate;
+  final DateTime endDate;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const HabitPause({
+    required this.id,
+    required this.userId,
+    required this.habitId,
+    required this.startDate,
+    required this.endDate,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['user_id'] = Variable<String>(userId);
+    map['habit_id'] = Variable<String>(habitId);
+    {
+      map['start_date'] = Variable<String>(
+        $HabitPausesTable.$converterstartDate.toSql(startDate),
+      );
+    }
+    {
+      map['end_date'] = Variable<String>(
+        $HabitPausesTable.$converterendDate.toSql(endDate),
+      );
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  HabitPausesCompanion toCompanion(bool nullToAbsent) {
+    return HabitPausesCompanion(
+      id: Value(id),
+      userId: Value(userId),
+      habitId: Value(habitId),
+      startDate: Value(startDate),
+      endDate: Value(endDate),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory HabitPause.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return HabitPause(
+      id: serializer.fromJson<String>(json['id']),
+      userId: serializer.fromJson<String>(json['userId']),
+      habitId: serializer.fromJson<String>(json['habitId']),
+      startDate: serializer.fromJson<DateTime>(json['startDate']),
+      endDate: serializer.fromJson<DateTime>(json['endDate']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'userId': serializer.toJson<String>(userId),
+      'habitId': serializer.toJson<String>(habitId),
+      'startDate': serializer.toJson<DateTime>(startDate),
+      'endDate': serializer.toJson<DateTime>(endDate),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  HabitPause copyWith({
+    String? id,
+    String? userId,
+    String? habitId,
+    DateTime? startDate,
+    DateTime? endDate,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => HabitPause(
+    id: id ?? this.id,
+    userId: userId ?? this.userId,
+    habitId: habitId ?? this.habitId,
+    startDate: startDate ?? this.startDate,
+    endDate: endDate ?? this.endDate,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  HabitPause copyWithCompanion(HabitPausesCompanion data) {
+    return HabitPause(
+      id: data.id.present ? data.id.value : this.id,
+      userId: data.userId.present ? data.userId.value : this.userId,
+      habitId: data.habitId.present ? data.habitId.value : this.habitId,
+      startDate: data.startDate.present ? data.startDate.value : this.startDate,
+      endDate: data.endDate.present ? data.endDate.value : this.endDate,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('HabitPause(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('habitId: $habitId, ')
+          ..write('startDate: $startDate, ')
+          ..write('endDate: $endDate, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    userId,
+    habitId,
+    startDate,
+    endDate,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is HabitPause &&
+          other.id == this.id &&
+          other.userId == this.userId &&
+          other.habitId == this.habitId &&
+          other.startDate == this.startDate &&
+          other.endDate == this.endDate &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class HabitPausesCompanion extends UpdateCompanion<HabitPause> {
+  final Value<String> id;
+  final Value<String> userId;
+  final Value<String> habitId;
+  final Value<DateTime> startDate;
+  final Value<DateTime> endDate;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const HabitPausesCompanion({
+    this.id = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.habitId = const Value.absent(),
+    this.startDate = const Value.absent(),
+    this.endDate = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  HabitPausesCompanion.insert({
+    this.id = const Value.absent(),
+    required String userId,
+    required String habitId,
+    required DateTime startDate,
+    required DateTime endDate,
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : userId = Value(userId),
+       habitId = Value(habitId),
+       startDate = Value(startDate),
+       endDate = Value(endDate);
+  static Insertable<HabitPause> custom({
+    Expression<String>? id,
+    Expression<String>? userId,
+    Expression<String>? habitId,
+    Expression<String>? startDate,
+    Expression<String>? endDate,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (userId != null) 'user_id': userId,
+      if (habitId != null) 'habit_id': habitId,
+      if (startDate != null) 'start_date': startDate,
+      if (endDate != null) 'end_date': endDate,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  HabitPausesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? userId,
+    Value<String>? habitId,
+    Value<DateTime>? startDate,
+    Value<DateTime>? endDate,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return HabitPausesCompanion(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      habitId: habitId ?? this.habitId,
+      startDate: startDate ?? this.startDate,
+      endDate: endDate ?? this.endDate,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (habitId.present) {
+      map['habit_id'] = Variable<String>(habitId.value);
+    }
+    if (startDate.present) {
+      map['start_date'] = Variable<String>(
+        $HabitPausesTable.$converterstartDate.toSql(startDate.value),
+      );
+    }
+    if (endDate.present) {
+      map['end_date'] = Variable<String>(
+        $HabitPausesTable.$converterendDate.toSql(endDate.value),
+      );
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('HabitPausesCompanion(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('habitId: $habitId, ')
+          ..write('startDate: $startDate, ')
+          ..write('endDate: $endDate, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -5202,6 +5665,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $PointRulesTable pointRules = $PointRulesTable(this);
   late final $CheckInsTable checkIns = $CheckInsTable(this);
   late final $PointLedgerTable pointLedger = $PointLedgerTable(this);
+  late final $HabitPausesTable habitPauses = $HabitPausesTable(this);
   late final Index categoriesUserOrderIdx = Index(
     'categories_user_order_idx',
     'CREATE INDEX categories_user_order_idx ON categories (user_id, archived_at, sort_order)',
@@ -5234,6 +5698,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     'point_ledger_user_created_idx',
     'CREATE INDEX point_ledger_user_created_idx ON point_ledger (user_id, created_at)',
   );
+  late final Index habitPausesUserHabitDatesIdx = Index(
+    'habit_pauses_user_habit_dates_idx',
+    'CREATE INDEX habit_pauses_user_habit_dates_idx ON habit_pauses (user_id, habit_id, start_date, end_date)',
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -5249,6 +5717,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     pointRules,
     checkIns,
     pointLedger,
+    habitPauses,
     categoriesUserOrderIdx,
     habitsUserOrderIdx,
     habitsCategoryIdx,
@@ -5257,6 +5726,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     pointRulesUserHabitOrderIdx,
     checkInsUserDateIdx,
     pointLedgerUserCreatedIdx,
+    habitPausesUserHabitDatesIdx,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -5364,6 +5834,20 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('point_ledger', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'local_users',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('habit_pauses', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'habits',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('habit_pauses', kind: UpdateKind.delete)],
     ),
   ]);
 }
@@ -5544,6 +6028,24 @@ final class $$LocalUsersTableReferences
     ).filter((f) => f.userId.id.sqlEquals($_itemColumn<String>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_pointLedgerRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$HabitPausesTable, List<HabitPause>>
+  _habitPausesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.habitPauses,
+    aliasName: 'local_users__id__habit_pauses__user_id',
+  );
+
+  $$HabitPausesTableProcessedTableManager get habitPausesRefs {
+    final manager = $$HabitPausesTableTableManager(
+      $_db,
+      $_db.habitPauses,
+    ).filter((f) => f.userId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_habitPausesRefsTable($_db));
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -5790,6 +6292,31 @@ class $$LocalUsersTableFilterComposer
           }) => $$PointLedgerTableFilterComposer(
             $db: $db,
             $table: $db.pointLedger,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> habitPausesRefs(
+    Expression<bool> Function($$HabitPausesTableFilterComposer f) f,
+  ) {
+    final $$HabitPausesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.habitPauses,
+      getReferencedColumn: (t) => t.userId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$HabitPausesTableFilterComposer(
+            $db: $db,
+            $table: $db.habitPauses,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -6067,6 +6594,31 @@ class $$LocalUsersTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> habitPausesRefs<T extends Object>(
+    Expression<T> Function($$HabitPausesTableAnnotationComposer a) f,
+  ) {
+    final $$HabitPausesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.habitPauses,
+      getReferencedColumn: (t) => t.userId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$HabitPausesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.habitPauses,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$LocalUsersTableTableManager
@@ -6092,6 +6644,7 @@ class $$LocalUsersTableTableManager
             bool pointRulesRefs,
             bool checkInsRefs,
             bool pointLedgerRefs,
+            bool habitPausesRefs,
           })
         > {
   $$LocalUsersTableTableManager(_$AppDatabase db, $LocalUsersTable table)
@@ -6148,6 +6701,7 @@ class $$LocalUsersTableTableManager
                 pointRulesRefs = false,
                 checkInsRefs = false,
                 pointLedgerRefs = false,
+                habitPausesRefs = false,
               }) {
                 return PrefetchHooks(
                   db: db,
@@ -6161,6 +6715,7 @@ class $$LocalUsersTableTableManager
                     if (pointRulesRefs) db.pointRules,
                     if (checkInsRefs) db.checkIns,
                     if (pointLedgerRefs) db.pointLedger,
+                    if (habitPausesRefs) db.habitPauses,
                   ],
                   addJoins: null,
                   getPrefetchedDataCallback: (items) async {
@@ -6354,6 +6909,27 @@ class $$LocalUsersTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (habitPausesRefs)
+                        await $_getPrefetchedData<
+                          LocalUser,
+                          $LocalUsersTable,
+                          HabitPause
+                        >(
+                          currentTable: table,
+                          referencedTable: $$LocalUsersTableReferences
+                              ._habitPausesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$LocalUsersTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).habitPausesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.userId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -6384,6 +6960,7 @@ typedef $$LocalUsersTableProcessedTableManager =
         bool pointRulesRefs,
         bool checkInsRefs,
         bool pointLedgerRefs,
+        bool habitPausesRefs,
       })
     >;
 typedef $$SyncQueueTableCreateCompanionBuilder = SyncQueueCompanion Function({
@@ -7685,6 +8262,24 @@ final class $$HabitsTableReferences
       manager.$state.copyWith(prefetchedData: cache),
     );
   }
+
+  static MultiTypedResultKey<$HabitPausesTable, List<HabitPause>>
+  _habitPausesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.habitPauses,
+    aliasName: 'habits__id__habit_pauses__habit_id',
+  );
+
+  $$HabitPausesTableProcessedTableManager get habitPausesRefs {
+    final manager = $$HabitPausesTableTableManager(
+      $_db,
+      $_db.habitPauses,
+    ).filter((f) => f.habitId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_habitPausesRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $$HabitsTableFilterComposer
@@ -7869,6 +8464,31 @@ class $$HabitsTableFilterComposer
           }) => $$CheckInsTableFilterComposer(
             $db: $db,
             $table: $db.checkIns,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> habitPausesRefs(
+    Expression<bool> Function($$HabitPausesTableFilterComposer f) f,
+  ) {
+    final $$HabitPausesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.habitPauses,
+      getReferencedColumn: (t) => t.habitId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$HabitPausesTableFilterComposer(
+            $db: $db,
+            $table: $db.habitPauses,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -8150,6 +8770,31 @@ class $$HabitsTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> habitPausesRefs<T extends Object>(
+    Expression<T> Function($$HabitPausesTableAnnotationComposer a) f,
+  ) {
+    final $$HabitPausesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.habitPauses,
+      getReferencedColumn: (t) => t.habitId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$HabitPausesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.habitPauses,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$HabitsTableTableManager
@@ -8172,6 +8817,7 @@ class $$HabitsTableTableManager
             bool habitSchedulesRefs,
             bool pointRulesRefs,
             bool checkInsRefs,
+            bool habitPausesRefs,
           })
         > {
   $$HabitsTableTableManager(_$AppDatabase db, $HabitsTable table)
@@ -8249,6 +8895,7 @@ class $$HabitsTableTableManager
                 habitSchedulesRefs = false,
                 pointRulesRefs = false,
                 checkInsRefs = false,
+                habitPausesRefs = false,
               }) {
                 return PrefetchHooks(
                   db: db,
@@ -8257,6 +8904,7 @@ class $$HabitsTableTableManager
                     if (habitSchedulesRefs) db.habitSchedules,
                     if (pointRulesRefs) db.pointRules,
                     if (checkInsRefs) db.checkIns,
+                    if (habitPausesRefs) db.habitPauses,
                   ],
                   addJoins:
                       <
@@ -8381,6 +9029,27 @@ class $$HabitsTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (habitPausesRefs)
+                        await $_getPrefetchedData<
+                          Habit,
+                          $HabitsTable,
+                          HabitPause
+                        >(
+                          currentTable: table,
+                          referencedTable: $$HabitsTableReferences
+                              ._habitPausesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$HabitsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).habitPausesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.habitId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -8408,6 +9077,7 @@ typedef $$HabitsTableProcessedTableManager =
         bool habitSchedulesRefs,
         bool pointRulesRefs,
         bool checkInsRefs,
+        bool habitPausesRefs,
       })
     >;
 typedef $$HabitOptionsTableCreateCompanionBuilder =
@@ -11139,6 +11809,445 @@ typedef $$PointLedgerTableProcessedTableManager =
       PointLedgerData,
       PrefetchHooks Function({bool userId})
     >;
+typedef $$HabitPausesTableCreateCompanionBuilder =
+    HabitPausesCompanion Function({
+      Value<String> id,
+      required String userId,
+      required String habitId,
+      required DateTime startDate,
+      required DateTime endDate,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+typedef $$HabitPausesTableUpdateCompanionBuilder =
+    HabitPausesCompanion Function({
+      Value<String> id,
+      Value<String> userId,
+      Value<String> habitId,
+      Value<DateTime> startDate,
+      Value<DateTime> endDate,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+final class $$HabitPausesTableReferences
+    extends BaseReferences<_$AppDatabase, $HabitPausesTable, HabitPause> {
+  $$HabitPausesTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $LocalUsersTable _userIdTable(_$AppDatabase db) =>
+      db.localUsers.createAlias('habit_pauses__user_id__local_users__id');
+
+  $$LocalUsersTableProcessedTableManager get userId {
+    final $_column = $_itemColumn<String>('user_id')!;
+
+    final manager = $$LocalUsersTableTableManager(
+      $_db,
+      $_db.localUsers,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_userIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $HabitsTable _habitIdTable(_$AppDatabase db) =>
+      db.habits.createAlias('habit_pauses__habit_id__habits__id');
+
+  $$HabitsTableProcessedTableManager get habitId {
+    final $_column = $_itemColumn<String>('habit_id')!;
+
+    final manager = $$HabitsTableTableManager(
+      $_db,
+      $_db.habits,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_habitIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$HabitPausesTableFilterComposer
+    extends Composer<_$AppDatabase, $HabitPausesTable> {
+  $$HabitPausesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<DateTime, DateTime, String> get startDate =>
+      $composableBuilder(
+        column: $table.startDate,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnWithTypeConverterFilters<DateTime, DateTime, String> get endDate =>
+      $composableBuilder(
+        column: $table.endDate,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$LocalUsersTableFilterComposer get userId {
+    final $$LocalUsersTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userId,
+      referencedTable: $db.localUsers,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalUsersTableFilterComposer(
+            $db: $db,
+            $table: $db.localUsers,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$HabitsTableFilterComposer get habitId {
+    final $$HabitsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.habitId,
+      referencedTable: $db.habits,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$HabitsTableFilterComposer(
+            $db: $db,
+            $table: $db.habits,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$HabitPausesTableOrderingComposer
+    extends Composer<_$AppDatabase, $HabitPausesTable> {
+  $$HabitPausesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get startDate => $composableBuilder(
+    column: $table.startDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get endDate => $composableBuilder(
+    column: $table.endDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$LocalUsersTableOrderingComposer get userId {
+    final $$LocalUsersTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userId,
+      referencedTable: $db.localUsers,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalUsersTableOrderingComposer(
+            $db: $db,
+            $table: $db.localUsers,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$HabitsTableOrderingComposer get habitId {
+    final $$HabitsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.habitId,
+      referencedTable: $db.habits,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$HabitsTableOrderingComposer(
+            $db: $db,
+            $table: $db.habits,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$HabitPausesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $HabitPausesTable> {
+  $$HabitPausesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<DateTime, String> get startDate =>
+      $composableBuilder(column: $table.startDate, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<DateTime, String> get endDate =>
+      $composableBuilder(column: $table.endDate, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  $$LocalUsersTableAnnotationComposer get userId {
+    final $$LocalUsersTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userId,
+      referencedTable: $db.localUsers,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalUsersTableAnnotationComposer(
+            $db: $db,
+            $table: $db.localUsers,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$HabitsTableAnnotationComposer get habitId {
+    final $$HabitsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.habitId,
+      referencedTable: $db.habits,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$HabitsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.habits,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$HabitPausesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $HabitPausesTable,
+          HabitPause,
+          $$HabitPausesTableFilterComposer,
+          $$HabitPausesTableOrderingComposer,
+          $$HabitPausesTableAnnotationComposer,
+          $$HabitPausesTableCreateCompanionBuilder,
+          $$HabitPausesTableUpdateCompanionBuilder,
+          (HabitPause, $$HabitPausesTableReferences),
+          HabitPause,
+          PrefetchHooks Function({bool userId, bool habitId})
+        > {
+  $$HabitPausesTableTableManager(_$AppDatabase db, $HabitPausesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$HabitPausesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$HabitPausesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$HabitPausesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> userId = const Value.absent(),
+                Value<String> habitId = const Value.absent(),
+                Value<DateTime> startDate = const Value.absent(),
+                Value<DateTime> endDate = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => HabitPausesCompanion(
+                id: id,
+                userId: userId,
+                habitId: habitId,
+                startDate: startDate,
+                endDate: endDate,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                required String userId,
+                required String habitId,
+                required DateTime startDate,
+                required DateTime endDate,
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => HabitPausesCompanion.insert(
+                id: id,
+                userId: userId,
+                habitId: habitId,
+                startDate: startDate,
+                endDate: endDate,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$HabitPausesTable, HabitPause>(table),
+                  $$HabitPausesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({userId = false, habitId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (userId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.userId,
+                        referencedTable: $$HabitPausesTableReferences
+                            ._userIdTable(db),
+                        referencedColumn: $$HabitPausesTableReferences
+                            ._userIdTable(db)
+                            .id,
+                      ) as T;
+                    }
+                    if (habitId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.habitId,
+                        referencedTable: $$HabitPausesTableReferences
+                            ._habitIdTable(db),
+                        referencedColumn: $$HabitPausesTableReferences
+                            ._habitIdTable(db)
+                            .id,
+                      ) as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$HabitPausesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $HabitPausesTable,
+      HabitPause,
+      $$HabitPausesTableFilterComposer,
+      $$HabitPausesTableOrderingComposer,
+      $$HabitPausesTableAnnotationComposer,
+      $$HabitPausesTableCreateCompanionBuilder,
+      $$HabitPausesTableUpdateCompanionBuilder,
+      (HabitPause, $$HabitPausesTableReferences),
+      HabitPause,
+      PrefetchHooks Function({bool userId, bool habitId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -11163,4 +12272,6 @@ class $AppDatabaseManager {
       $$CheckInsTableTableManager(_db, _db.checkIns);
   $$PointLedgerTableTableManager get pointLedger =>
       $$PointLedgerTableTableManager(_db, _db.pointLedger);
+  $$HabitPausesTableTableManager get habitPauses =>
+      $$HabitPausesTableTableManager(_db, _db.habitPauses);
 }

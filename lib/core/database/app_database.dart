@@ -1,10 +1,12 @@
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:ruleup/core/database/database_uuid.dart';
+import 'package:ruleup/core/database/habit_date_converter.dart';
 import 'package:ruleup/core/database/tables/categories.dart';
 import 'package:ruleup/core/database/tables/check_ins.dart';
 import 'package:ruleup/core/database/tables/habits.dart';
 import 'package:ruleup/core/database/tables/habit_options.dart';
+import 'package:ruleup/core/database/tables/habit_pauses.dart';
 import 'package:ruleup/core/database/tables/habit_schedules.dart';
 import 'package:ruleup/core/database/tables/local_users.dart';
 import 'package:ruleup/core/database/tables/point_rules.dart';
@@ -26,6 +28,7 @@ part 'app_database.g.dart';
     PointRules,
     CheckIns,
     PointLedger,
+    HabitPauses,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -34,7 +37,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.defaults() : super(driftDatabase(name: 'ruleup'));
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -92,6 +95,12 @@ class AppDatabase extends _$AppDatabase {
           await customStatement(
             'CREATE INDEX point_ledger_user_created_idx '
             'ON point_ledger (user_id, created_at)',
+          );
+        case 7:
+          await migrator.createTable(habitPauses);
+          await customStatement(
+            'CREATE INDEX habit_pauses_user_habit_dates_idx '
+            'ON habit_pauses (user_id, habit_id, start_date, end_date)',
           );
       }
     }
