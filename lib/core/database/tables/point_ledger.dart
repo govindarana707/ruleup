@@ -13,6 +13,7 @@ class PointLedgerSourceTypeConverter
   PointLedgerSourceType fromSql(String fromDb) => switch (fromDb) {
     'check_in' => PointLedgerSourceType.checkIn,
     'missed_check_in' => PointLedgerSourceType.missedCheckIn,
+    'reward_redemption' => PointLedgerSourceType.rewardRedemption,
     _ => throw ArgumentError.value(
       fromDb,
       'fromDb',
@@ -24,6 +25,7 @@ class PointLedgerSourceTypeConverter
   String toSql(PointLedgerSourceType value) => switch (value) {
     PointLedgerSourceType.checkIn => 'check_in',
     PointLedgerSourceType.missedCheckIn => 'missed_check_in',
+    PointLedgerSourceType.rewardRedemption => 'reward_redemption',
   };
 }
 

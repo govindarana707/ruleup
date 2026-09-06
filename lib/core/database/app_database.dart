@@ -11,6 +11,7 @@ import 'package:ruleup/core/database/tables/habit_schedules.dart';
 import 'package:ruleup/core/database/tables/local_users.dart';
 import 'package:ruleup/core/database/tables/point_rules.dart';
 import 'package:ruleup/core/database/tables/point_ledger.dart';
+import 'package:ruleup/core/database/tables/rewards.dart';
 import 'package:ruleup/core/database/tables/sync_metadata.dart';
 import 'package:ruleup/core/database/tables/sync_queue.dart';
 
@@ -29,6 +30,7 @@ part 'app_database.g.dart';
     CheckIns,
     PointLedger,
     HabitPauses,
+    Rewards,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -37,7 +39,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.defaults() : super(driftDatabase(name: 'ruleup'));
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 9;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -109,6 +111,12 @@ class AppDatabase extends _$AppDatabase {
             await migrator.addColumn(habits, habits.missedPenaltyEnabled);
             await migrator.addColumn(habits, habits.missedPenaltyPoints);
           }
+        case 9:
+          await migrator.createTable(rewards);
+          await customStatement(
+            'CREATE INDEX rewards_user_order_idx '
+            'ON rewards (user_id, archived_at, sort_order)',
+          );
       }
     }
   }
