@@ -11,7 +11,7 @@ void main() {
 
   tearDown(() => database.close());
 
-  test('initializes the version 9 local schema', () async {
+  test('initializes the version 10 local schema', () async {
     final tables = await database
         .customSelect(
           "SELECT name FROM sqlite_master "
@@ -19,11 +19,11 @@ void main() {
           "('local_users', 'sync_queue', 'sync_metadata', "
           "'categories', 'habits', 'habit_options', 'habit_schedules', "
           "'point_rules', 'check_ins', 'point_ledger', 'habit_pauses', "
-          "'rewards')",
+          "'rewards', 'habit_reminders')",
         )
         .get();
 
-    expect(database.schemaVersion, 9);
+    expect(database.schemaVersion, 10);
     expect(tables.map((row) => row.read<String>('name')).toSet(), {
       'local_users',
       'sync_queue',
@@ -37,6 +37,7 @@ void main() {
       'point_ledger',
       'habit_pauses',
       'rewards',
+      'habit_reminders',
     });
   });
 
@@ -90,7 +91,8 @@ void main() {
           "'check_ins_user_date_idx', 'point_ledger', "
           "'point_ledger_user_created_idx', 'habit_pauses', "
           "'habit_pauses_user_habit_dates_idx', 'rewards', "
-          "'rewards_user_order_idx')",
+          "'rewards_user_order_idx', 'habit_reminders', "
+          "'habit_reminders_user_habit_idx')",
         )
         .get();
     final habitColumns = await upgraded
@@ -117,6 +119,8 @@ void main() {
       'habit_pauses_user_habit_dates_idx',
       'rewards',
       'rewards_user_order_idx',
+      'habit_reminders',
+      'habit_reminders_user_habit_idx',
     });
     expect(
       habitColumns.map((row) => row.read<String>('name')),

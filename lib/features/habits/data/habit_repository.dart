@@ -2,12 +2,14 @@ import 'package:drift/drift.dart';
 import 'package:ruleup/core/database/app_database.dart';
 import 'package:ruleup/core/database/tables/habits.dart';
 import 'package:ruleup/core/sync/sync_service.dart';
+import 'package:ruleup/features/reminders/domain/habit_reminder_rescheduler.dart';
 
 class HabitRepository {
-  HabitRepository(this._database, this._sync);
+  HabitRepository(this._database, this._sync, [this._reminderRescheduler]);
 
   final AppDatabase _database;
   final SyncService _sync;
+  final HabitReminderRescheduler? _reminderRescheduler;
 
   Future<Habit> create({
     required String userId,
@@ -94,20 +96,23 @@ class HabitRepository {
     return updated;
   });
 
-  Future<bool> archive(String userId, String id) =>
-      _database.transaction(() async {
-        final existing = await getById(userId, id);
-        if (existing == null) return false;
-        if (existing.archivedAt != null) return true;
-        final now = DateTime.now().toUtc();
-        await (_database.update(
-          _database.habits,
-        )..where((row) => row.id.equals(id) & row.userId.equals(userId))).write(
-          HabitsCompanion(archivedAt: Value(now), updatedAt: Value(now)),
-        );
-        await _enqueue(existing, 'archive');
-        return true;
-      });
+  Future<bool> archive(String userId, String id) async {
+    final archived = await _database.transaction(() async {
+      final existing = await getById(userId, id);
+      if (existing == null) return false;
+      if (existing.archivedAt != null) return true;
+      final now = DateTime.now().toUtc();
+      await (_database.update(
+        _database.habits,
+      )..where((row) => row.id.equals(id) & row.userId.equals(userId))).write(
+        HabitsCompanion(archivedAt: Value(now), updatedAt: Value(now)),
+      );
+      await _enqueue(existing, 'archive');
+      return true;
+    });
+    if (archived) await _safeReschedule(userId, id);
+    return archived;
+  }
 
   Future<void> _verifyCategory(String userId, String? categoryId) async {
     if (categoryId == null) return;
@@ -141,6 +146,14 @@ class HabitRepository {
         'missedPenaltyPoints',
         'Must be zero or negative',
       );
+    }
+  }
+
+  Future<void> _safeReschedule(String userId, String habitId) async {
+    try {
+      await _reminderRescheduler?.rescheduleHabit(userId, habitId);
+    } on Object {
+      // Habit persistence is independent from notification availability.
     }
   }
 }
