@@ -1,37 +1,13 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ruleup/features/auth/presentation/auth_controller.dart';
+import 'package:flutter/widgets.dart';
+import 'package:ruleup/features/home/presentation/app_shell.dart';
 
-class HomeScreen extends ConsumerWidget {
-  const HomeScreen({super.key, required this.username});
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key, required this.userId, required this.username});
 
+  final String userId;
   final String username;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('RuleUp'),
-        actions: [
-          TextButton(
-            onPressed: () => ref.read(authControllerProvider.notifier).logout(),
-            child: const Text('Logout'),
-          ),
-        ],
-      ),
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Welcome, $username',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-            const SizedBox(height: 8),
-            const Text('Foundation ready'),
-          ],
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) =>
+      AppShell(userId: userId, username: username);
 }

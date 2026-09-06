@@ -6,6 +6,7 @@ import 'package:ruleup/core/sync/sync_provider.dart';
 import 'package:ruleup/features/auth/data/auth_repository.dart';
 import 'package:ruleup/features/auth/domain/auth_user.dart';
 import 'package:ruleup/features/auth/presentation/auth_controller.dart';
+import 'package:ruleup/features/home/presentation/home_dashboard_provider.dart';
 
 void main() {
   testWidgets('authenticated RuleUp app renders Home', (tester) async {
@@ -15,6 +16,8 @@ void main() {
         overrides: [
           authRepositoryProvider.overrideWithValue(_SignedInRepository()),
           backendHealthProvider.overrideWith((ref) async {}),
+          homeDashboardProvider.overrideWith((ref, _) async => _emptyDashboard),
+          homeNowProvider.overrideWithValue(DateTime(2026, 1, 1, 9)),
           syncLifecycleTriggerProvider.overrideWithValue((userId) async {
             synchronizedUsers.add(userId);
           }),
@@ -24,8 +27,9 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Welcome, tester'), findsOneWidget);
-    expect(find.text('Foundation ready'), findsOneWidget);
+    expect(find.text('Good morning'), findsOneWidget);
+    expect(find.text('tester'), findsOneWidget);
+    expect(find.text('No habits yet'), findsOneWidget);
     expect(synchronizedUsers, ['user-id']);
 
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
@@ -34,7 +38,7 @@ void main() {
     expect(synchronizedUsers, ['user-id', 'user-id']);
   });
 
-  testWidgets('development shows an unreachable backend error', (tester) async {
+  testWidgets('authenticated dashboard shows offline state', (tester) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -42,6 +46,7 @@ void main() {
           backendHealthProvider.overrideWith(
             (ref) => Future<void>.error(Exception('unreachable')),
           ),
+          homeDashboardProvider.overrideWith((ref, _) async => _emptyDashboard),
           syncLifecycleTriggerProvider.overrideWithValue((_) async {}),
         ],
         child: const RuleUpApp(),
@@ -49,10 +54,21 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Cannot reach the RuleUp backend'), findsOneWidget);
-    expect(find.text('Retry'), findsOneWidget);
+    expect(find.text('Offline'), findsOneWidget);
+    expect(
+      find.text('Changes stay on this device and will sync when reconnected.'),
+      findsOneWidget,
+    );
   });
 }
+
+const _emptyDashboard = HomeDashboardData(
+  availablePoints: 0,
+  currentStreak: 0,
+  completedToday: 0,
+  applicableToday: 0,
+  activeHabitCount: 0,
+);
 
 class _SignedInRepository implements AuthRepository {
   @override

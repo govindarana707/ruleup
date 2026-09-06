@@ -17,7 +17,21 @@ abstract final class AppTheme {
       colorScheme: colorScheme,
       scaffoldBackgroundColor: colorScheme.surface,
       appBarTheme: const AppBarTheme(centerTitle: false, elevation: 0),
-      cardTheme: const CardThemeData(margin: EdgeInsets.zero),
+      cardTheme: CardThemeData(
+        margin: EdgeInsets.zero,
+        elevation: 0,
+        color: colorScheme.surfaceContainerLow,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18),
+          side: BorderSide(color: colorScheme.outlineVariant),
+        ),
+      ),
+      navigationBarTheme: NavigationBarThemeData(
+        height: 72,
+        labelTextStyle: WidgetStatePropertyAll(
+          TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 12),
+        ),
+      ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(minimumSize: const Size(64, 48)),
       ),

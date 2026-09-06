@@ -53,7 +53,9 @@ class _AuthGateState extends ConsumerState<AuthGate>
       }
     });
 
-    if (AppConfig.showDevelopmentConnectionErrors && backendHealth.hasError) {
+    if (AppConfig.showDevelopmentConnectionErrors &&
+        backendHealth.hasError &&
+        auth.asData?.value == null) {
       return _DevelopmentConnectionError(
         onRetry: () => ref.invalidate(backendHealthProvider),
       );
@@ -64,7 +66,7 @@ class _AuthGateState extends ConsumerState<AuthGate>
           const Scaffold(body: Center(child: CircularProgressIndicator())),
       data: (user) => user == null
           ? const LoginScreen()
-          : HomeScreen(username: user.username),
+          : HomeScreen(userId: user.id, username: user.username),
       error: (error, _) => LoginScreen(errorMessage: _message(error)),
     );
   }

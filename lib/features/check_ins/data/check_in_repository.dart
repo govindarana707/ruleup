@@ -110,6 +110,16 @@ class CheckInRepository {
     return query.get();
   }
 
+  Future<List<CheckIn>> listForHabit(String userId, String habitId) {
+    final query = _database.select(_database.checkIns)
+      ..where((row) => row.userId.equals(userId) & row.habitId.equals(habitId))
+      ..orderBy([
+        (row) => OrderingTerm.asc(row.habitDate),
+        (row) => OrderingTerm.asc(row.checkedInAt),
+      ]);
+    return query.get();
+  }
+
   Future<CheckIn?> update({
     required String userId,
     required String id,
