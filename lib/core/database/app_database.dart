@@ -37,7 +37,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.defaults() : super(driftDatabase(name: 'ruleup'));
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -102,6 +102,13 @@ class AppDatabase extends _$AppDatabase {
             'CREATE INDEX habit_pauses_user_habit_dates_idx '
             'ON habit_pauses (user_id, habit_id, start_date, end_date)',
           );
+        case 8:
+          // A v1 upgrade creates the current habits table in migration 2, so
+          // the new columns already exist on that upgrade path.
+          if (from > 1) {
+            await migrator.addColumn(habits, habits.missedPenaltyEnabled);
+            await migrator.addColumn(habits, habits.missedPenaltyPoints);
+          }
       }
     }
   }

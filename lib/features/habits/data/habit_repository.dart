@@ -15,8 +15,11 @@ class HabitRepository {
     required MeasurementType measurementType,
     String? categoryId,
     int sortOrder = 0,
+    bool missedPenaltyEnabled = false,
+    int missedPenaltyPoints = 0,
   }) => _database.transaction(() async {
     await _verifyCategory(userId, categoryId);
+    _validateMissedPenalty(missedPenaltyPoints);
     final habit = await _database
         .into(_database.habits)
         .insertReturning(
@@ -26,6 +29,8 @@ class HabitRepository {
             name: _validName(name),
             measurementType: measurementType,
             sortOrder: Value(sortOrder),
+            missedPenaltyEnabled: Value(missedPenaltyEnabled),
+            missedPenaltyPoints: Value(missedPenaltyPoints),
           ),
         );
     await _enqueue(habit, 'create');
@@ -60,10 +65,15 @@ class HabitRepository {
     required MeasurementType measurementType,
     required String? categoryId,
     required int sortOrder,
+    bool? missedPenaltyEnabled,
+    int? missedPenaltyPoints,
   }) => _database.transaction(() async {
     final existing = await getById(userId, id);
     if (existing == null) return null;
     await _verifyCategory(userId, categoryId);
+    final updatedPenaltyPoints =
+        missedPenaltyPoints ?? existing.missedPenaltyPoints;
+    _validateMissedPenalty(updatedPenaltyPoints);
     await (_database.update(
       _database.habits,
     )..where((row) => row.id.equals(id) & row.userId.equals(userId))).write(
@@ -72,6 +82,10 @@ class HabitRepository {
         name: Value(_validName(name)),
         measurementType: Value(measurementType),
         sortOrder: Value(sortOrder),
+        missedPenaltyEnabled: Value(
+          missedPenaltyEnabled ?? existing.missedPenaltyEnabled,
+        ),
+        missedPenaltyPoints: Value(updatedPenaltyPoints),
         updatedAt: Value(DateTime.now().toUtc()),
       ),
     );
@@ -118,5 +132,15 @@ class HabitRepository {
     final normalized = name.trim();
     if (normalized.isEmpty) throw ArgumentError.value(name, 'name');
     return normalized;
+  }
+
+  void _validateMissedPenalty(int points) {
+    if (points > 0) {
+      throw ArgumentError.value(
+        points,
+        'missedPenaltyPoints',
+        'Must be zero or negative',
+      );
+    }
   }
 }

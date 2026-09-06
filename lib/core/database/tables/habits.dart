@@ -49,6 +49,10 @@ class Habits extends Table {
   TextColumn get measurementType =>
       text().map(const MeasurementTypeConverter())();
   IntColumn get sortOrder => integer().withDefault(const Constant(0))();
+  BoolColumn get missedPenaltyEnabled =>
+      boolean().withDefault(const Constant(false))();
+  IntColumn get missedPenaltyPoints =>
+      integer().withDefault(const Constant(0))();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get archivedAt => dateTime().nullable()();

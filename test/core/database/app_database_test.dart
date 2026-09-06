@@ -11,7 +11,7 @@ void main() {
 
   tearDown(() => database.close());
 
-  test('initializes the version 7 local schema', () async {
+  test('initializes the version 8 local schema', () async {
     final tables = await database
         .customSelect(
           "SELECT name FROM sqlite_master "
@@ -22,7 +22,7 @@ void main() {
         )
         .get();
 
-    expect(database.schemaVersion, 7);
+    expect(database.schemaVersion, 8);
     expect(tables.map((row) => row.read<String>('name')).toSet(), {
       'local_users',
       'sync_queue',
@@ -90,6 +90,9 @@ void main() {
           "'habit_pauses_user_habit_dates_idx')",
         )
         .get();
+    final habitColumns = await upgraded
+        .customSelect('PRAGMA table_info(habits)')
+        .get();
 
     expect(entities.map((row) => row.read<String>('name')).toSet(), {
       'categories',
@@ -110,5 +113,9 @@ void main() {
       'habit_pauses',
       'habit_pauses_user_habit_dates_idx',
     });
+    expect(
+      habitColumns.map((row) => row.read<String>('name')),
+      containsAll(['missed_penalty_enabled', 'missed_penalty_points']),
+    );
   });
 }

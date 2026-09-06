@@ -1754,6 +1754,31 @@ class $HabitsTable extends Habits with TableInfo<$HabitsTable, Habit> {
     requiredDuringInsert: false,
     defaultValue: const Constant(0),
   );
+  static const VerificationMeta _missedPenaltyEnabledMeta =
+      const VerificationMeta('missedPenaltyEnabled');
+  @override
+  late final GeneratedColumn<bool> missedPenaltyEnabled = GeneratedColumn<bool>(
+    'missed_penalty_enabled',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("missed_penalty_enabled" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _missedPenaltyPointsMeta =
+      const VerificationMeta('missedPenaltyPoints');
+  @override
+  late final GeneratedColumn<int> missedPenaltyPoints = GeneratedColumn<int>(
+    'missed_penalty_points',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -1797,6 +1822,8 @@ class $HabitsTable extends Habits with TableInfo<$HabitsTable, Habit> {
     name,
     measurementType,
     sortOrder,
+    missedPenaltyEnabled,
+    missedPenaltyPoints,
     createdAt,
     updatedAt,
     archivedAt,
@@ -1842,6 +1869,24 @@ class $HabitsTable extends Habits with TableInfo<$HabitsTable, Habit> {
       context.handle(
         _sortOrderMeta,
         sortOrder.isAcceptableOrUnknown(data['sort_order']!, _sortOrderMeta),
+      );
+    }
+    if (data.containsKey('missed_penalty_enabled')) {
+      context.handle(
+        _missedPenaltyEnabledMeta,
+        missedPenaltyEnabled.isAcceptableOrUnknown(
+          data['missed_penalty_enabled']!,
+          _missedPenaltyEnabledMeta,
+        ),
+      );
+    }
+    if (data.containsKey('missed_penalty_points')) {
+      context.handle(
+        _missedPenaltyPointsMeta,
+        missedPenaltyPoints.isAcceptableOrUnknown(
+          data['missed_penalty_points']!,
+          _missedPenaltyPointsMeta,
+        ),
       );
     }
     if (data.containsKey('created_at')) {
@@ -1897,6 +1942,14 @@ class $HabitsTable extends Habits with TableInfo<$HabitsTable, Habit> {
         DriftSqlType.int,
         data['${effectivePrefix}sort_order'],
       )!,
+      missedPenaltyEnabled: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}missed_penalty_enabled'],
+      )!,
+      missedPenaltyPoints: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}missed_penalty_points'],
+      )!,
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -1928,6 +1981,8 @@ class Habit extends DataClass implements Insertable<Habit> {
   final String name;
   final MeasurementType measurementType;
   final int sortOrder;
+  final bool missedPenaltyEnabled;
+  final int missedPenaltyPoints;
   final DateTime createdAt;
   final DateTime updatedAt;
   final DateTime? archivedAt;
@@ -1938,6 +1993,8 @@ class Habit extends DataClass implements Insertable<Habit> {
     required this.name,
     required this.measurementType,
     required this.sortOrder,
+    required this.missedPenaltyEnabled,
+    required this.missedPenaltyPoints,
     required this.createdAt,
     required this.updatedAt,
     this.archivedAt,
@@ -1957,6 +2014,8 @@ class Habit extends DataClass implements Insertable<Habit> {
       );
     }
     map['sort_order'] = Variable<int>(sortOrder);
+    map['missed_penalty_enabled'] = Variable<bool>(missedPenaltyEnabled);
+    map['missed_penalty_points'] = Variable<int>(missedPenaltyPoints);
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     if (!nullToAbsent || archivedAt != null) {
@@ -1975,6 +2034,8 @@ class Habit extends DataClass implements Insertable<Habit> {
       name: Value(name),
       measurementType: Value(measurementType),
       sortOrder: Value(sortOrder),
+      missedPenaltyEnabled: Value(missedPenaltyEnabled),
+      missedPenaltyPoints: Value(missedPenaltyPoints),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
       archivedAt: archivedAt == null && nullToAbsent
@@ -1997,6 +2058,12 @@ class Habit extends DataClass implements Insertable<Habit> {
         json['measurementType'],
       ),
       sortOrder: serializer.fromJson<int>(json['sortOrder']),
+      missedPenaltyEnabled: serializer.fromJson<bool>(
+        json['missedPenaltyEnabled'],
+      ),
+      missedPenaltyPoints: serializer.fromJson<int>(
+        json['missedPenaltyPoints'],
+      ),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       archivedAt: serializer.fromJson<DateTime?>(json['archivedAt']),
@@ -2012,6 +2079,8 @@ class Habit extends DataClass implements Insertable<Habit> {
       'name': serializer.toJson<String>(name),
       'measurementType': serializer.toJson<MeasurementType>(measurementType),
       'sortOrder': serializer.toJson<int>(sortOrder),
+      'missedPenaltyEnabled': serializer.toJson<bool>(missedPenaltyEnabled),
+      'missedPenaltyPoints': serializer.toJson<int>(missedPenaltyPoints),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'archivedAt': serializer.toJson<DateTime?>(archivedAt),
@@ -2025,6 +2094,8 @@ class Habit extends DataClass implements Insertable<Habit> {
     String? name,
     MeasurementType? measurementType,
     int? sortOrder,
+    bool? missedPenaltyEnabled,
+    int? missedPenaltyPoints,
     DateTime? createdAt,
     DateTime? updatedAt,
     Value<DateTime?> archivedAt = const Value.absent(),
@@ -2035,6 +2106,8 @@ class Habit extends DataClass implements Insertable<Habit> {
     name: name ?? this.name,
     measurementType: measurementType ?? this.measurementType,
     sortOrder: sortOrder ?? this.sortOrder,
+    missedPenaltyEnabled: missedPenaltyEnabled ?? this.missedPenaltyEnabled,
+    missedPenaltyPoints: missedPenaltyPoints ?? this.missedPenaltyPoints,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
     archivedAt: archivedAt.present ? archivedAt.value : this.archivedAt,
@@ -2051,6 +2124,12 @@ class Habit extends DataClass implements Insertable<Habit> {
           ? data.measurementType.value
           : this.measurementType,
       sortOrder: data.sortOrder.present ? data.sortOrder.value : this.sortOrder,
+      missedPenaltyEnabled: data.missedPenaltyEnabled.present
+          ? data.missedPenaltyEnabled.value
+          : this.missedPenaltyEnabled,
+      missedPenaltyPoints: data.missedPenaltyPoints.present
+          ? data.missedPenaltyPoints.value
+          : this.missedPenaltyPoints,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       archivedAt: data.archivedAt.present
@@ -2068,6 +2147,8 @@ class Habit extends DataClass implements Insertable<Habit> {
           ..write('name: $name, ')
           ..write('measurementType: $measurementType, ')
           ..write('sortOrder: $sortOrder, ')
+          ..write('missedPenaltyEnabled: $missedPenaltyEnabled, ')
+          ..write('missedPenaltyPoints: $missedPenaltyPoints, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('archivedAt: $archivedAt')
@@ -2083,6 +2164,8 @@ class Habit extends DataClass implements Insertable<Habit> {
     name,
     measurementType,
     sortOrder,
+    missedPenaltyEnabled,
+    missedPenaltyPoints,
     createdAt,
     updatedAt,
     archivedAt,
@@ -2097,6 +2180,8 @@ class Habit extends DataClass implements Insertable<Habit> {
           other.name == this.name &&
           other.measurementType == this.measurementType &&
           other.sortOrder == this.sortOrder &&
+          other.missedPenaltyEnabled == this.missedPenaltyEnabled &&
+          other.missedPenaltyPoints == this.missedPenaltyPoints &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
           other.archivedAt == this.archivedAt);
@@ -2109,6 +2194,8 @@ class HabitsCompanion extends UpdateCompanion<Habit> {
   final Value<String> name;
   final Value<MeasurementType> measurementType;
   final Value<int> sortOrder;
+  final Value<bool> missedPenaltyEnabled;
+  final Value<int> missedPenaltyPoints;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<DateTime?> archivedAt;
@@ -2120,6 +2207,8 @@ class HabitsCompanion extends UpdateCompanion<Habit> {
     this.name = const Value.absent(),
     this.measurementType = const Value.absent(),
     this.sortOrder = const Value.absent(),
+    this.missedPenaltyEnabled = const Value.absent(),
+    this.missedPenaltyPoints = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.archivedAt = const Value.absent(),
@@ -2132,6 +2221,8 @@ class HabitsCompanion extends UpdateCompanion<Habit> {
     required String name,
     required MeasurementType measurementType,
     this.sortOrder = const Value.absent(),
+    this.missedPenaltyEnabled = const Value.absent(),
+    this.missedPenaltyPoints = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.archivedAt = const Value.absent(),
@@ -2146,6 +2237,8 @@ class HabitsCompanion extends UpdateCompanion<Habit> {
     Expression<String>? name,
     Expression<String>? measurementType,
     Expression<int>? sortOrder,
+    Expression<bool>? missedPenaltyEnabled,
+    Expression<int>? missedPenaltyPoints,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<DateTime>? archivedAt,
@@ -2158,6 +2251,10 @@ class HabitsCompanion extends UpdateCompanion<Habit> {
       if (name != null) 'name': name,
       if (measurementType != null) 'measurement_type': measurementType,
       if (sortOrder != null) 'sort_order': sortOrder,
+      if (missedPenaltyEnabled != null)
+        'missed_penalty_enabled': missedPenaltyEnabled,
+      if (missedPenaltyPoints != null)
+        'missed_penalty_points': missedPenaltyPoints,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (archivedAt != null) 'archived_at': archivedAt,
@@ -2172,6 +2269,8 @@ class HabitsCompanion extends UpdateCompanion<Habit> {
     Value<String>? name,
     Value<MeasurementType>? measurementType,
     Value<int>? sortOrder,
+    Value<bool>? missedPenaltyEnabled,
+    Value<int>? missedPenaltyPoints,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<DateTime?>? archivedAt,
@@ -2184,6 +2283,8 @@ class HabitsCompanion extends UpdateCompanion<Habit> {
       name: name ?? this.name,
       measurementType: measurementType ?? this.measurementType,
       sortOrder: sortOrder ?? this.sortOrder,
+      missedPenaltyEnabled: missedPenaltyEnabled ?? this.missedPenaltyEnabled,
+      missedPenaltyPoints: missedPenaltyPoints ?? this.missedPenaltyPoints,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       archivedAt: archivedAt ?? this.archivedAt,
@@ -2214,6 +2315,14 @@ class HabitsCompanion extends UpdateCompanion<Habit> {
     if (sortOrder.present) {
       map['sort_order'] = Variable<int>(sortOrder.value);
     }
+    if (missedPenaltyEnabled.present) {
+      map['missed_penalty_enabled'] = Variable<bool>(
+        missedPenaltyEnabled.value,
+      );
+    }
+    if (missedPenaltyPoints.present) {
+      map['missed_penalty_points'] = Variable<int>(missedPenaltyPoints.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -2238,6 +2347,8 @@ class HabitsCompanion extends UpdateCompanion<Habit> {
           ..write('name: $name, ')
           ..write('measurementType: $measurementType, ')
           ..write('sortOrder: $sortOrder, ')
+          ..write('missedPenaltyEnabled: $missedPenaltyEnabled, ')
+          ..write('missedPenaltyPoints: $missedPenaltyPoints, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('archivedAt: $archivedAt, ')
@@ -8134,6 +8245,8 @@ typedef $$HabitsTableCreateCompanionBuilder = HabitsCompanion Function({
   required String name,
   required MeasurementType measurementType,
   Value<int> sortOrder,
+  Value<bool> missedPenaltyEnabled,
+  Value<int> missedPenaltyPoints,
   Value<DateTime> createdAt,
   Value<DateTime> updatedAt,
   Value<DateTime?> archivedAt,
@@ -8146,6 +8259,8 @@ typedef $$HabitsTableUpdateCompanionBuilder = HabitsCompanion Function({
   Value<String> name,
   Value<MeasurementType> measurementType,
   Value<int> sortOrder,
+  Value<bool> missedPenaltyEnabled,
+  Value<int> missedPenaltyPoints,
   Value<DateTime> createdAt,
   Value<DateTime> updatedAt,
   Value<DateTime?> archivedAt,
@@ -8309,6 +8424,16 @@ class $$HabitsTableFilterComposer
 
   ColumnFilters<int> get sortOrder => $composableBuilder(
     column: $table.sortOrder,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get missedPenaltyEnabled => $composableBuilder(
+    column: $table.missedPenaltyEnabled,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get missedPenaltyPoints => $composableBuilder(
+    column: $table.missedPenaltyPoints,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -8528,6 +8653,16 @@ class $$HabitsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get missedPenaltyEnabled => $composableBuilder(
+    column: $table.missedPenaltyEnabled,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get missedPenaltyPoints => $composableBuilder(
+    column: $table.missedPenaltyPoints,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -8613,6 +8748,16 @@ class $$HabitsTableAnnotationComposer
 
   GeneratedColumn<int> get sortOrder =>
       $composableBuilder(column: $table.sortOrder, builder: (column) => column);
+
+  GeneratedColumn<bool> get missedPenaltyEnabled => $composableBuilder(
+    column: $table.missedPenaltyEnabled,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get missedPenaltyPoints => $composableBuilder(
+    column: $table.missedPenaltyPoints,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -8839,6 +8984,8 @@ class $$HabitsTableTableManager
                 Value<String> name = const Value.absent(),
                 Value<MeasurementType> measurementType = const Value.absent(),
                 Value<int> sortOrder = const Value.absent(),
+                Value<bool> missedPenaltyEnabled = const Value.absent(),
+                Value<int> missedPenaltyPoints = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<DateTime?> archivedAt = const Value.absent(),
@@ -8850,6 +8997,8 @@ class $$HabitsTableTableManager
                 name: name,
                 measurementType: measurementType,
                 sortOrder: sortOrder,
+                missedPenaltyEnabled: missedPenaltyEnabled,
+                missedPenaltyPoints: missedPenaltyPoints,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 archivedAt: archivedAt,
@@ -8863,6 +9012,8 @@ class $$HabitsTableTableManager
                 required String name,
                 required MeasurementType measurementType,
                 Value<int> sortOrder = const Value.absent(),
+                Value<bool> missedPenaltyEnabled = const Value.absent(),
+                Value<int> missedPenaltyPoints = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<DateTime?> archivedAt = const Value.absent(),
@@ -8874,6 +9025,8 @@ class $$HabitsTableTableManager
                 name: name,
                 measurementType: measurementType,
                 sortOrder: sortOrder,
+                missedPenaltyEnabled: missedPenaltyEnabled,
+                missedPenaltyPoints: missedPenaltyPoints,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 archivedAt: archivedAt,
