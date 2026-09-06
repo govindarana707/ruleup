@@ -132,6 +132,10 @@ void main() {
     expect(await habits.archive(userId, first.id), isTrue);
     expect(await habits.list(userId), hasLength(1));
     expect((await habits.getById(userId, first.id))?.archivedAt, isNotNull);
+
+    expect(await habits.restore(userId, first.id), isTrue);
+    expect(await habits.list(userId), hasLength(2));
+    expect((await habits.getById(userId, first.id))?.archivedAt, isNull);
   });
 
   test('repositories prevent cross-user reads and writes', () async {

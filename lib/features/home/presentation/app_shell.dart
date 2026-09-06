@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ruleup/features/auth/presentation/auth_controller.dart';
+import 'package:ruleup/features/habits/presentation/habit_list_screen.dart';
 import 'package:ruleup/features/home/presentation/home_dashboard.dart';
 
 class AppShell extends ConsumerStatefulWidget {
@@ -52,11 +53,7 @@ class _AppShellState extends ConsumerState<AppShell> {
         username: widget.username,
         onQuickCheckIn: () => _select(2),
       ),
-      const _ShellPlaceholder(
-        icon: Icons.track_changes_outlined,
-        title: 'Habits',
-        message: 'Your habit management workspace is ready for the next phase.',
-      ),
+      HabitListScreen(userId: widget.userId),
       const _ShellPlaceholder(
         icon: Icons.add_task_outlined,
         title: 'Check-in',

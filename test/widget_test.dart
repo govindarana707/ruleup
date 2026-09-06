@@ -6,6 +6,7 @@ import 'package:ruleup/core/sync/sync_provider.dart';
 import 'package:ruleup/features/auth/data/auth_repository.dart';
 import 'package:ruleup/features/auth/domain/auth_user.dart';
 import 'package:ruleup/features/auth/presentation/auth_controller.dart';
+import 'package:ruleup/features/habits/presentation/habit_management_provider.dart';
 import 'package:ruleup/features/home/presentation/home_dashboard_provider.dart';
 
 void main() {
@@ -17,6 +18,9 @@ void main() {
           authRepositoryProvider.overrideWithValue(_SignedInRepository()),
           backendHealthProvider.overrideWith((ref) async {}),
           homeDashboardProvider.overrideWith((ref, _) async => _emptyDashboard),
+          habitCatalogProvider.overrideWith(
+            (ref, _) async => const HabitCatalog(habits: [], categories: []),
+          ),
           homeNowProvider.overrideWithValue(DateTime(2026, 1, 1, 9)),
           syncLifecycleTriggerProvider.overrideWithValue((userId) async {
             synchronizedUsers.add(userId);
@@ -47,6 +51,9 @@ void main() {
             (ref) => Future<void>.error(Exception('unreachable')),
           ),
           homeDashboardProvider.overrideWith((ref, _) async => _emptyDashboard),
+          habitCatalogProvider.overrideWith(
+            (ref, _) async => const HabitCatalog(habits: [], categories: []),
+          ),
           syncLifecycleTriggerProvider.overrideWithValue((_) async {}),
         ],
         child: const RuleUpApp(),

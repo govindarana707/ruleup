@@ -114,6 +114,25 @@ class HabitRepository {
     return archived;
   }
 
+  Future<bool> restore(String userId, String id) async {
+    final restored = await _database.transaction(() async {
+      final existing = await getById(userId, id);
+      if (existing == null) return false;
+      if (existing.archivedAt == null) return true;
+      final now = DateTime.now().toUtc();
+      await (_database.update(
+        _database.habits,
+      )..where((row) => row.id.equals(id) & row.userId.equals(userId))).write(
+        HabitsCompanion(archivedAt: const Value(null), updatedAt: Value(now)),
+      );
+      final updated = await getById(userId, id);
+      await _enqueue(updated!, 'update');
+      return true;
+    });
+    if (restored) await _safeReschedule(userId, id);
+    return restored;
+  }
+
   Future<void> _verifyCategory(String userId, String? categoryId) async {
     if (categoryId == null) return;
     final category =

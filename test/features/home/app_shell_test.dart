@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ruleup/features/auth/presentation/auth_controller.dart';
 import 'package:ruleup/core/sync/sync_provider.dart';
+import 'package:ruleup/features/habits/presentation/habit_management_provider.dart';
 import 'package:ruleup/features/home/presentation/app_shell.dart';
 import 'package:ruleup/features/home/presentation/home_dashboard_provider.dart';
 
@@ -21,7 +22,7 @@ void main() {
 
     await tester.tap(find.text('Habits').last);
     await tester.pump();
-    expect(find.byKey(const Key('shell-page-habits')), findsOneWidget);
+    expect(find.byKey(const Key('habit-list-screen')), findsOneWidget);
 
     await tester.tap(find.text('Rewards').last);
     await tester.pump();
@@ -100,6 +101,9 @@ Future<void> _pumpShell(
         if (syncing)
           syncControllerProvider.overrideWith(_SyncingController.new),
         homeNowProvider.overrideWithValue(DateTime(2026, 1, 5, 9)),
+        habitCatalogProvider.overrideWith(
+          (ref, _) async => const HabitCatalog(habits: [], categories: []),
+        ),
         homeDashboardProvider.overrideWith((ref, _) async {
           if (dashboardError != null) throw dashboardError;
           if (dashboardFuture != null) return await dashboardFuture;
