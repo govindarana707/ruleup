@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ruleup/features/auth/presentation/auth_controller.dart';
 import 'package:ruleup/features/check_ins/presentation/daily_check_in_screen.dart';
 import 'package:ruleup/features/habits/presentation/habit_list_screen.dart';
 import 'package:ruleup/features/home/presentation/home_dashboard.dart';
 import 'package:ruleup/features/history/presentation/history_screen.dart';
 import 'package:ruleup/features/rewards/presentation/rewards_wallet_screen.dart';
+import 'package:ruleup/features/settings/presentation/settings_screen.dart';
 
 class AppShell extends ConsumerStatefulWidget {
   const AppShell({super.key, required this.userId, required this.username});
@@ -67,14 +67,25 @@ class _AppShellState extends ConsumerState<AppShell> {
         title: const Text('RuleUp'),
         actions: [
           IconButton(
-            tooltip: 'Log out',
-            onPressed: () => ref.read(authControllerProvider.notifier).logout(),
-            icon: const Icon(Icons.logout),
+            key: const Key('open-settings'),
+            tooltip: 'Settings',
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => SettingsScreen(
+                  userId: widget.userId,
+                  username: widget.username,
+                ),
+              ),
+            ),
+            icon: const Icon(Icons.settings_outlined),
           ),
           const SizedBox(width: 4),
         ],
       ),
-      body: IndexedStack(index: _selectedIndex, children: pages),
+      body: HeroMode(
+        enabled: false,
+        child: IndexedStack(index: _selectedIndex, children: pages),
+      ),
       bottomNavigationBar: NavigationBar(
         key: const Key('app-bottom-navigation'),
         selectedIndex: _selectedIndex,

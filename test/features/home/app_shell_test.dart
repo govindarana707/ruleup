@@ -11,6 +11,7 @@ import 'package:ruleup/features/home/presentation/app_shell.dart';
 import 'package:ruleup/features/home/presentation/home_dashboard_provider.dart';
 import 'package:ruleup/features/history/presentation/history_provider.dart';
 import 'package:ruleup/features/rewards/presentation/rewards_wallet_provider.dart';
+import 'package:ruleup/features/settings/presentation/settings_provider.dart';
 
 void main() {
   testWidgets('bottom navigation exposes all shell destinations', (
@@ -34,6 +35,10 @@ void main() {
     await tester.tap(find.text('History').last);
     await tester.pump();
     expect(find.byKey(const Key('history-screen')), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('open-settings')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('settings-screen')), findsOneWidget);
   });
 
   testWidgets('quick check-in CTA selects the check-in destination', (
@@ -117,6 +122,13 @@ Future<void> _pumpShell(
             lifetimeEarned: 0,
             spentPoints: 0,
             rewards: [],
+          ),
+        ),
+        settingsOverviewProvider.overrideWith(
+          (ref, _) async => const SettingsOverview(
+            pendingCount: 0,
+            failedCount: 0,
+            lastSuccessfulSync: null,
           ),
         ),
         historyDayProvider.overrideWith(
