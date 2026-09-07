@@ -212,10 +212,14 @@ class _StatusChip extends StatelessWidget {
         children: [
           Icon(status.icon, size: 18, color: foreground),
           const SizedBox(width: 7),
-          Text(
-            status.label,
-            style: Theme.of(context).textTheme.labelLarge
-                ?.copyWith(color: foreground, fontWeight: FontWeight.w600),
+          Flexible(
+            child: Text(
+              status.label,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.labelLarge
+                  ?.copyWith(color: foreground, fontWeight: FontWeight.w600),
+            ),
           ),
         ],
       ),

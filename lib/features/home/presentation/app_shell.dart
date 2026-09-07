@@ -19,6 +19,7 @@ class AppShell extends ConsumerStatefulWidget {
 
 class _AppShellState extends ConsumerState<AppShell> {
   var _selectedIndex = 0;
+  late final List<Widget?> _pages;
 
   static const _destinations = [
     NavigationDestination(
@@ -49,19 +50,14 @@ class _AppShellState extends ConsumerState<AppShell> {
   ];
 
   @override
-  Widget build(BuildContext context) {
-    final pages = [
-      HomeDashboard(
-        userId: widget.userId,
-        username: widget.username,
-        onQuickCheckIn: () => _select(2),
-      ),
-      HabitListScreen(userId: widget.userId),
-      DailyCheckInScreen(userId: widget.userId),
-      RewardsWalletScreen(userId: widget.userId),
-      HistoryScreen(userId: widget.userId),
-    ];
+  void initState() {
+    super.initState();
+    _pages = List<Widget?>.filled(_destinations.length, null);
+    _pages[0] = _buildPage(0);
+  }
 
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('RuleUp'),
@@ -84,10 +80,16 @@ class _AppShellState extends ConsumerState<AppShell> {
       ),
       body: HeroMode(
         enabled: false,
-        child: IndexedStack(index: _selectedIndex, children: pages),
+        child: IndexedStack(
+          index: _selectedIndex,
+          children: _pages
+              .map((page) => page ?? const SizedBox.shrink())
+              .toList(growable: false),
+        ),
       ),
       bottomNavigationBar: NavigationBar(
         key: const Key('app-bottom-navigation'),
+        labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
         selectedIndex: _selectedIndex,
         onDestinationSelected: _select,
         destinations: _destinations,
@@ -95,5 +97,21 @@ class _AppShellState extends ConsumerState<AppShell> {
     );
   }
 
-  void _select(int index) => setState(() => _selectedIndex = index);
+  Widget _buildPage(int index) => switch (index) {
+    0 => HomeDashboard(
+      userId: widget.userId,
+      username: widget.username,
+      onQuickCheckIn: () => _select(2),
+    ),
+    1 => HabitListScreen(userId: widget.userId),
+    2 => DailyCheckInScreen(userId: widget.userId),
+    3 => RewardsWalletScreen(userId: widget.userId),
+    4 => HistoryScreen(userId: widget.userId),
+    _ => throw RangeError.index(index, _destinations),
+  };
+
+  void _select(int index) => setState(() {
+    _pages[index] ??= _buildPage(index);
+    _selectedIndex = index;
+  });
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ruleup/core/presentation/sync_status_banner.dart';
 import 'package:ruleup/core/sync/sync_provider.dart';
 import 'package:ruleup/core/utils/habit_date.dart';
 import 'package:ruleup/features/auth/presentation/auth_controller.dart';
@@ -62,12 +63,17 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                   sync.status == SyncStatus.syncing ||
                   sync.status == SyncStatus.failed)
                 SliverToBoxAdapter(
-                  child: _ConnectionNotice(
+                  child: SyncStatusBanner(
                     offline: health.hasError,
                     sync: sync,
+                    offlineMessage:
+                        'Offline — showing history stored on this device.',
+                    syncingMessage: 'Syncing your history…',
+                    failedMessage: 'Some history changes are waiting to sync.',
                     onRetry: () => ref
                         .read(syncControllerProvider.notifier)
                         .retryFailed(widget.userId),
+                    margin: const EdgeInsets.fromLTRB(16, 0, 16, 10),
                   ),
                 ),
               if (history.hasValue)
@@ -490,47 +496,6 @@ class _DetailRow extends StatelessWidget {
       ],
     ),
   );
-}
-
-class _ConnectionNotice extends StatelessWidget {
-  const _ConnectionNotice({
-    required this.offline,
-    required this.sync,
-    required this.onRetry,
-  });
-
-  final bool offline;
-  final SyncState sync;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    final failed = sync.status == SyncStatus.failed;
-    final message = offline
-        ? 'Offline — showing history stored on this device.'
-        : sync.status == SyncStatus.syncing
-        ? 'Syncing your history…'
-        : 'Some history changes are waiting to sync.';
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-      child: Material(
-        color: Theme.of(context).colorScheme.secondaryContainer,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Row(
-            children: [
-              Icon(offline ? Icons.cloud_off_outlined : Icons.sync, size: 18),
-              const SizedBox(width: 10),
-              Expanded(child: Text(message)),
-              if (failed && !offline)
-                TextButton(onPressed: onRetry, child: const Text('Retry')),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }
 
 class _EmptyState extends StatelessWidget {

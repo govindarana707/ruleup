@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ruleup/core/presentation/sync_status_banner.dart';
 import 'package:ruleup/core/sync/sync_provider.dart';
 import 'package:ruleup/features/auth/presentation/auth_controller.dart';
 import 'package:ruleup/features/home/presentation/home_dashboard_provider.dart';
@@ -51,12 +52,16 @@ class _RewardsWalletScreenState extends ConsumerState<RewardsWalletScreen> {
                   sync.status == SyncStatus.syncing ||
                   sync.status == SyncStatus.failed)
                 SliverToBoxAdapter(
-                  child: _ConnectionNotice(
+                  child: SyncStatusBanner(
                     offline: health.hasError,
                     sync: sync,
+                    offlineMessage: 'Offline — reward changes stay local until sync returns.',
+                    syncingMessage: 'Syncing rewards and wallet…',
+                    failedMessage: 'Some reward changes are waiting to sync.',
                     onRetry: () => ref
                         .read(syncControllerProvider.notifier)
                         .retryFailed(widget.userId),
+                    margin: const EdgeInsets.fromLTRB(16, 0, 16, 10),
                   ),
                 ),
               switch (wallet) {
@@ -124,13 +129,15 @@ class _RewardsWalletScreenState extends ConsumerState<RewardsWalletScreen> {
             },
           ),
           const SizedBox(height: 18),
-          Row(
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 12,
+            runSpacing: 10,
             children: [
-              Expanded(
-                child: Text(
-                  _showArchived ? 'Archived rewards' : 'Your rewards',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
+              Text(
+                _showArchived ? 'Archived rewards' : 'Your rewards',
+                style: Theme.of(context).textTheme.titleLarge,
               ),
               SegmentedButton<bool>(
                 segments: const [
@@ -392,111 +399,82 @@ class _RewardCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         child: Padding(
           padding: const EdgeInsets.all(16),
-          child: Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              CircleAvatar(
-                backgroundColor: affordable
-                    ? scheme.primaryContainer
-                    : scheme.surfaceContainerHighest,
-                foregroundColor: affordable
-                    ? scheme.onPrimaryContainer
-                    : scheme.onSurfaceVariant,
-                child: const Icon(Icons.redeem_outlined),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      reward.name,
-                      style: Theme.of(context).textTheme.titleMedium,
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CircleAvatar(
+                    backgroundColor: affordable
+                        ? scheme.primaryContainer
+                        : scheme.surfaceContainerHighest,
+                    foregroundColor: affordable
+                        ? scheme.onPrimaryContainer
+                        : scheme.onSurfaceVariant,
+                    child: const Icon(Icons.redeem_outlined),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          reward.name,
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        const SizedBox(height: 5),
+                        Text(
+                          '${reward.pointsCost} points',
+                          style: Theme.of(context).textTheme.titleSmall
+                              ?.copyWith(color: scheme.primary),
+                        ),
+                        if (reward.monetaryCap != null) ...[
+                          const SizedBox(height: 3),
+                          Text(
+                            'Monetary cap ${_numberLabel(reward.monetaryCap!)}',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ],
+                        const SizedBox(height: 7),
+                        Text(
+                          affordable
+                              ? 'Ready to redeem'
+                              : '$pointsNeeded points to go',
+                          style: Theme.of(context).textTheme.labelMedium,
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 5),
-                    Text(
-                      '${reward.pointsCost} points',
-                      style: Theme.of(context).textTheme.titleSmall
-                          ?.copyWith(color: scheme.primary),
-                    ),
-                    if (reward.monetaryCap != null) ...[
-                      const SizedBox(height: 3),
-                      Text(
-                        'Monetary cap ${_numberLabel(reward.monetaryCap!)}',
-                        style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  PopupMenuButton<String>(
+                    tooltip: 'Reward actions',
+                    onSelected: (_) => onArchive(),
+                    itemBuilder: (_) => [
+                      PopupMenuItem(
+                        value: reward.archived ? 'restore' : 'archive',
+                        child: Text(reward.archived ? 'Restore' : 'Archive'),
                       ),
                     ],
-                    const SizedBox(height: 7),
-                    Text(
-                      affordable
-                          ? 'Ready to redeem'
-                          : '$pointsNeeded points to go',
-                      style: Theme.of(context).textTheme.labelMedium,
-                    ),
-                  ],
-                ),
-              ),
-              if (!reward.archived)
-                FilledButton.tonal(
-                  key: Key('redeem-reward-${reward.id}'),
-                  onPressed: busy ? null : onRedeem,
-                  child: busy
-                      ? const SizedBox.square(
-                          dimension: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Text('Redeem'),
-                ),
-              PopupMenuButton<String>(
-                tooltip: 'Reward actions',
-                onSelected: (_) => onArchive(),
-                itemBuilder: (_) => [
-                  PopupMenuItem(
-                    value: reward.archived ? 'restore' : 'archive',
-                    child: Text(reward.archived ? 'Restore' : 'Archive'),
                   ),
                 ],
               ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ConnectionNotice extends StatelessWidget {
-  const _ConnectionNotice({
-    required this.offline,
-    required this.sync,
-    required this.onRetry,
-  });
-
-  final bool offline;
-  final SyncState sync;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    final failed = sync.status == SyncStatus.failed;
-    final message = offline
-        ? 'Offline — reward changes stay local until sync returns.'
-        : sync.status == SyncStatus.syncing
-        ? 'Syncing rewards and wallet…'
-        : 'Some reward changes are waiting to sync.';
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-      child: Material(
-        color: Theme.of(context).colorScheme.secondaryContainer,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Row(
-            children: [
-              Icon(offline ? Icons.cloud_off_outlined : Icons.sync, size: 18),
-              const SizedBox(width: 10),
-              Expanded(child: Text(message)),
-              if (failed && !offline)
-                TextButton(onPressed: onRetry, child: const Text('Retry')),
+              if (!reward.archived)
+                Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: FilledButton.tonal(
+                      key: Key('redeem-reward-${reward.id}'),
+                      onPressed: busy ? null : onRedeem,
+                      child: busy
+                          ? const SizedBox.square(
+                              dimension: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Text('Redeem'),
+                    ),
+                  ),
+                ),
             ],
           ),
         ),

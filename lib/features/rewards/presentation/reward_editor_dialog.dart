@@ -37,6 +37,7 @@ class _RewardEditorDialogState extends State<RewardEditorDialog> {
     final editing = widget.draft.id != null;
     return AlertDialog(
       key: const Key('reward-editor-dialog'),
+      scrollable: true,
       title: Text(editing ? 'Edit reward' : 'Create reward'),
       content: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 420),

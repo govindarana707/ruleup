@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ruleup/app/theme/app_theme.dart';
 import 'package:ruleup/features/auth/presentation/auth_controller.dart';
 import 'package:ruleup/core/sync/sync_provider.dart';
 import 'package:ruleup/features/habits/presentation/habit_management_provider.dart';
@@ -91,6 +92,77 @@ void main() {
 
     expect(find.text('Syncing'), findsOneWidget);
   });
+
+  testWidgets('shell remains usable on a small phone with larger text', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(320, 568);
+    tester.view.devicePixelRatio = 1;
+    tester.platformDispatcher.textScaleFactorTestValue = 1.5;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+    await _pumpShell(tester, dashboard: _emptyDashboard, settle: false);
+    expect(
+      tester.takeException(),
+      isNull,
+      reason: 'Loading Home must fit a 320px-wide screen at 150% text scale',
+    );
+    await tester.pumpAndSettle();
+    expect(
+      tester.takeException(),
+      isNull,
+      reason: 'Home must fit a 320px-wide screen at 150% text scale',
+    );
+    final labels = ['Habits', 'Check-in', 'Rewards', 'History', 'Home'];
+    final destinationIndexes = [1, 2, 3, 4, 0];
+    for (var index = 0; index < labels.length; index++) {
+      final label = labels[index];
+      await tester.tap(
+        find.byType(NavigationDestination).at(destinationIndexes[index]),
+      );
+      await tester.pump();
+      final layoutError = tester.takeException();
+      expect(
+        layoutError,
+        isNull,
+        reason: '$label must fit a 320px-wide screen at 150% text scale',
+      );
+    }
+
+    await tester.tap(find.byKey(const Key('open-settings')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('settings-screen')), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('switching tabs retains Home scroll position', (tester) async {
+    await _pumpShell(tester, dashboard: _dashboard);
+    final homeScrollable = find.descendant(
+      of: find.byKey(const Key('home-dashboard-scroll')),
+      matching: find.byType(Scrollable),
+    );
+    await tester.drag(
+      find.byKey(const Key('home-dashboard-scroll')),
+      const Offset(0, -260),
+    );
+    await tester.pumpAndSettle();
+    final before = tester
+        .state<ScrollableState>(homeScrollable)
+        .position
+        .pixels;
+    expect(before, greaterThan(0));
+
+    await tester.tap(find.byType(NavigationDestination).at(1));
+    await tester.pump();
+    await tester.tap(find.byType(NavigationDestination).at(0));
+    await tester.pump();
+
+    expect(
+      tester.state<ScrollableState>(homeScrollable).position.pixels,
+      before,
+    );
+  });
 }
 
 Future<void> _pumpShell(
@@ -146,8 +218,9 @@ Future<void> _pumpShell(
           return dashboard!;
         }),
       ],
-      child: const MaterialApp(
-        home: AppShell(userId: 'user-id', username: 'tester'),
+      child: MaterialApp(
+        theme: AppTheme.light,
+        home: const AppShell(userId: 'user-id', username: 'tester'),
       ),
     ),
   );

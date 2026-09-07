@@ -261,10 +261,13 @@ class _SyncSection extends StatelessWidget {
       AsyncData(:final value) => Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 12,
+            runSpacing: 8,
             children: [
               _StatusChip(sync: sync, offline: offline),
-              const Spacer(),
               Text(_lastSyncLabel(value.lastSuccessfulSync)),
             ],
           ),
@@ -354,7 +357,12 @@ class _Section extends StatelessWidget {
               children: [
                 Icon(icon, color: Theme.of(context).colorScheme.primary),
                 const SizedBox(width: 10),
-                Text(title, style: Theme.of(context).textTheme.titleLarge),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 10),

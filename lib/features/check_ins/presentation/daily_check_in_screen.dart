@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ruleup/core/presentation/sync_status_banner.dart';
 import 'package:ruleup/core/sync/sync_provider.dart';
 import 'package:ruleup/features/auth/presentation/auth_controller.dart';
 import 'package:ruleup/features/check_ins/presentation/check_in_form_sheet.dart';
@@ -47,12 +48,16 @@ class _DailyCheckInScreenState extends ConsumerState<DailyCheckInScreen> {
                   sync.status == SyncStatus.syncing ||
                   sync.status == SyncStatus.failed)
                 SliverToBoxAdapter(
-                  child: _ConnectionNotice(
+                  child: SyncStatusBanner(
                     offline: health.hasError,
                     sync: sync,
+                    offlineMessage: 'Offline — check-ins save locally and sync when connection returns.',
+                    syncingMessage: 'Syncing today’s progress…',
+                    failedMessage: 'Some check-ins are waiting to sync.',
                     onRetry: () => ref
                         .read(syncControllerProvider.notifier)
                         .retryFailed(widget.userId),
+                    margin: const EdgeInsets.fromLTRB(16, 0, 16, 10),
                   ),
                 ),
               switch (day) {
@@ -102,21 +107,24 @@ class _DailyCheckInScreenState extends ConsumerState<DailyCheckInScreen> {
             ),
           ],
           const SizedBox(height: 16),
-          SegmentedButton<TodayHabitFilter>(
-            segments: const [
-              ButtonSegment(
-                value: TodayHabitFilter.pending,
-                label: Text('Pending'),
-              ),
-              ButtonSegment(value: TodayHabitFilter.all, label: Text('All')),
-              ButtonSegment(
-                value: TodayHabitFilter.completed,
-                label: Text('Completed'),
-              ),
-            ],
-            selected: {_filter},
-            onSelectionChanged: (value) =>
-                setState(() => _filter = value.first),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: SegmentedButton<TodayHabitFilter>(
+              segments: const [
+                ButtonSegment(
+                  value: TodayHabitFilter.pending,
+                  label: Text('Pending'),
+                ),
+                ButtonSegment(value: TodayHabitFilter.all, label: Text('All')),
+                ButtonSegment(
+                  value: TodayHabitFilter.completed,
+                  label: Text('Completed'),
+                ),
+              ],
+              selected: {_filter},
+              onSelectionChanged: (value) =>
+                  setState(() => _filter = value.first),
+            ),
           ),
         ],
       ),
@@ -282,11 +290,6 @@ class _CheckInCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  if (habit.currentStreak > 0)
-                    _ContextChip(
-                      icon: Icons.local_fire_department_outlined,
-                      label: '${habit.currentStreak} day streak',
-                    ),
                 ],
               ),
               const SizedBox(height: 12),
@@ -294,6 +297,11 @@ class _CheckInCard extends StatelessWidget {
                 spacing: 8,
                 runSpacing: 6,
                 children: [
+                  if (habit.currentStreak > 0)
+                    _ContextChip(
+                      icon: Icons.local_fire_department_outlined,
+                      label: '${habit.currentStreak} day streak',
+                    ),
                   _ContextChip(
                     icon: Icons.calendar_today_outlined,
                     label: habit.scheduleSummary,
@@ -387,47 +395,6 @@ class _ContextChip extends StatelessWidget {
       ],
     ),
   );
-}
-
-class _ConnectionNotice extends StatelessWidget {
-  const _ConnectionNotice({
-    required this.offline,
-    required this.sync,
-    required this.onRetry,
-  });
-
-  final bool offline;
-  final SyncState sync;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    final failed = sync.status == SyncStatus.failed;
-    final message = offline
-        ? 'Offline — check-ins save locally and sync when connection returns.'
-        : sync.status == SyncStatus.syncing
-        ? 'Syncing today’s progress…'
-        : 'Some changes are waiting to sync.';
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-      child: Material(
-        color: Theme.of(context).colorScheme.secondaryContainer,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Row(
-            children: [
-              Icon(offline ? Icons.cloud_off_outlined : Icons.sync, size: 18),
-              const SizedBox(width: 10),
-              Expanded(child: Text(message)),
-              if (failed && !offline)
-                TextButton(onPressed: onRetry, child: const Text('Retry')),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }
 
 class _EmptyState extends StatelessWidget {

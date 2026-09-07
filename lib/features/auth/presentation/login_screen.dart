@@ -27,65 +27,99 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('RuleUp')),
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Login',
-                  style: Theme.of(context).textTheme.headlineMedium,
-                ),
-                const SizedBox(height: 24),
-                TextFormField(
-                  controller: _username,
-                  decoration: const InputDecoration(labelText: 'Username'),
-                  validator: validateUsername,
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: _password,
-                  obscureText: true,
-                  decoration: const InputDecoration(labelText: 'Password'),
-                  validator: validatePassword,
-                ),
-                if (widget.errorMessage != null) ...[
-                  const SizedBox(height: 12),
-                  Text(
-                    widget.errorMessage!,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.error,
-                    ),
+      body: SafeArea(
+        top: false,
+        child: Center(
+          child: SingleChildScrollView(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            padding: const EdgeInsets.all(24),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 440),
+              child: AutofillGroup(
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        'Welcome back',
+                        style: Theme.of(context).textTheme.headlineMedium,
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Keep your momentum moving.',
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 24),
+                      TextFormField(
+                        controller: _username,
+                        autofillHints: const [AutofillHints.username],
+                        textInputAction: TextInputAction.next,
+                        autocorrect: false,
+                        decoration: const InputDecoration(
+                          labelText: 'Username',
+                          prefixIcon: Icon(Icons.person_outline),
+                        ),
+                        validator: validateUsername,
+                      ),
+                      const SizedBox(height: 14),
+                      TextFormField(
+                        controller: _password,
+                        autofillHints: const [AutofillHints.password],
+                        textInputAction: TextInputAction.done,
+                        obscureText: true,
+                        decoration: const InputDecoration(
+                          labelText: 'Password',
+                          prefixIcon: Icon(Icons.lock_outline),
+                        ),
+                        validator: validatePassword,
+                        onFieldSubmitted: (_) => _submit(),
+                      ),
+                      if (widget.errorMessage != null) ...[
+                        const SizedBox(height: 14),
+                        Semantics(
+                          liveRegion: true,
+                          child: Text(
+                            widget.errorMessage!,
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.error,
+                            ),
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 24),
+                      FilledButton.icon(
+                        key: const Key('login-submit-button'),
+                        onPressed: _submit,
+                        icon: const Icon(Icons.login),
+                        label: const Text('Login'),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => const SignupScreen(),
+                          ),
+                        ),
+                        child: const Text('Create account'),
+                      ),
+                    ],
                   ),
-                ],
-                const SizedBox(height: 24),
-                FilledButton(
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      ref
-                          .read(authControllerProvider.notifier)
-                          .login(_username.text, _password.text);
-                    }
-                  },
-                  child: const Text('Login'),
                 ),
-                TextButton(
-                  onPressed: () => Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => const SignupScreen(),
-                    ),
-                  ),
-                  child: const Text('Create account'),
-                ),
-              ],
+              ),
             ),
           ),
         ),
       ),
     );
+  }
+
+  void _submit() {
+    if (!_formKey.currentState!.validate()) return;
+    ref
+        .read(authControllerProvider.notifier)
+        .login(_username.text, _password.text);
   }
 }
 

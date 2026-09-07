@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ruleup/core/presentation/sync_status_banner.dart';
 import 'package:ruleup/core/sync/sync_provider.dart';
 import 'package:ruleup/features/auth/presentation/auth_controller.dart';
 import 'package:ruleup/features/habits/domain/measurement_type.dart';
@@ -56,7 +57,17 @@ class _HabitListScreenState extends ConsumerState<HabitListScreen> {
                   sync.status == SyncStatus.syncing ||
                   sync.status == SyncStatus.failed)
                 SliverToBoxAdapter(
-                  child: _SyncNotice(offline: health.hasError, sync: sync),
+                  child: SyncStatusBanner(
+                    offline: health.hasError,
+                    sync: sync,
+                    offlineMessage: 'Offline — changes stay safely on this device until sync returns.',
+                    syncingMessage: 'Syncing your habits…',
+                    failedMessage: 'Some habit changes are waiting to sync.',
+                    onRetry: () => ref
+                        .read(syncControllerProvider.notifier)
+                        .retryFailed(widget.userId),
+                    margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                  ),
                 ),
               switch (catalog) {
                 AsyncData(:final value) => _habitSliver(value),
@@ -334,39 +345,6 @@ class _MetaChip extends StatelessWidget {
           const SizedBox(width: 5),
           Text(label, style: Theme.of(context).textTheme.labelMedium),
         ],
-      ),
-    );
-  }
-}
-
-class _SyncNotice extends StatelessWidget {
-  const _SyncNotice({required this.offline, required this.sync});
-
-  final bool offline;
-  final SyncState sync;
-
-  @override
-  Widget build(BuildContext context) {
-    final message = offline
-        ? 'Offline — changes will stay safely on this device until sync returns.'
-        : sync.status == SyncStatus.syncing
-        ? 'Syncing your habits…'
-        : 'Some changes could not sync yet. Pull down to retry.';
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-      child: Material(
-        color: Theme.of(context).colorScheme.secondaryContainer,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Row(
-            children: [
-              Icon(offline ? Icons.cloud_off_outlined : Icons.sync, size: 18),
-              const SizedBox(width: 10),
-              Expanded(child: Text(message)),
-            ],
-          ),
-        ),
       ),
     );
   }
