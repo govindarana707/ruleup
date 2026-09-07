@@ -9,6 +9,7 @@ import 'package:ruleup/features/habits/presentation/habit_management_provider.da
 import 'package:ruleup/features/check_ins/presentation/daily_check_in_provider.dart';
 import 'package:ruleup/features/home/presentation/app_shell.dart';
 import 'package:ruleup/features/home/presentation/home_dashboard_provider.dart';
+import 'package:ruleup/features/history/presentation/history_provider.dart';
 import 'package:ruleup/features/rewards/presentation/rewards_wallet_provider.dart';
 
 void main() {
@@ -32,7 +33,7 @@ void main() {
 
     await tester.tap(find.text('History').last);
     await tester.pump();
-    expect(find.byKey(const Key('shell-page-history')), findsOneWidget);
+    expect(find.byKey(const Key('history-screen')), findsOneWidget);
   });
 
   testWidgets('quick check-in CTA selects the check-in destination', (
@@ -116,6 +117,15 @@ Future<void> _pumpShell(
             lifetimeEarned: 0,
             spentPoints: 0,
             rewards: [],
+          ),
+        ),
+        historyDayProvider.overrideWith(
+          (ref, query) async => HistoryDayData(
+            date: query.date,
+            currentStreak: 0,
+            longestStreak: 0,
+            habits: const [],
+            entries: const [],
           ),
         ),
         homeDashboardProvider.overrideWith((ref, _) async {

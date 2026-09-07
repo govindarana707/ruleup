@@ -4,6 +4,7 @@ import 'package:ruleup/features/auth/presentation/auth_controller.dart';
 import 'package:ruleup/features/check_ins/presentation/daily_check_in_screen.dart';
 import 'package:ruleup/features/habits/presentation/habit_list_screen.dart';
 import 'package:ruleup/features/home/presentation/home_dashboard.dart';
+import 'package:ruleup/features/history/presentation/history_screen.dart';
 import 'package:ruleup/features/rewards/presentation/rewards_wallet_screen.dart';
 
 class AppShell extends ConsumerStatefulWidget {
@@ -58,11 +59,7 @@ class _AppShellState extends ConsumerState<AppShell> {
       HabitListScreen(userId: widget.userId),
       DailyCheckInScreen(userId: widget.userId),
       RewardsWalletScreen(userId: widget.userId),
-      const _ShellPlaceholder(
-        icon: Icons.history_outlined,
-        title: 'History',
-        message: 'Your activity history will live here.',
-      ),
+      HistoryScreen(userId: widget.userId),
     ];
 
     return Scaffold(
@@ -88,45 +85,4 @@ class _AppShellState extends ConsumerState<AppShell> {
   }
 
   void _select(int index) => setState(() => _selectedIndex = index);
-}
-
-class _ShellPlaceholder extends StatelessWidget {
-  const _ShellPlaceholder({
-    required this.icon,
-    required this.title,
-    required this.message,
-  });
-
-  final IconData icon;
-  final String title;
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      key: Key('shell-page-${title.toLowerCase()}'),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 420),
-          child: Padding(
-            padding: const EdgeInsets.all(32),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  icon,
-                  size: 44,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                const SizedBox(height: 16),
-                Text(title, style: Theme.of(context).textTheme.headlineSmall),
-                const SizedBox(height: 8),
-                Text(message, textAlign: TextAlign.center),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 }

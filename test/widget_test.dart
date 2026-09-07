@@ -9,6 +9,7 @@ import 'package:ruleup/features/auth/presentation/auth_controller.dart';
 import 'package:ruleup/features/habits/presentation/habit_management_provider.dart';
 import 'package:ruleup/features/check_ins/presentation/daily_check_in_provider.dart';
 import 'package:ruleup/features/home/presentation/home_dashboard_provider.dart';
+import 'package:ruleup/features/history/presentation/history_provider.dart';
 import 'package:ruleup/features/rewards/presentation/rewards_wallet_provider.dart';
 
 void main() {
@@ -28,6 +29,9 @@ void main() {
                 DailyCheckInData(date: DateTime(2026, 1, 1), habits: const []),
           ),
           rewardsWalletProvider.overrideWith((ref, _) async => _emptyRewards),
+          historyDayProvider.overrideWith(
+            (ref, query) async => _emptyHistory(query.date),
+          ),
           homeNowProvider.overrideWithValue(DateTime(2026, 1, 1, 9)),
           syncLifecycleTriggerProvider.overrideWithValue((userId) async {
             synchronizedUsers.add(userId);
@@ -66,6 +70,9 @@ void main() {
                 DailyCheckInData(date: DateTime(2026, 1, 1), habits: const []),
           ),
           rewardsWalletProvider.overrideWith((ref, _) async => _emptyRewards),
+          historyDayProvider.overrideWith(
+            (ref, query) async => _emptyHistory(query.date),
+          ),
           syncLifecycleTriggerProvider.overrideWithValue((_) async {}),
         ],
         child: const RuleUpApp(),
@@ -94,6 +101,14 @@ const _emptyRewards = RewardsWalletData(
   lifetimeEarned: 0,
   spentPoints: 0,
   rewards: [],
+);
+
+HistoryDayData _emptyHistory(DateTime date) => HistoryDayData(
+  date: date,
+  currentStreak: 0,
+  longestStreak: 0,
+  habits: const [],
+  entries: const [],
 );
 
 class _SignedInRepository implements AuthRepository {
