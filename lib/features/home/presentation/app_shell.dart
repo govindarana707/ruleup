@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ruleup/features/check_ins/presentation/daily_check_in_screen.dart';
 import 'package:ruleup/features/habits/presentation/habit_list_screen.dart';
 import 'package:ruleup/features/home/presentation/home_dashboard.dart';
+import 'package:ruleup/features/home/presentation/home_dashboard_theme.dart';
 import 'package:ruleup/features/history/presentation/history_screen.dart';
 import 'package:ruleup/features/rewards/presentation/rewards_wallet_screen.dart';
 import 'package:ruleup/features/settings/presentation/settings_screen.dart';
@@ -58,41 +59,48 @@ class _AppShellState extends ConsumerState<AppShell> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('RuleUp'),
-        actions: [
-          IconButton(
-            key: const Key('open-settings'),
-            tooltip: 'Settings',
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                builder: (_) => SettingsScreen(
-                  userId: widget.userId,
-                  username: widget.username,
+    final homeSelected = _selectedIndex == 0;
+    return Theme(
+      data: homeSelected ? HomeDashboardTheme.create() : Theme.of(context),
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text(
+            'RuleUp',
+            style: TextStyle(fontWeight: FontWeight.w700, letterSpacing: -0.4),
+          ),
+          actions: [
+            IconButton(
+              key: const Key('open-settings'),
+              tooltip: 'Settings',
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => SettingsScreen(
+                    userId: widget.userId,
+                    username: widget.username,
+                  ),
                 ),
               ),
+              icon: const Icon(Icons.settings_outlined),
             ),
-            icon: const Icon(Icons.settings_outlined),
-          ),
-          const SizedBox(width: 4),
-        ],
-      ),
-      body: HeroMode(
-        enabled: false,
-        child: IndexedStack(
-          index: _selectedIndex,
-          children: _pages
-              .map((page) => page ?? const SizedBox.shrink())
-              .toList(growable: false),
+            const SizedBox(width: 4),
+          ],
         ),
-      ),
-      bottomNavigationBar: NavigationBar(
-        key: const Key('app-bottom-navigation'),
-        labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
-        selectedIndex: _selectedIndex,
-        onDestinationSelected: _select,
-        destinations: _destinations,
+        body: HeroMode(
+          enabled: false,
+          child: IndexedStack(
+            index: _selectedIndex,
+            children: _pages
+                .map((page) => page ?? const SizedBox.shrink())
+                .toList(growable: false),
+          ),
+        ),
+        bottomNavigationBar: NavigationBar(
+          key: const Key('app-bottom-navigation'),
+          labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
+          selectedIndex: _selectedIndex,
+          onDestinationSelected: _select,
+          destinations: _destinations,
+        ),
       ),
     );
   }

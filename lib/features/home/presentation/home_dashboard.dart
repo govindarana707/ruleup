@@ -4,6 +4,7 @@ import 'package:ruleup/core/sync/sync_provider.dart';
 import 'package:ruleup/features/auth/presentation/auth_controller.dart';
 import 'package:ruleup/features/home/presentation/dashboard_card.dart';
 import 'package:ruleup/features/home/presentation/home_dashboard_provider.dart';
+import 'package:ruleup/features/home/presentation/home_dashboard_theme.dart';
 
 class HomeDashboard extends ConsumerWidget {
   const HomeDashboard({
@@ -23,56 +24,61 @@ class HomeDashboard extends ConsumerWidget {
     final health = ref.watch(backendHealthProvider);
     final sync = ref.watch(syncControllerProvider);
     final now = ref.watch(homeNowProvider);
-
-    return RefreshIndicator(
-      onRefresh: () async {
-        await ref.read(syncControllerProvider.notifier).synchronize(userId);
-        ref.invalidate(homeDashboardProvider(userId));
-        await ref.read(homeDashboardProvider(userId).future);
-      },
-      child: CustomScrollView(
-        key: const Key('home-dashboard-scroll'),
-        physics: const AlwaysScrollableScrollPhysics(),
-        slivers: [
-          SliverToBoxAdapter(
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 960),
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 24, 20, 32),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      _DashboardHeader(
-                        greeting: _greeting(now),
-                        username: username,
-                        status: _connectionStatus(health, sync),
-                        onRetry: sync.status == SyncStatus.failed
-                            ? () => ref
-                                  .read(syncControllerProvider.notifier)
-                                  .retryFailed(userId)
-                            : null,
+    return Theme(
+      data: HomeDashboardTheme.create(),
+      child: ColoredBox(
+        color: HomeDashboardTheme.background,
+        child: RefreshIndicator(
+          onRefresh: () async {
+            await ref.read(syncControllerProvider.notifier).synchronize(userId);
+            ref.invalidate(homeDashboardProvider(userId));
+            await ref.read(homeDashboardProvider(userId).future);
+          },
+          child: CustomScrollView(
+            key: const Key('home-dashboard-scroll'),
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
+              SliverToBoxAdapter(
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 760),
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _DashboardHeader(
+                            greeting: _greeting(now),
+                            username: _sentenceCase(username),
+                            status: _connectionStatus(health, sync),
+                            onRetry: sync.status == SyncStatus.failed
+                                ? () => ref
+                                      .read(syncControllerProvider.notifier)
+                                      .retryFailed(userId)
+                                : null,
+                          ),
+                          const SizedBox(height: 16),
+                          dashboard.when(
+                            loading: () => const _DashboardLoading(),
+                            error: (error, _) => _DashboardError(
+                              onRetry: () =>
+                                  ref.invalidate(homeDashboardProvider(userId)),
+                            ),
+                            data: (data) => _DashboardContent(
+                              data: data,
+                              now: now,
+                              onQuickCheckIn: onQuickCheckIn,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 24),
-                      dashboard.when(
-                        loading: () => const _DashboardLoading(),
-                        error: (error, _) => _DashboardError(
-                          onRetry: () =>
-                              ref.invalidate(homeDashboardProvider(userId)),
-                        ),
-                        data: (data) => _DashboardContent(
-                          data: data,
-                          now: now,
-                          onQuickCheckIn: onQuickCheckIn,
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ),
               ),
-            ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -81,6 +87,12 @@ class HomeDashboard extends ConsumerWidget {
     if (now.hour < 12) return 'Good morning';
     if (now.hour < 18) return 'Good afternoon';
     return 'Good evening';
+  }
+
+  String _sentenceCase(String value) {
+    final normalized = value.trim().replaceAll(RegExp(r'[_\s]+'), ' ');
+    if (normalized.isEmpty) return 'Member';
+    return '${normalized[0].toUpperCase()}${normalized.substring(1).toLowerCase()}';
   }
 
   _ConnectionStatus _connectionStatus(AsyncValue<void> health, SyncState sync) {
@@ -99,7 +111,7 @@ class HomeDashboard extends ConsumerWidget {
         tone: _StatusTone.neutral,
       ),
       SyncStatus.failed => _ConnectionStatus(
-        label: 'Sync needs attention',
+        label: 'Sync issue',
         icon: Icons.sync_problem_outlined,
         tone: _StatusTone.warning,
         detail: sync.message,
@@ -110,7 +122,7 @@ class HomeDashboard extends ConsumerWidget {
         tone: _StatusTone.success,
       ),
       SyncStatus.idle => _ConnectionStatus(
-        label: health.isLoading ? 'Checking connection' : 'Ready',
+        label: health.isLoading ? 'Checking' : 'Ready',
         icon: health.isLoading
             ? Icons.cloud_sync_outlined
             : Icons.cloud_outlined,
@@ -139,38 +151,35 @@ class _DashboardHeader extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Wrap(
-          spacing: 12,
-          runSpacing: 12,
-          alignment: WrapAlignment.spaceBetween,
-          crossAxisAlignment: WrapCrossAlignment.center,
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(greeting, style: theme.textTheme.bodyLarge),
-                Text(
-                  username,
-                  style: theme.textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ],
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(greeting, style: theme.textTheme.bodyMedium),
+                  const SizedBox(height: 2),
+                  Text(username, style: theme.textTheme.headlineMedium),
+                ],
+              ),
             ),
-            _StatusChip(status: status),
+            const SizedBox(width: 8),
+            _StatusPill(status: status),
           ],
         ),
         if (status.detail case final detail?) ...[
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            padding: const EdgeInsets.fromLTRB(12, 8, 8, 8),
             decoration: BoxDecoration(
-              color: theme.colorScheme.surfaceContainerHigh,
+              color: HomeDashboardTheme.surfaceRaised,
               borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: HomeDashboardTheme.outline),
             ),
             child: Row(
               children: [
-                Expanded(child: Text(detail)),
+                Expanded(child: Text(detail, style: theme.textTheme.bodySmall)),
                 if (onRetry != null)
                   TextButton(onPressed: onRetry, child: const Text('Retry')),
               ],
@@ -182,46 +191,46 @@ class _DashboardHeader extends StatelessWidget {
   }
 }
 
-class _StatusChip extends StatelessWidget {
-  const _StatusChip({required this.status});
-
+class _StatusPill extends StatelessWidget {
+  const _StatusPill({required this.status});
   final _ConnectionStatus status;
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
     final (background, foreground) = switch (status.tone) {
-      _StatusTone.success => (
-        colors.primaryContainer,
-        colors.onPrimaryContainer,
-      ),
-      _StatusTone.warning => (colors.errorContainer, colors.onErrorContainer),
+      _StatusTone.success => (const Color(0xFF173C32), HomeDashboardTheme.mint),
+      _StatusTone.warning => (const Color(0xFF3E2725), const Color(0xFFFFC6BE)),
       _StatusTone.neutral => (
-        colors.surfaceContainerHighest,
-        colors.onSurfaceVariant,
+        HomeDashboardTheme.surfaceRaised,
+        HomeDashboardTheme.mutedText,
       ),
     };
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: background,
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(status.icon, size: 18, color: foreground),
-          const SizedBox(width: 7),
-          Flexible(
-            child: Text(
-              status.label,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.labelLarge
-                  ?.copyWith(color: foreground, fontWeight: FontWeight.w600),
+    return Semantics(
+      label: 'Sync status: ${status.label}',
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 128),
+        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+        decoration: BoxDecoration(
+          color: background,
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: HomeDashboardTheme.outline),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(status.icon, size: 14, color: foreground),
+            const SizedBox(width: 5),
+            Flexible(
+              child: Text(
+                status.label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.labelMedium
+                    ?.copyWith(color: foreground, fontWeight: FontWeight.w600),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -233,127 +242,118 @@ class _DashboardContent extends StatelessWidget {
     required this.now,
     required this.onQuickCheckIn,
   });
-
   final HomeDashboardData data;
   final DateTime now;
   final VoidCallback onQuickCheckIn;
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final wide = constraints.maxWidth >= 680;
-        final points = _MetricCard(
-          icon: Icons.savings_outlined,
-          label: 'Available points',
-          value: '${data.availablePoints}',
-          supporting: 'Ready to use on your rewards',
-        );
-        final streak = _MetricCard(
-          icon: Icons.local_fire_department_outlined,
-          label: 'Current streak',
-          value: '${data.currentStreak} days',
-          supporting: data.streakHabitName ?? 'Start with one steady day',
-        );
-        final metrics = wide
-            ? Row(
-                children: [
-                  Expanded(child: points),
-                  const SizedBox(width: 16),
-                  Expanded(child: streak),
-                ],
-              )
-            : Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [points, const SizedBox(height: 16), streak],
-              );
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            metrics,
-            const SizedBox(height: 16),
-            _ProgressCard(data: data),
-            const SizedBox(height: 16),
-            FilledButton.icon(
-              key: const Key('quick-check-in-button'),
-              onPressed: onQuickCheckIn,
-              icon: const Icon(Icons.check_circle_outline),
-              label: const Text('Quick check-in'),
-            ),
-            const SizedBox(height: 24),
-            _UpcomingReminders(reminders: data.upcomingReminders, now: now),
-          ],
-        );
-      },
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _CombinedMetricsCard(data: data),
+        const SizedBox(height: 10),
+        _ProgressCard(data: data),
+        const SizedBox(height: 10),
+        FilledButton.icon(
+          key: const Key('quick-check-in-button'),
+          onPressed: onQuickCheckIn,
+          icon: const Icon(Icons.check_circle_outline),
+          label: const Text('Quick check-in'),
+        ),
+        const SizedBox(height: 18),
+        _TodayHabits(data: data),
+        const SizedBox(height: 18),
+        _UpcomingReminders(reminders: data.upcomingReminders, now: now),
+      ],
     );
   }
 }
 
-class _MetricCard extends StatelessWidget {
-  const _MetricCard({
-    required this.icon,
-    required this.label,
-    required this.value,
-    required this.supporting,
-  });
+class _CombinedMetricsCard extends StatelessWidget {
+  const _CombinedMetricsCard({required this.data});
+  final HomeDashboardData data;
 
+  @override
+  Widget build(BuildContext context) {
+    return DashboardCard(
+      key: const Key('home-combined-metrics'),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      child: IntrinsicHeight(
+        child: Row(
+          children: [
+            Expanded(
+              child: _Metric(
+                icon: Icons.savings_outlined,
+                label: 'Available points',
+                value: '${data.availablePoints}',
+              ),
+            ),
+            const VerticalDivider(width: 24),
+            Expanded(
+              child: _Metric(
+                icon: Icons.local_fire_department_outlined,
+                label: 'Current streak',
+                value: '${data.currentStreak} days',
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _Metric extends StatelessWidget {
+  const _Metric({required this.icon, required this.label, required this.value});
   final IconData icon;
   final String label;
   final String value;
-  final String supporting;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return DashboardCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, color: theme.colorScheme.primary),
-          const SizedBox(height: 16),
-          Text(label, style: theme.textTheme.labelLarge),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: theme.textTheme.headlineMedium?.copyWith(
-              fontWeight: FontWeight.w700,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          children: [
+            Icon(icon, size: 17, color: HomeDashboardTheme.mint),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                label,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: HomeDashboardTheme.mutedText,
+                ),
+              ),
             ),
-          ),
-          const SizedBox(height: 4),
-          Text(supporting, style: theme.textTheme.bodySmall),
-        ],
-      ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Text(value, style: theme.textTheme.headlineSmall),
+        ),
+      ],
     );
   }
 }
 
 class _ProgressCard extends StatelessWidget {
   const _ProgressCard({required this.data});
-
   final HomeDashboardData data;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    if (data.activeHabitCount == 0) {
-      return DashboardCard(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(Icons.spa_outlined, color: theme.colorScheme.primary),
-            const SizedBox(height: 12),
-            Text('No habits yet', style: theme.textTheme.titleLarge),
-            const SizedBox(height: 6),
-            const Text(
-              'Your daily progress will appear here once you add your first habit.',
-            ),
-          ],
-        ),
-      );
-    }
-    final complete =
-        data.applicableToday > 0 && data.completedToday == data.applicableToday;
     return DashboardCard(
+      key: const Key('today-progress-card'),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -361,29 +361,27 @@ class _ProgressCard extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  "Today's habit progress",
-                  style: theme.textTheme.titleMedium?.copyWith(
+                  "Today's progress",
+                  style: theme.textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
-              Text('${data.completedToday} of ${data.applicableToday}'),
+              Text(
+                data.activeHabitCount > 0
+                    ? '${data.completedToday} of ${data.applicableToday}'
+                    : 'No habits',
+                style: theme.textTheme.labelLarge?.copyWith(
+                  color: HomeDashboardTheme.mint,
+                ),
+              ),
             ],
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 10),
           LinearProgressIndicator(
             value: data.progress,
-            minHeight: 8,
+            minHeight: 6,
             borderRadius: BorderRadius.circular(99),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            data.applicableToday == 0
-                ? 'Nothing is scheduled for today. Take the breathing room.'
-                : complete
-                ? 'Today is complete. Nice, steady work.'
-                : 'A small check-in keeps the day moving.',
-            style: theme.textTheme.bodySmall,
           ),
         ],
       ),
@@ -391,11 +389,86 @@ class _ProgressCard extends StatelessWidget {
   }
 }
 
+class _TodayHabits extends StatelessWidget {
+  const _TodayHabits({required this.data});
+  final HomeDashboardData data;
+
+  @override
+  Widget build(BuildContext context) {
+    final habits = data.todayHabits;
+    return _CompactSection(
+      key: const Key('today-habits-section'),
+      title: "Today's habits",
+      emptyIcon: Icons.event_available_outlined,
+      emptyText: data.activeHabitCount == 0
+          ? 'Create a habit to start building momentum.'
+          : 'Nothing is scheduled for today.',
+      children: [for (final habit in habits) _HabitRow(habit: habit)],
+    );
+  }
+}
+
+class _HabitRow extends StatelessWidget {
+  const _HabitRow({required this.habit});
+  final TodayHabitSummary habit;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final points = habit.awardedPoints;
+    return _CompactRow(
+      icon: habit.isCompleted
+          ? Icons.check_circle
+          : Icons.radio_button_unchecked,
+      iconColor: habit.isCompleted
+          ? HomeDashboardTheme.mint
+          : HomeDashboardTheme.mutedText,
+      title: habit.habitName,
+      trailing: habit.isCompleted
+          ? points == null
+                ? 'Done'
+                : '${points >= 0 ? '+' : ''}$points pts'
+          : 'Pending',
+      trailingStyle: theme.textTheme.labelMedium?.copyWith(
+        color: habit.isCompleted
+            ? HomeDashboardTheme.mint
+            : HomeDashboardTheme.mutedText,
+      ),
+    );
+  }
+}
+
 class _UpcomingReminders extends StatelessWidget {
   const _UpcomingReminders({required this.reminders, required this.now});
-
   final List<UpcomingReminder> reminders;
   final DateTime now;
+
+  @override
+  Widget build(BuildContext context) {
+    return _CompactSection(
+      title: 'Upcoming reminders',
+      emptyIcon: Icons.notifications_none_outlined,
+      emptyText: 'No upcoming reminders.',
+      children: [
+        for (final reminder in reminders)
+          _ReminderRow(reminder: reminder, now: now),
+      ],
+    );
+  }
+}
+
+class _CompactSection extends StatelessWidget {
+  const _CompactSection({
+    super.key,
+    required this.title,
+    required this.emptyIcon,
+    required this.emptyText,
+    required this.children,
+  });
+  final String title;
+  final IconData emptyIcon;
+  final String emptyText;
+  final List<Widget> children;
 
   @override
   Widget build(BuildContext context) {
@@ -403,31 +476,31 @@ class _UpcomingReminders extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Upcoming reminders',
-          style: theme.textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        const SizedBox(height: 12),
+        Text(title, style: theme.textTheme.titleLarge),
+        const SizedBox(height: 9),
         DashboardCard(
-          padding: reminders.isEmpty
-              ? const EdgeInsets.all(20)
-              : const EdgeInsets.symmetric(vertical: 6),
-          child: reminders.isEmpty
-              ? const Row(
+          padding: children.isEmpty
+              ? const EdgeInsets.all(14)
+              : const EdgeInsets.symmetric(vertical: 4),
+          child: children.isEmpty
+              ? Row(
                   children: [
-                    Icon(Icons.notifications_none_outlined),
-                    SizedBox(width: 12),
-                    Expanded(child: Text('No upcoming reminders.')),
+                    Icon(
+                      emptyIcon,
+                      size: 20,
+                      color: HomeDashboardTheme.mutedText,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(emptyText, style: theme.textTheme.bodyMedium),
+                    ),
                   ],
                 )
               : Column(
                   children: [
-                    for (var index = 0; index < reminders.length; index++) ...[
-                      _ReminderRow(reminder: reminders[index], now: now),
-                      if (index < reminders.length - 1)
-                        const Divider(height: 1),
+                    for (var index = 0; index < children.length; index++) ...[
+                      children[index],
+                      if (index < children.length - 1) const Divider(),
                     ],
                   ],
                 ),
@@ -439,27 +512,26 @@ class _UpcomingReminders extends StatelessWidget {
 
 class _ReminderRow extends StatelessWidget {
   const _ReminderRow({required this.reminder, required this.now});
-
   final UpcomingReminder reminder;
   final DateTime now;
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      leading: const Icon(Icons.notifications_active_outlined),
-      title: Text(reminder.habitName),
-      subtitle: Text(_dayLabel(reminder.scheduledAt, now)),
-      trailing: Text(
-        TimeOfDay.fromDateTime(reminder.scheduledAt).format(context),
-        style: Theme.of(context).textTheme.labelLarge,
-      ),
+    return _CompactRow(
+      icon: Icons.notifications_none_outlined,
+      iconColor: HomeDashboardTheme.mint,
+      title: reminder.habitName,
+      subtitle: _dayLabel(reminder.scheduledAt, now),
+      trailing: TimeOfDay.fromDateTime(reminder.scheduledAt).format(context),
+      trailingStyle: Theme.of(context).textTheme.labelLarge
+          ?.copyWith(color: HomeDashboardTheme.mint),
     );
   }
 
   String _dayLabel(DateTime scheduledAt, DateTime now) {
-    final current = DateUtils.dateOnly(now);
-    final scheduled = DateUtils.dateOnly(scheduledAt);
-    final difference = scheduled.difference(current).inDays;
+    final difference = DateUtils.dateOnly(scheduledAt)
+        .difference(DateUtils.dateOnly(now))
+        .inDays;
     if (difference == 0) return 'Today';
     if (difference == 1) return 'Tomorrow';
     const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -467,39 +539,87 @@ class _ReminderRow extends StatelessWidget {
   }
 }
 
-class _DashboardLoading extends StatelessWidget {
-  const _DashboardLoading();
+class _CompactRow extends StatelessWidget {
+  const _CompactRow({
+    required this.icon,
+    required this.iconColor,
+    required this.title,
+    required this.trailing,
+    this.subtitle,
+    this.trailingStyle,
+  });
+  final IconData icon;
+  final Color iconColor;
+  final String title;
+  final String? subtitle;
+  final String trailing;
+  final TextStyle? trailingStyle;
 
   @override
   Widget build(BuildContext context) {
-    return const DashboardCard(
-      child: SizedBox(
-        height: 220,
-        child: Center(child: CircularProgressIndicator()),
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+      child: Row(
+        children: [
+          Icon(icon, size: 21, color: iconColor),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    color: HomeDashboardTheme.text,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                if (subtitle != null)
+                  Text(subtitle!, style: theme.textTheme.bodySmall),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(trailing, style: trailingStyle ?? theme.textTheme.labelMedium),
+        ],
       ),
     );
   }
 }
 
+class _DashboardLoading extends StatelessWidget {
+  const _DashboardLoading();
+  @override
+  Widget build(BuildContext context) => const DashboardCard(
+    child: SizedBox(
+      height: 160,
+      child: Center(child: CircularProgressIndicator()),
+    ),
+  );
+}
+
 class _DashboardError extends StatelessWidget {
   const _DashboardError({required this.onRetry});
-
   final VoidCallback onRetry;
 
   @override
   Widget build(BuildContext context) {
     return DashboardCard(
+      padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          const Icon(Icons.error_outline, size: 32),
-          const SizedBox(height: 12),
+          const Icon(Icons.error_outline, size: 28),
+          const SizedBox(height: 8),
           Text(
             "Couldn't load your dashboard",
             style: Theme.of(context).textTheme.titleMedium,
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 4),
           const Text('Your local data is safe. Try loading it again.'),
-          const SizedBox(height: 16),
+          const SizedBox(height: 10),
           OutlinedButton(onPressed: onRetry, child: const Text('Try again')),
         ],
       ),
@@ -516,7 +636,6 @@ class _ConnectionStatus {
     required this.tone,
     this.detail,
   });
-
   final String label;
   final IconData icon;
   final _StatusTone tone;

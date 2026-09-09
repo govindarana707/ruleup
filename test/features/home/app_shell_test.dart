@@ -64,15 +64,22 @@ void main() {
     await _pumpShell(tester, dashboard: _dashboard);
 
     expect(find.text('Good morning'), findsOneWidget);
-    expect(find.text('tester'), findsOneWidget);
+    expect(find.text('Tester'), findsOneWidget);
     expect(find.text('Available points'), findsOneWidget);
     expect(find.text('120'), findsOneWidget);
     expect(find.text('Current streak'), findsOneWidget);
     expect(find.text('4 days'), findsOneWidget);
-    expect(find.text("Today's habit progress"), findsOneWidget);
+    expect(find.byKey(const Key('home-combined-metrics')), findsOneWidget);
+    expect(find.text("Today's progress"), findsOneWidget);
     expect(find.text('2 of 3'), findsOneWidget);
+    expect(find.byKey(const Key('today-habits-section')), findsOneWidget);
+    expect(find.text("Today's habits"), findsOneWidget);
+    expect(find.text('Read 20 minutes'), findsOneWidget);
+    expect(find.text('+10 pts'), findsOneWidget);
+    expect(find.text('Drink water'), findsOneWidget);
+    expect(find.text('Pending'), findsOneWidget);
     expect(find.text('Upcoming reminders'), findsOneWidget);
-    expect(find.text('Evening walk'), findsNWidgets(2));
+    expect(find.text('Evening walk'), findsOneWidget);
   });
 
   testWidgets('home dashboard renders loading and error states', (
@@ -251,6 +258,19 @@ final _dashboard = HomeDashboardData(
   completedToday: 2,
   applicableToday: 3,
   activeHabitCount: 3,
+  todayHabits: [
+    TodayHabitSummary(
+      habitId: 'reading-id',
+      habitName: 'Read 20 minutes',
+      isCompleted: true,
+      awardedPoints: 10,
+    ),
+    TodayHabitSummary(
+      habitId: 'water-id',
+      habitName: 'Drink water',
+      isCompleted: false,
+    ),
+  ],
   upcomingReminders: [
     UpcomingReminder(
       habitId: 'habit-id',

@@ -43,8 +43,11 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Good morning'), findsOneWidget);
-    expect(find.text('tester'), findsOneWidget);
-    expect(find.text('No habits yet'), findsOneWidget);
+    expect(find.text('Tester'), findsOneWidget);
+    expect(
+      find.text('Create a habit to start building momentum.'),
+      findsOneWidget,
+    );
     expect(synchronizedUsers, ['user-id']);
 
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);

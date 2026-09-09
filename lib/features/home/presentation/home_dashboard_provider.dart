@@ -37,8 +37,12 @@ final homeDashboardProvider = FutureProvider.family<HomeDashboardData, String>((
   final completedHabitIds = todayCheckIns
       .map((checkIn) => checkIn.habitId)
       .toSet();
+  final checkInByHabitId = {
+    for (final checkIn in todayCheckIns) checkIn.habitId: checkIn,
+  };
 
   final contexts = <String, _HabitContext>{};
+  final todayHabits = <TodayHabitSummary>[];
   var applicableToday = 0;
   var completedToday = 0;
   var bestStreak = 0;
@@ -71,7 +75,16 @@ final homeDashboardProvider = FutureProvider.family<HomeDashboardData, String>((
         );
     if (appliesToday) {
       applicableToday++;
-      if (completedHabitIds.contains(habit.id)) completedToday++;
+      final checkIn = checkInByHabitId[habit.id];
+      if (checkIn != null) completedToday++;
+      todayHabits.add(
+        TodayHabitSummary(
+          habitId: habit.id,
+          habitName: habit.name,
+          isCompleted: checkIn != null,
+          awardedPoints: checkIn?.awardedPoints,
+        ),
+      );
     }
 
     final history = await checkIns.listForHabit(userId, habit.id);
@@ -132,6 +145,7 @@ final homeDashboardProvider = FutureProvider.family<HomeDashboardData, String>((
     completedToday: completedToday,
     applicableToday: applicableToday,
     activeHabitCount: habits.length,
+    todayHabits: todayHabits,
     upcomingReminders: upcoming.take(3).toList(growable: false),
   );
 });
@@ -184,6 +198,7 @@ class HomeDashboardData {
     required this.applicableToday,
     required this.activeHabitCount,
     this.streakHabitName,
+    this.todayHabits = const [],
     this.upcomingReminders = const [],
   });
 
@@ -193,10 +208,25 @@ class HomeDashboardData {
   final int completedToday;
   final int applicableToday;
   final int activeHabitCount;
+  final List<TodayHabitSummary> todayHabits;
   final List<UpcomingReminder> upcomingReminders;
 
   double get progress =>
       applicableToday == 0 ? 0 : (completedToday / applicableToday).clamp(0, 1);
+}
+
+class TodayHabitSummary {
+  const TodayHabitSummary({
+    required this.habitId,
+    required this.habitName,
+    required this.isCompleted,
+    this.awardedPoints,
+  });
+
+  final String habitId;
+  final String habitName;
+  final bool isCompleted;
+  final int? awardedPoints;
 }
 
 class UpcomingReminder {
