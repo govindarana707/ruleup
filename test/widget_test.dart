@@ -42,7 +42,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Good morning'), findsOneWidget);
+    expect(find.text('Good morning,'), findsOneWidget);
     expect(find.text('Tester'), findsOneWidget);
     expect(
       find.text('Create a habit to start building momentum.'),

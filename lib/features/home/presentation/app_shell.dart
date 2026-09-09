@@ -25,27 +25,27 @@ class _AppShellState extends ConsumerState<AppShell> {
   static const _destinations = [
     NavigationDestination(
       icon: Icon(Icons.home_outlined),
-      selectedIcon: Icon(Icons.home),
+      selectedIcon: _HomeSelectedIcon(),
       label: 'Home',
     ),
     NavigationDestination(
-      icon: Icon(Icons.track_changes_outlined),
-      selectedIcon: Icon(Icons.track_changes),
+      icon: Icon(Icons.eco_outlined),
+      selectedIcon: Icon(Icons.eco_rounded),
       label: 'Habits',
     ),
     NavigationDestination(
-      icon: Icon(Icons.add_task_outlined),
-      selectedIcon: Icon(Icons.add_task),
+      icon: _CheckInNavIcon(),
+      selectedIcon: _CheckInNavIcon(selected: true),
       label: 'Check-in',
     ),
     NavigationDestination(
       icon: Icon(Icons.card_giftcard_outlined),
-      selectedIcon: Icon(Icons.card_giftcard),
+      selectedIcon: Icon(Icons.card_giftcard_rounded),
       label: 'Rewards',
     ),
     NavigationDestination(
       icon: Icon(Icons.history_outlined),
-      selectedIcon: Icon(Icons.history),
+      selectedIcon: Icon(Icons.history_rounded),
       label: 'History',
     ),
   ];
@@ -63,28 +63,26 @@ class _AppShellState extends ConsumerState<AppShell> {
     return Theme(
       data: homeSelected ? HomeDashboardTheme.create() : Theme.of(context),
       child: Scaffold(
-        appBar: AppBar(
-          title: const Text(
-            'RuleUp',
-            style: TextStyle(fontWeight: FontWeight.w700, letterSpacing: -0.4),
-          ),
-          actions: [
-            IconButton(
-              key: const Key('open-settings'),
-              tooltip: 'Settings',
-              onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (_) => SettingsScreen(
-                    userId: widget.userId,
-                    username: widget.username,
+        appBar: homeSelected
+            ? null
+            : AppBar(
+                title: const Text(
+                  'RuleUp',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.4,
                   ),
                 ),
+                actions: [
+                  IconButton(
+                    key: const Key('open-settings'),
+                    tooltip: 'Settings',
+                    onPressed: _openSettings,
+                    icon: const Icon(Icons.settings_outlined),
+                  ),
+                  const SizedBox(width: 4),
+                ],
               ),
-              icon: const Icon(Icons.settings_outlined),
-            ),
-            const SizedBox(width: 4),
-          ],
-        ),
         body: HeroMode(
           enabled: false,
           child: IndexedStack(
@@ -94,12 +92,17 @@ class _AppShellState extends ConsumerState<AppShell> {
                 .toList(growable: false),
           ),
         ),
-        bottomNavigationBar: NavigationBar(
-          key: const Key('app-bottom-navigation'),
-          labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
-          selectedIndex: _selectedIndex,
-          onDestinationSelected: _select,
-          destinations: _destinations,
+        bottomNavigationBar: DecoratedBox(
+          decoration: const BoxDecoration(
+            border: Border(top: BorderSide(color: HomeDashboardTheme.outline)),
+          ),
+          child: NavigationBar(
+            key: const Key('app-bottom-navigation'),
+            labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+            selectedIndex: _selectedIndex,
+            onDestinationSelected: _select,
+            destinations: _destinations,
+          ),
         ),
       ),
     );
@@ -110,6 +113,7 @@ class _AppShellState extends ConsumerState<AppShell> {
       userId: widget.userId,
       username: widget.username,
       onQuickCheckIn: () => _select(2),
+      onOpenSettings: _openSettings,
     ),
     1 => HabitListScreen(userId: widget.userId),
     2 => DailyCheckInScreen(userId: widget.userId),
@@ -122,4 +126,59 @@ class _AppShellState extends ConsumerState<AppShell> {
     _pages[index] ??= _buildPage(index);
     _selectedIndex = index;
   });
+
+  void _openSettings() => Navigator.of(context).push(
+    MaterialPageRoute<void>(
+      builder: (_) =>
+          SettingsScreen(userId: widget.userId, username: widget.username),
+    ),
+  );
+}
+
+class _HomeSelectedIcon extends StatelessWidget {
+  const _HomeSelectedIcon();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Icon(Icons.home_rounded),
+        const SizedBox(height: 3),
+        Container(
+          width: 20,
+          height: 3,
+          decoration: BoxDecoration(
+            color: HomeDashboardTheme.mint,
+            borderRadius: BorderRadius.circular(99),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _CheckInNavIcon extends StatelessWidget {
+  const _CheckInNavIcon({this.selected = false});
+
+  final bool selected;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 44,
+      height: 44,
+      decoration: BoxDecoration(
+        color: selected
+            ? HomeDashboardTheme.mint
+            : HomeDashboardTheme.surfaceRaised,
+        shape: BoxShape.circle,
+        border: Border.all(color: HomeDashboardTheme.outline),
+      ),
+      child: Icon(
+        Icons.add_rounded,
+        color: selected ? const Color(0xFF052019) : HomeDashboardTheme.text,
+      ),
+    );
+  }
 }
