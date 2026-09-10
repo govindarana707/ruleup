@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ruleup/core/sync/sync_provider.dart';
 import 'package:ruleup/features/auth/presentation/auth_controller.dart';
 import 'package:ruleup/features/settings/presentation/settings_provider.dart';
+import 'package:ruleup/features/home/presentation/home_dashboard_theme.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({
@@ -29,137 +30,141 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final overview = ref.watch(settingsOverviewProvider(widget.userId));
     final sync = ref.watch(syncControllerProvider);
     final health = ref.watch(backendHealthProvider);
-    return Scaffold(
-      key: const Key('settings-screen'),
-      appBar: AppBar(title: const Text('Settings')),
-      body: SafeArea(
-        top: false,
-        child: RefreshIndicator(
-          onRefresh: _syncNow,
-          child: ListView(
-            key: const Key('settings-scroll'),
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
-            children: [
-              if (health.hasError)
-                _OfflineNotice(
-                  onRetry: () => ref.invalidate(backendHealthProvider),
-                )
-              else if (health.isLoading)
-                const LinearProgressIndicator(
-                  key: Key('settings-health-loading'),
-                ),
-              _Section(
-                title: 'Account',
-                icon: Icons.person_outline,
-                child: Column(
-                  children: [
-                    ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      leading: const CircleAvatar(child: Icon(Icons.person)),
-                      title: Text(widget.username),
-                      subtitle: const Text('Signed in username'),
-                    ),
-                    const Divider(),
-                    ListTile(
-                      key: const Key('settings-logout'),
-                      contentPadding: EdgeInsets.zero,
-                      leading: Icon(
-                        Icons.logout,
-                        color: Theme.of(context).colorScheme.error,
+    return Theme(
+      data: HomeDashboardTheme.create(),
+      child: Scaffold(
+        key: const Key('settings-screen'),
+        backgroundColor: HomeDashboardTheme.background,
+        appBar: AppBar(title: const Text('Settings')),
+        body: SafeArea(
+          top: false,
+          child: RefreshIndicator(
+            onRefresh: _syncNow,
+            child: ListView(
+              key: const Key('settings-scroll'),
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
+              children: [
+                if (health.hasError)
+                  _OfflineNotice(
+                    onRetry: () => ref.invalidate(backendHealthProvider),
+                  )
+                else if (health.isLoading)
+                  const LinearProgressIndicator(
+                    key: Key('settings-health-loading'),
+                  ),
+                _Section(
+                  title: 'Account',
+                  icon: Icons.person_outline,
+                  child: Column(
+                    children: [
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: const CircleAvatar(child: Icon(Icons.person)),
+                        title: Text(widget.username),
+                        subtitle: const Text('Signed in username'),
                       ),
-                      title: Text(
-                        'Log out',
-                        style: TextStyle(
+                      const Divider(),
+                      ListTile(
+                        key: const Key('settings-logout'),
+                        contentPadding: EdgeInsets.zero,
+                        leading: Icon(
+                          Icons.logout,
                           color: Theme.of(context).colorScheme.error,
                         ),
-                      ),
-                      subtitle: const Text('End this session on this device'),
-                      onTap: _confirmLogout,
-                    ),
-                  ],
-                ),
-              ),
-              _Section(
-                title: 'Sync',
-                icon: Icons.sync,
-                child: _SyncSection(
-                  overview: overview,
-                  sync: sync,
-                  offline: health.hasError,
-                  onRetryOverview: () =>
-                      ref.invalidate(settingsOverviewProvider(widget.userId)),
-                  onSync: _syncNow,
-                ),
-              ),
-              _Section(
-                title: 'Reminders',
-                icon: Icons.notifications_outlined,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      leading: Icon(_permissionIcon(_permission)),
-                      title: const Text('Notification permission'),
-                      subtitle: Text(_permissionLabel(_permission)),
-                    ),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        OutlinedButton.icon(
-                          key: const Key('check-notification-permission'),
-                          onPressed: _checkingPermission
-                              ? null
-                              : _checkPermission,
-                          icon: _checkingPermission
-                              ? const SizedBox.square(
-                                  dimension: 16,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : const Icon(Icons.shield_outlined),
-                          label: const Text('Check permission'),
+                        title: Text(
+                          'Log out',
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.error,
+                          ),
                         ),
-                        FilledButton.tonalIcon(
-                          key: const Key('refresh-reminders'),
-                          onPressed: _refreshingReminders
-                              ? null
-                              : _refreshReminders,
-                          icon: _refreshingReminders
-                              ? const SizedBox.square(
-                                  dimension: 16,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : const Icon(Icons.refresh),
-                          label: const Text('Reschedule'),
-                        ),
-                      ],
-                    ),
-                    if (_reminderMessage != null) ...[
-                      const SizedBox(height: 12),
-                      Text(
-                        _reminderMessage!,
-                        key: const Key('reminder-status-message'),
+                        subtitle: const Text('End this session on this device'),
+                        onTap: _confirmLogout,
                       ),
                     ],
-                  ],
+                  ),
                 ),
-              ),
-              const _Section(
-                title: 'App',
-                icon: Icons.info_outline,
-                child: ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: Icon(Icons.track_changes),
-                  title: Text('RuleUp'),
-                  subtitle: Text('Version 1.0.0 (1)'),
+                _Section(
+                  title: 'Sync',
+                  icon: Icons.sync,
+                  child: _SyncSection(
+                    overview: overview,
+                    sync: sync,
+                    offline: health.hasError,
+                    onRetryOverview: () =>
+                        ref.invalidate(settingsOverviewProvider(widget.userId)),
+                    onSync: _syncNow,
+                  ),
                 ),
-              ),
-            ],
+                _Section(
+                  title: 'Reminders',
+                  icon: Icons.notifications_outlined,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: Icon(_permissionIcon(_permission)),
+                        title: const Text('Notification permission'),
+                        subtitle: Text(_permissionLabel(_permission)),
+                      ),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          OutlinedButton.icon(
+                            key: const Key('check-notification-permission'),
+                            onPressed: _checkingPermission
+                                ? null
+                                : _checkPermission,
+                            icon: _checkingPermission
+                                ? const SizedBox.square(
+                                    dimension: 16,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : const Icon(Icons.shield_outlined),
+                            label: const Text('Check permission'),
+                          ),
+                          FilledButton.tonalIcon(
+                            key: const Key('refresh-reminders'),
+                            onPressed: _refreshingReminders
+                                ? null
+                                : _refreshReminders,
+                            icon: _refreshingReminders
+                                ? const SizedBox.square(
+                                    dimension: 16,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : const Icon(Icons.refresh),
+                            label: const Text('Reschedule'),
+                          ),
+                        ],
+                      ),
+                      if (_reminderMessage != null) ...[
+                        const SizedBox(height: 12),
+                        Text(
+                          _reminderMessage!,
+                          key: const Key('reminder-status-message'),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                const _Section(
+                  title: 'App',
+                  icon: Icons.info_outline,
+                  child: ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: Icon(Icons.track_changes),
+                    title: Text('RuleUp'),
+                    subtitle: Text('Version 1.0.0 (1)'),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -346,7 +351,7 @@ class _Section extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(bottom: 14),
+    padding: const EdgeInsets.only(bottom: 16),
     child: Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -365,7 +370,7 @@ class _Section extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 14),
             child,
           ],
         ),
@@ -403,8 +408,8 @@ class _CountTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) => DecoratedBox(
     decoration: BoxDecoration(
-      color: Theme.of(context).colorScheme.surfaceContainerHighest,
-      borderRadius: BorderRadius.circular(12),
+      color: HomeDashboardTheme.surfaceRaised,
+      borderRadius: BorderRadius.circular(14),
     ),
     child: Padding(
       padding: const EdgeInsets.all(12),
