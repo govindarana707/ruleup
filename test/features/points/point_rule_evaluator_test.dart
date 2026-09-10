@@ -6,6 +6,51 @@ import 'package:ruleup/features/points/domain/point_rule_operator.dart';
 void main() {
   const evaluator = PointRuleEvaluator();
 
+  test('Smoking count rules award only the best matching tier', () {
+    const rules = [
+      PointRuleDefinition(
+        id: 'smoking-10',
+        operator: PointRuleOperator.lte,
+        valueMin: 10,
+        points: 1,
+      ),
+      PointRuleDefinition(
+        id: 'smoking-5',
+        operator: PointRuleOperator.lte,
+        valueMin: 5,
+        points: 2,
+      ),
+      PointRuleDefinition(
+        id: 'smoking-1',
+        operator: PointRuleOperator.lte,
+        valueMin: 1,
+        points: 4,
+      ),
+      PointRuleDefinition(
+        id: 'smoking-0',
+        operator: PointRuleOperator.eq,
+        valueMin: 0,
+        points: 5,
+      ),
+    ];
+
+    final fourCigarettes = evaluator.evaluate(
+      measurementType: MeasurementType.count,
+      measuredValue: 4,
+      rules: rules,
+    );
+    final zeroCigarettes = evaluator.evaluate(
+      measurementType: MeasurementType.count,
+      measuredValue: 0,
+      rules: rules,
+    );
+
+    expect(fourCigarettes.matchedRule?.id, 'smoking-5');
+    expect(fourCigarettes.points, 2);
+    expect(zeroCigarettes.matchedRule?.id, 'smoking-0');
+    expect(zeroCigarettes.points, 5);
+  });
+
   test('selects the applicable smoking penalty tier', () {
     final result = evaluator.evaluate(
       measurementType: MeasurementType.count,
