@@ -5,6 +5,7 @@ import 'package:ruleup/core/sync/sync_provider.dart';
 import 'package:ruleup/core/utils/habit_date.dart';
 import 'package:ruleup/features/auth/presentation/auth_controller.dart';
 import 'package:ruleup/features/history/presentation/history_provider.dart';
+import 'package:ruleup/features/home/presentation/home_dashboard_theme.dart';
 
 class HistoryScreen extends ConsumerStatefulWidget {
   const HistoryScreen({super.key, required this.userId});
@@ -34,65 +35,69 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
     final health = ref.watch(backendHealthProvider);
     final sync = ref.watch(syncControllerProvider);
     final today = normalizeHabitDate(ref.watch(historyNowProvider));
-    return Scaffold(
-      key: const Key('history-screen'),
-      backgroundColor: Colors.transparent,
-      body: SafeArea(
-        top: false,
-        child: RefreshIndicator(
-          onRefresh: () async {
-            await ref
-                .read(syncControllerProvider.notifier)
-                .synchronize(widget.userId);
-            ref.invalidate(historyDayProvider(_query));
-          },
-          child: CustomScrollView(
-            key: const Key('history-scroll'),
-            slivers: [
-              SliverToBoxAdapter(
-                child: _HistoryHeader(
-                  data: history.asData?.value,
-                  selectedDate: _selectedDate,
-                  today: today,
-                  onDateChanged: (date) {
-                    setState(() => _selectedDate = normalizeHabitDate(date));
-                  },
-                ),
-              ),
-              if (health.hasError ||
-                  sync.status == SyncStatus.syncing ||
-                  sync.status == SyncStatus.failed)
+    return Theme(
+      data: HomeDashboardTheme.create(),
+      child: Scaffold(
+        key: const Key('history-screen'),
+        backgroundColor: HomeDashboardTheme.background,
+        body: SafeArea(
+          top: true,
+          child: RefreshIndicator(
+            onRefresh: () async {
+              await ref
+                  .read(syncControllerProvider.notifier)
+                  .synchronize(widget.userId);
+              ref.invalidate(historyDayProvider(_query));
+            },
+            child: CustomScrollView(
+              key: const Key('history-scroll'),
+              slivers: [
                 SliverToBoxAdapter(
-                  child: SyncStatusBanner(
-                    offline: health.hasError,
-                    sync: sync,
-                    offlineMessage:
-                        'Offline — showing history stored on this device.',
-                    syncingMessage: 'Syncing your history…',
-                    failedMessage: 'Some history changes are waiting to sync.',
-                    onRetry: () => ref
-                        .read(syncControllerProvider.notifier)
-                        .retryFailed(widget.userId),
-                    margin: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+                  child: _HistoryHeader(
+                    data: history.asData?.value,
+                    selectedDate: _selectedDate,
+                    today: today,
+                    onDateChanged: (date) {
+                      setState(() => _selectedDate = normalizeHabitDate(date));
+                    },
                   ),
                 ),
-              if (history.hasValue)
-                SliverToBoxAdapter(child: _filters(history.requireValue)),
-              switch (history) {
-                AsyncData(:final value) => _entriesSliver(value),
-                AsyncError() => SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: _ErrorState(
-                    onRetry: () => ref.invalidate(historyDayProvider(_query)),
+                if (health.hasError ||
+                    sync.status == SyncStatus.syncing ||
+                    sync.status == SyncStatus.failed)
+                  SliverToBoxAdapter(
+                    child: SyncStatusBanner(
+                      offline: health.hasError,
+                      sync: sync,
+                      offlineMessage:
+                          'Offline — showing history stored on this device.',
+                      syncingMessage: 'Syncing your history…',
+                      failedMessage:
+                          'Some history changes are waiting to sync.',
+                      onRetry: () => ref
+                          .read(syncControllerProvider.notifier)
+                          .retryFailed(widget.userId),
+                      margin: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                    ),
                   ),
-                ),
-                _ => const SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: Center(child: CircularProgressIndicator()),
-                ),
-              },
-              const SliverToBoxAdapter(child: SizedBox(height: 28)),
-            ],
+                if (history.hasValue)
+                  SliverToBoxAdapter(child: _filters(history.requireValue)),
+                switch (history) {
+                  AsyncData(:final value) => _entriesSliver(value),
+                  AsyncError() => SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: _ErrorState(
+                      onRetry: () => ref.invalidate(historyDayProvider(_query)),
+                    ),
+                  ),
+                  _ => const SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: Center(child: CircularProgressIndicator()),
+                  ),
+                },
+                const SliverToBoxAdapter(child: SizedBox(height: 28)),
+              ],
+            ),
           ),
         ),
       ),
@@ -104,14 +109,14 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
         ? _habitId
         : null;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+      padding: const EdgeInsets.fromLTRB(20, 4, 20, 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           DropdownButtonFormField<String?>(
             key: const Key('history-habit-filter'),
             initialValue: effectiveHabit,
-            decoration: const InputDecoration(
+            decoration: _historyInputDecoration(
               labelText: 'Habit',
               prefixIcon: Icon(Icons.filter_alt_outlined),
             ),
@@ -177,10 +182,10 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
       );
     }
     return SliverPadding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
       sliver: SliverList.separated(
         itemCount: entries.length,
-        separatorBuilder: (_, _) => const SizedBox(height: 8),
+        separatorBuilder: (_, _) => const SizedBox(height: 12),
         itemBuilder: (context, index) {
           final entry = entries[index];
           return _HistoryEntryCard(
@@ -197,6 +202,10 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
       context: context,
       isScrollControlled: true,
       showDragHandle: true,
+      backgroundColor: HomeDashboardTheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
       builder: (_) => _HistoryDetails(entry: entry, date: _selectedDate),
     );
   }
@@ -218,25 +227,12 @@ class _HistoryHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 24, 16, 10),
+      padding: const EdgeInsets.fromLTRB(20, 18, 20, 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'History',
-                  style: Theme.of(context).textTheme.headlineMedium,
-                ),
-                const SizedBox(height: 4),
-                const Text('See the days that shaped your consistency.'),
-              ],
-            ),
-          ),
-          const SizedBox(height: 14),
+          Text('History', style: Theme.of(context).textTheme.headlineMedium),
+          const SizedBox(height: 16),
           Row(
             children: [
               Expanded(
@@ -256,7 +252,7 @@ class _HistoryHeader extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
           Card(
             clipBehavior: Clip.antiAlias,
             child: CalendarDatePicker(
@@ -330,18 +326,22 @@ class _HistoryEntryCard extends StatelessWidget {
       child: InkWell(
         key: Key('history-entry-${entry.habitId}'),
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(18),
         child: Padding(
           padding: const EdgeInsets.all(15),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CircleAvatar(
-                backgroundColor: visual.background,
-                foregroundColor: visual.foreground,
-                child: Icon(visual.icon),
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: visual.background,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(visual.icon, color: visual.foreground),
               ),
-              const SizedBox(width: 13),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -351,7 +351,8 @@ class _HistoryEntryCard extends StatelessWidget {
                         Expanded(
                           child: Text(
                             entry.habitName,
-                            style: Theme.of(context).textTheme.titleMedium,
+                            style: Theme.of(context).textTheme.titleLarge
+                                ?.copyWith(fontSize: 19),
                           ),
                         ),
                         _StatusPill(label: visual.label, visual: visual),
@@ -398,7 +399,7 @@ class _StatusPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+    padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
     decoration: BoxDecoration(
       color: visual.background,
       borderRadius: BorderRadius.circular(10),
@@ -558,6 +559,28 @@ class _ErrorState extends StatelessWidget {
     ),
   );
 }
+
+InputDecoration _historyInputDecoration({
+  required String labelText,
+  Widget? prefixIcon,
+}) => InputDecoration(
+  labelText: labelText,
+  prefixIcon: prefixIcon,
+  filled: true,
+  fillColor: HomeDashboardTheme.surfaceRaised,
+  border: OutlineInputBorder(
+    borderRadius: BorderRadius.circular(14),
+    borderSide: const BorderSide(color: HomeDashboardTheme.outline),
+  ),
+  enabledBorder: OutlineInputBorder(
+    borderRadius: BorderRadius.circular(14),
+    borderSide: const BorderSide(color: HomeDashboardTheme.outline),
+  ),
+  focusedBorder: OutlineInputBorder(
+    borderRadius: BorderRadius.circular(14),
+    borderSide: const BorderSide(color: HomeDashboardTheme.mint, width: 1.5),
+  ),
+);
 
 class _StatusVisual {
   const _StatusVisual({
