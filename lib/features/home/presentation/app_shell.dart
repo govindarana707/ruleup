@@ -59,11 +59,13 @@ class _AppShellState extends ConsumerState<AppShell> {
 
   @override
   Widget build(BuildContext context) {
-    final homeSelected = _selectedIndex == 0;
+    final usesDashboardTheme = _selectedIndex == 0 || _selectedIndex == 1;
     return Theme(
-      data: homeSelected ? HomeDashboardTheme.create() : Theme.of(context),
+      data: usesDashboardTheme
+          ? HomeDashboardTheme.create()
+          : Theme.of(context),
       child: Scaffold(
-        appBar: homeSelected
+        appBar: _selectedIndex == 0 || _selectedIndex == 1
             ? null
             : AppBar(
                 title: const Text(

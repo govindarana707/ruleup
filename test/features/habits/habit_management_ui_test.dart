@@ -14,12 +14,17 @@ void main() {
   ) async {
     await _pumpList(tester, catalog: _catalog);
 
+    expect(find.text('Habits'), findsOneWidget);
+    expect(find.text('Active'), findsOneWidget);
+    expect(find.byKey(const Key('create-habit-button')), findsOneWidget);
     expect(find.text('Morning walk'), findsOneWidget);
     expect(find.text('Wellbeing'), findsOneWidget);
     expect(find.text('Duration'), findsOneWidget);
     expect(find.text('Mon, Wed, Fri'), findsOneWidget);
     expect(find.text('07:30'), findsOneWidget);
     expect(find.text('6d'), findsOneWidget);
+    expect(find.text('6 day streak'), findsOneWidget);
+    expect(find.text('Edit'), findsOneWidget);
 
     await tester.tap(find.text('Archived'));
     await tester.pump();

@@ -6,6 +6,7 @@ import 'package:ruleup/features/auth/presentation/auth_controller.dart';
 import 'package:ruleup/features/habits/domain/measurement_type.dart';
 import 'package:ruleup/features/habits/presentation/habit_editor_screen.dart';
 import 'package:ruleup/features/habits/presentation/habit_management_provider.dart';
+import 'package:ruleup/features/home/presentation/home_dashboard_theme.dart';
 
 class HabitListScreen extends ConsumerStatefulWidget {
   const HabitListScreen({super.key, required this.userId});
@@ -24,67 +25,77 @@ class _HabitListScreenState extends ConsumerState<HabitListScreen> {
     final catalog = ref.watch(habitCatalogProvider(widget.userId));
     final sync = ref.watch(syncControllerProvider);
     final health = ref.watch(backendHealthProvider);
-    return Scaffold(
-      key: const Key('habit-list-screen'),
-      backgroundColor: Colors.transparent,
-      floatingActionButton: FloatingActionButton.extended(
-        key: const Key('create-habit-button'),
-        onPressed: catalog.hasValue
-            ? () => _openEditor(catalog.requireValue)
-            : null,
-        icon: const Icon(Icons.add),
-        label: const Text('New habit'),
-      ),
-      body: SafeArea(
-        top: false,
-        child: RefreshIndicator(
-          onRefresh: () async {
-            await ref
-                .read(syncControllerProvider.notifier)
-                .synchronize(widget.userId);
-            ref.invalidate(habitCatalogProvider(widget.userId));
-          },
-          child: CustomScrollView(
-            key: const Key('habit-list-scroll'),
-            slivers: [
-              SliverToBoxAdapter(
-                child: _ListHeader(
-                  showArchived: _showArchived,
-                  onChanged: (value) => setState(() => _showArchived = value),
-                ),
-              ),
-              if (health.hasError ||
-                  sync.status == SyncStatus.syncing ||
-                  sync.status == SyncStatus.failed)
+
+    return Theme(
+      data: HomeDashboardTheme.create(),
+      child: Scaffold(
+        key: const Key('habit-list-screen'),
+        backgroundColor: HomeDashboardTheme.background,
+        floatingActionButton: FloatingActionButton.extended(
+          key: const Key('create-habit-button'),
+          onPressed: catalog.hasValue
+              ? () => _openEditor(catalog.requireValue)
+              : null,
+          icon: const Icon(Icons.add_rounded),
+          label: const Text('Add habit'),
+          backgroundColor: HomeDashboardTheme.mint,
+          foregroundColor: const Color(0xFF052019),
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+        ),
+        body: SafeArea(
+          child: RefreshIndicator(
+            onRefresh: () async {
+              await ref
+                  .read(syncControllerProvider.notifier)
+                  .synchronize(widget.userId);
+              ref.invalidate(habitCatalogProvider(widget.userId));
+            },
+            child: CustomScrollView(
+              key: const Key('habit-list-scroll'),
+              physics: const AlwaysScrollableScrollPhysics(),
+              slivers: [
                 SliverToBoxAdapter(
-                  child: SyncStatusBanner(
-                    offline: health.hasError,
-                    sync: sync,
-                    offlineMessage: 'Offline — changes stay safely on this device until sync returns.',
-                    syncingMessage: 'Syncing your habits…',
-                    failedMessage: 'Some habit changes are waiting to sync.',
-                    onRetry: () => ref
-                        .read(syncControllerProvider.notifier)
-                        .retryFailed(widget.userId),
-                    margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                  child: _ListHeader(
+                    showArchived: _showArchived,
+                    onChanged: (value) => setState(() => _showArchived = value),
                   ),
                 ),
-              switch (catalog) {
-                AsyncData(:final value) => _habitSliver(value),
-                AsyncError() => SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: _ErrorState(
-                    onRetry: () =>
-                        ref.invalidate(habitCatalogProvider(widget.userId)),
+                if (health.hasError ||
+                    sync.status == SyncStatus.syncing ||
+                    sync.status == SyncStatus.failed)
+                  SliverToBoxAdapter(
+                    child: SyncStatusBanner(
+                      offline: health.hasError,
+                      sync: sync,
+                      offlineMessage: 'Offline — changes stay safely on this device until sync returns.',
+                      syncingMessage: 'Syncing your habits…',
+                      failedMessage: 'Some habit changes are waiting to sync.',
+                      onRetry: () => ref
+                          .read(syncControllerProvider.notifier)
+                          .retryFailed(widget.userId),
+                      margin: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                    ),
                   ),
-                ),
-                _ => const SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: Center(child: CircularProgressIndicator()),
-                ),
-              },
-              const SliverToBoxAdapter(child: SizedBox(height: 96)),
-            ],
+                switch (catalog) {
+                  AsyncData(:final value) => _habitSliver(value),
+                  AsyncError() => SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: _ErrorState(
+                      onRetry: () =>
+                          ref.invalidate(habitCatalogProvider(widget.userId)),
+                    ),
+                  ),
+                  _ => const SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: Center(child: CircularProgressIndicator()),
+                  ),
+                },
+                const SliverToBoxAdapter(child: SizedBox(height: 112)),
+              ],
+            ),
           ),
         ),
       ),
@@ -102,15 +113,15 @@ class _HabitListScreenState extends ConsumerState<HabitListScreen> {
       );
     }
     return SliverPadding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+      padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
       sliver: SliverList.separated(
         itemCount: visible.length,
-        separatorBuilder: (_, _) => const SizedBox(height: 10),
+        separatorBuilder: (_, _) => const SizedBox(height: 12),
         itemBuilder: (context, index) {
           final habit = visible[index];
-          return _HabitTile(
+          return _HabitCard(
             habit: habit,
-            onTap: habit.archived
+            onEdit: habit.archived
                 ? null
                 : () => _openEditor(catalog, habitId: habit.id),
             onArchive: habit.archived
@@ -196,32 +207,51 @@ class _ListHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 24, 20, 12),
-      child: Wrap(
-        alignment: WrapAlignment.spaceBetween,
-        crossAxisAlignment: WrapCrossAlignment.center,
-        spacing: 16,
-        runSpacing: 12,
+      padding: const EdgeInsets.fromLTRB(20, 18, 20, 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Habits', style: Theme.of(context).textTheme.headlineMedium),
-              const SizedBox(height: 4),
-              Text(
-                'Build routines that fit your real week.',
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-            ],
+          Text('Habits', style: theme.textTheme.headlineMedium),
+          const SizedBox(height: 16),
+          _CatalogSwitch(showArchived: showArchived, onChanged: onChanged),
+        ],
+      ),
+    );
+  }
+}
+
+class _CatalogSwitch extends StatelessWidget {
+  const _CatalogSwitch({required this.showArchived, required this.onChanged});
+
+  final bool showArchived;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: HomeDashboardTheme.surfaceRaised,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: HomeDashboardTheme.outline),
+      ),
+      padding: const EdgeInsets.all(4),
+      child: Row(
+        children: [
+          Expanded(
+            child: _CatalogSwitchItem(
+              label: 'Active',
+              selected: !showArchived,
+              onTap: () => onChanged(false),
+            ),
           ),
-          SegmentedButton<bool>(
-            segments: const [
-              ButtonSegment(value: false, label: Text('Active')),
-              ButtonSegment(value: true, label: Text('Archived')),
-            ],
-            selected: {showArchived},
-            onSelectionChanged: (value) => onChanged(value.first),
+          Expanded(
+            child: _CatalogSwitchItem(
+              label: 'Archived',
+              selected: showArchived,
+              onTap: () => onChanged(true),
+            ),
           ),
         ],
       ),
@@ -229,96 +259,239 @@ class _ListHeader extends StatelessWidget {
   }
 }
 
-class _HabitTile extends StatelessWidget {
-  const _HabitTile({
-    required this.habit,
+class _CatalogSwitchItem extends StatelessWidget {
+  const _CatalogSwitchItem({
+    required this.label,
+    required this.selected,
     required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      selected: selected,
+      button: true,
+      label: '$label habits',
+      child: Material(
+        color: selected ? const Color(0xFF193C32) : Colors.transparent,
+        borderRadius: BorderRadius.circular(10),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(10),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            child: Center(
+              child: Text(
+                label,
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  color: selected
+                      ? HomeDashboardTheme.mint
+                      : HomeDashboardTheme.mutedText,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _HabitCard extends StatelessWidget {
+  const _HabitCard({
+    required this.habit,
+    required this.onEdit,
     required this.onArchive,
   });
 
   final HabitListEntry habit;
-  final VoidCallback? onTap;
+  final VoidCallback? onEdit;
   final VoidCallback onArchive;
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
     return Card(
       child: InkWell(
         key: Key('habit-tile-${habit.id}'),
-        borderRadius: BorderRadius.circular(16),
-        onTap: onTap,
+        borderRadius: BorderRadius.circular(18),
+        onTap: onEdit,
         child: Padding(
           padding: const EdgeInsets.all(16),
-          child: Row(
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CircleAvatar(
-                backgroundColor: colorScheme.secondaryContainer,
-                foregroundColor: colorScheme.onSecondaryContainer,
-                child: Icon(_measurementIcon(habit.measurementType)),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _HabitIcon(type: habit.measurementType),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(
-                          child: Text(
-                            habit.name,
-                            style: Theme.of(context).textTheme.titleMedium,
+                        Text(
+                          habit.name,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontSize: 19,
                           ),
                         ),
-                        if (habit.currentStreak > 0)
-                          _MetaChip(
-                            icon: Icons.local_fire_department_outlined,
-                            label: '${habit.currentStreak}d',
+                        const SizedBox(height: 3),
+                        Text(
+                          habit.categoryName ?? 'Uncategorized',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: HomeDashboardTheme.mutedText,
                           ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 6,
-                      children: [
-                        _MetaChip(
-                          icon: Icons.folder_outlined,
-                          label: habit.categoryName ?? 'Uncategorized',
-                        ),
-                        _MetaChip(
-                          icon: Icons.straighten,
-                          label: _measurementLabel(habit.measurementType),
-                        ),
-                        _MetaChip(
-                          icon: Icons.calendar_today_outlined,
-                          label: habit.scheduleSummary,
-                        ),
-                        _MetaChip(
-                          icon: habit.reminderTime == null
-                              ? Icons.notifications_off_outlined
-                              : Icons.notifications_active_outlined,
-                          label: habit.reminderTime ?? 'No reminder',
                         ),
                       ],
                     ),
-                  ],
-                ),
-              ),
-              PopupMenuButton<String>(
-                tooltip: 'Habit actions',
-                onSelected: (_) => onArchive(),
-                itemBuilder: (_) => [
-                  PopupMenuItem(
-                    value: habit.archived ? 'restore' : 'archive',
-                    child: Text(habit.archived ? 'Restore' : 'Archive'),
                   ),
+                  if (habit.currentStreak > 0)
+                    _StreakPill(days: habit.currentStreak),
+                  const SizedBox(width: 2),
+                  PopupMenuButton<String>(
+                    tooltip: 'Habit actions',
+                    onSelected: (_) => onArchive(),
+                    iconColor: HomeDashboardTheme.mutedText,
+                    itemBuilder: (_) => [
+                      PopupMenuItem(
+                        value: habit.archived ? 'restore' : 'archive',
+                        child: Text(habit.archived ? 'Restore' : 'Archive'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  _MetaChip(
+                    icon: Icons.straighten_rounded,
+                    label: _measurementLabel(habit.measurementType),
+                  ),
+                  _MetaChip(
+                    icon: Icons.calendar_today_outlined,
+                    label: habit.scheduleSummary,
+                  ),
+                  _MetaChip(
+                    icon: habit.reminderTime == null
+                        ? Icons.notifications_off_outlined
+                        : Icons.notifications_active_outlined,
+                    label: habit.reminderTime ?? 'No reminder',
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              Row(
+                children: [
+                  Icon(
+                    Icons.local_fire_department_outlined,
+                    size: 18,
+                    color: habit.currentStreak > 0
+                        ? const Color(0xFFFFB83E)
+                        : HomeDashboardTheme.mutedText,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    habit.currentStreak == 1
+                        ? '1 day streak'
+                        : '${habit.currentStreak} day streak',
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: habit.currentStreak > 0
+                          ? const Color(0xFFFFC35C)
+                          : HomeDashboardTheme.mutedText,
+                    ),
+                  ),
+                  const Spacer(),
+                  if (onEdit != null)
+                    TextButton.icon(
+                      onPressed: onEdit,
+                      icon: const Icon(Icons.edit_outlined, size: 18),
+                      label: const Text('Edit'),
+                      style: TextButton.styleFrom(
+                        foregroundColor: HomeDashboardTheme.mint,
+                        minimumSize: const Size(48, 40),
+                      ),
+                    )
+                  else
+                    Text(
+                      'Archived',
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        color: HomeDashboardTheme.mutedText,
+                      ),
+                    ),
                 ],
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _HabitIcon extends StatelessWidget {
+  const _HabitIcon({required this.type});
+
+  final MeasurementType type;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 46,
+      height: 46,
+      decoration: BoxDecoration(
+        color: const Color(0xFF12392F),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Icon(
+        _measurementIcon(type),
+        color: HomeDashboardTheme.mint,
+        size: 25,
+      ),
+    );
+  }
+}
+
+class _StreakPill extends StatelessWidget {
+  const _StreakPill({required this.days});
+
+  final int days;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      decoration: BoxDecoration(
+        color: const Color(0xFF3A3020),
+        borderRadius: BorderRadius.circular(99),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(
+            Icons.local_fire_department_outlined,
+            size: 15,
+            color: Color(0xFFFFB83E),
+          ),
+          const SizedBox(width: 3),
+          Text(
+            '${days}d',
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+              color: const Color(0xFFFFC35C),
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -333,17 +506,23 @@ class _MetaChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        color: HomeDashboardTheme.surfaceRaised,
         borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: HomeDashboardTheme.outline),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14),
+          Icon(icon, size: 15, color: HomeDashboardTheme.mutedText),
           const SizedBox(width: 5),
-          Text(label, style: Theme.of(context).textTheme.labelMedium),
+          Text(
+            label,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.labelMedium
+                ?.copyWith(color: HomeDashboardTheme.mutedText),
+          ),
         ],
       ),
     );
@@ -357,33 +536,38 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              archived ? Icons.inventory_2_outlined : Icons.track_changes,
-              size: 48,
-              color: Theme.of(context).colorScheme.primary,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Card(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  archived ? Icons.inventory_2_outlined : Icons.eco_outlined,
+                  size: 42,
+                  color: HomeDashboardTheme.mint,
+                ),
+                const SizedBox(height: 14),
+                Text(
+                  archived ? 'No archived habits' : 'Start with one habit',
+                  style: theme.textTheme.titleLarge,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 7),
+                Text(
+                  archived
+                      ? 'Archived habits stay here with their history intact.'
+                      : 'Add a small routine you can return to every day.',
+                  style: theme.textTheme.bodyMedium,
+                  textAlign: TextAlign.center,
+                ),
+              ],
             ),
-            const SizedBox(height: 16),
-            Text(
-              archived
-                  ? 'No archived habits'
-                  : 'Start with one meaningful habit',
-              style: Theme.of(context).textTheme.titleLarge,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              archived
-                  ? 'Habits you archive will remain available here.'
-                  : 'Choose something small enough to repeat consistently.',
-              textAlign: TextAlign.center,
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -399,22 +583,27 @@ class _ErrorState extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.error_outline, size: 44),
-            const SizedBox(height: 12),
-            Text(
-              "Couldn't load your habits",
-              style: Theme.of(context).textTheme.titleLarge,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Card(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.error_outline, size: 38),
+                const SizedBox(height: 12),
+                Text(
+                  "Couldn't load your habits",
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 12),
+                OutlinedButton(
+                  onPressed: onRetry,
+                  child: const Text('Try again'),
+                ),
+              ],
             ),
-            const SizedBox(height: 12),
-            FilledButton.tonal(
-              onPressed: onRetry,
-              child: const Text('Try again'),
-            ),
-          ],
+          ),
         ),
       ),
     );
