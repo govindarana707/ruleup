@@ -42,3 +42,13 @@ debug manifest. The app checks `/health` on startup and shows a retry screen in
 development when the Worker cannot be reached. Configuration remains centralized
 in `lib/core/config/app_config.dart`. Keep `.dev.vars`, API tokens, passwords,
 and other secrets out of source control.
+
+## Phase 3 Supabase habit sync
+
+Cloudflare/D1 remains the default and rollback path. A development build can
+route the non-financial habit-definition domain to Supabase by supplying its URL,
+anon/publishable key, and
+`--dart-define=RULEUP_HABIT_SYNC_BACKEND=supabase`. This opt-in does not dual
+write. Check-ins, ledger entries, wallet data, and rewards are outside Phase 3
+and remain queued locally while this scoped mode is active. See
+`docs/supabase_phase3_habit_sync_audit.md` for details.

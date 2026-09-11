@@ -9,6 +9,9 @@ import 'package:ruleup/core/sync/sync_transport.dart';
 import 'package:ruleup/core/utils/habit_date.dart';
 import 'package:ruleup/features/auth/data/token_storage.dart';
 
+export 'package:ruleup/core/sync/sync_transport.dart'
+    show SyncTransportException;
+
 class ApiSyncTransport implements PullSyncTransport {
   ApiSyncTransport(this._database, this._api, this._tokens);
 
@@ -321,6 +324,7 @@ class ApiSyncTransport implements PullSyncTransport {
             'name': row.name,
             'pointsCost': row.pointsCost,
             'monetaryCap': row.monetaryCap,
+            'imageKey': row.imageKey,
             'sortOrder': row.sortOrder,
             ..._timestamps(row.createdAt, row.updatedAt),
             'archivedAt': _date(row.archivedAt),
@@ -351,13 +355,4 @@ class ApiSyncTransport implements PullSyncTransport {
   };
 
   String? _date(DateTime? value) => value?.toUtc().toIso8601String();
-}
-
-class SyncTransportException implements Exception {
-  const SyncTransportException(this.message);
-
-  final String message;
-
-  @override
-  String toString() => message;
 }

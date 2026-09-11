@@ -1,0 +1,246 @@
+import 'package:ruleup/core/supabase/supabase_database_service.dart';
+import 'package:ruleup/core/sync/habit_sync_mapping.dart';
+import 'package:ruleup/core/sync/sync_transport.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+abstract interface class SupabaseHabitSyncDataSource {
+  String? get authenticatedUserId;
+
+  Future<void> push(HabitSyncMutation mutation);
+  Future<PullBatch> pull(String cursor, {required String userId});
+}
+
+class SupabaseHabitSyncDataSourceImpl implements SupabaseHabitSyncDataSource {
+  SupabaseHabitSyncDataSourceImpl(this._database);
+
+  static const _pageSize = 200;
+  final SupabaseDatabaseService _database;
+
+  @override
+  String? get authenticatedUserId => _database.client.auth.currentUser?.id;
+
+  @override
+  Future<void> push(HabitSyncMutation mutation) async {
+    final ownerId = _requireOwner(mutation.userId);
+    try {
+      if (mutation.operation == 'delete') {
+        await _database
+            .from(mutation.type.tableName)
+            .delete()
+            .eq('id', mutation.id)
+            .eq('user_id', ownerId);
+        return;
+      }
+
+      final row = mutation.row;
+      if (row == null || row['user_id'] != ownerId) {
+        throw const HabitSyncException(
+          HabitSyncErrorKind.integrity,
+          'The outgoing row owner does not match the authenticated user.',
+        );
+      }
+      final existing = await _database
+          .from(mutation.type.tableName)
+          .select('user_id,updated_at')
+          .eq('id', mutation.id)
+          .maybeSingle();
+      if (existing != null) {
+        if (existing['user_id'] != ownerId) {
+          throw const HabitSyncException(
+            HabitSyncErrorKind.ownership,
+            'The Supabase row belongs to another user.',
+          );
+        }
+        final remoteUpdatedAt = DateTime.parse(existing['updated_at'] as String)
+            .toUtc();
+        final localUpdatedAt = DateTime.parse(row['updated_at']! as String)
+            .toUtc();
+        if (!localUpdatedAt.isAfter(remoteUpdatedAt)) return;
+      }
+      await _database
+          .from(mutation.type.tableName)
+          .upsert(row, onConflict: 'id');
+    } on HabitSyncException {
+      rethrow;
+    } on PostgrestException catch (error) {
+      throw _mapPostgrest(error);
+    } on AuthException catch (error) {
+      throw HabitSyncException(
+        HabitSyncErrorKind.authentication,
+        error.message,
+      );
+    } on Object catch (error) {
+      throw HabitSyncException(HabitSyncErrorKind.network, error.toString());
+    }
+  }
+
+  @override
+  Future<PullBatch> pull(String cursor, {required String userId}) async {
+    _requireOwner(userId);
+    final sequence = int.tryParse(cursor);
+    if (sequence == null || sequence < 0) {
+      throw const HabitSyncException(
+        HabitSyncErrorKind.malformedPayload,
+        'The Supabase pull cursor is invalid.',
+      );
+    }
+    try {
+      final rawChanges = await _database
+          .from('sync_changes')
+          .select('sequence,entity_type,entity_id,operation,updated_at,user_id')
+          .gt('sequence', sequence)
+          .inFilter('entity_type', phase3HabitEntityTypes.toList())
+          .order('sequence')
+          .limit(_pageSize);
+      final changes = <RemoteChange>[];
+      var nextCursor = cursor;
+      for (final raw in rawChanges) {
+        final change = Map<String, dynamic>.from(raw);
+        if (change['user_id'] != userId) {
+          throw const HabitSyncException(
+            HabitSyncErrorKind.ownership,
+            'Supabase exposed another user\'s change record.',
+          );
+        }
+        final changeSequence = change['sequence'];
+        if (changeSequence is! num ||
+            changeSequence.toInt() != changeSequence) {
+          throw const FormatException('Invalid sync change sequence.');
+        }
+        nextCursor = changeSequence.toInt().toString();
+        final type = HabitSyncEntityType.parse(change['entity_type'] as String);
+        final entityId = change['entity_id'];
+        final operation = change['operation'];
+        final updatedAt = DateTime.tryParse(change['updated_at'] as String);
+        if (entityId is! String || operation is! String || updatedAt == null) {
+          throw const FormatException('Invalid Supabase sync change.');
+        }
+        if (operation == 'delete') {
+          changes.add(
+            RemoteChange(
+              cursor: nextCursor,
+              entityType: type.wireName,
+              operation: 'delete',
+              updatedAt: updatedAt.toUtc(),
+              data: {'id': entityId},
+            ),
+          );
+          continue;
+        }
+        final remoteRow = await _database
+            .from(type.tableName)
+            .select()
+            .eq('id', entityId)
+            .eq('user_id', userId)
+            .maybeSingle();
+        if (remoteRow == null) {
+          // A later hard delete can make an earlier queued upsert snapshot
+          // unavailable. Treating it as a tombstone makes replay convergent.
+          changes.add(
+            RemoteChange(
+              cursor: nextCursor,
+              entityType: type.wireName,
+              operation: 'delete',
+              updatedAt: updatedAt.toUtc(),
+              data: {'id': entityId},
+            ),
+          );
+          continue;
+        }
+        changes.add(
+          RemoteChange(
+            cursor: nextCursor,
+            entityType: type.wireName,
+            operation: operation,
+            updatedAt: updatedAt.toUtc(),
+            data: HabitSyncMapper.remoteRowToChangeData(
+              type,
+              Map<String, dynamic>.from(remoteRow),
+              expectedUserId: userId,
+            ),
+          ),
+        );
+      }
+      return PullBatch(
+        changes: changes,
+        nextCursor: nextCursor,
+        hasMore: rawChanges.length == _pageSize,
+      );
+    } on HabitSyncException {
+      rethrow;
+    } on PostgrestException catch (error) {
+      throw _mapPostgrest(error);
+    } on AuthException catch (error) {
+      throw HabitSyncException(
+        HabitSyncErrorKind.authentication,
+        error.message,
+      );
+    } on FormatException catch (error) {
+      throw HabitSyncException(
+        HabitSyncErrorKind.schemaMismatch,
+        error.message,
+      );
+    } on Object catch (error) {
+      throw HabitSyncException(HabitSyncErrorKind.network, error.toString());
+    }
+  }
+
+  String _requireOwner(String expectedUserId) {
+    final current = authenticatedUserId;
+    if (current == null) {
+      throw const HabitSyncException(
+        HabitSyncErrorKind.authentication,
+        'An authenticated Supabase session is required.',
+      );
+    }
+    if (current != expectedUserId) {
+      throw const HabitSyncException(
+        HabitSyncErrorKind.ownership,
+        'The local user does not match the authenticated Supabase user.',
+      );
+    }
+    return current;
+  }
+
+  HabitSyncException _mapPostgrest(PostgrestException error) {
+    final kind = switch (error.code) {
+      '42501' => HabitSyncErrorKind.ownership,
+      'PGRST301' => HabitSyncErrorKind.authentication,
+      '23503' => HabitSyncErrorKind.foreignKeyDependency,
+      '23505' || '23514' || '23P01' => HabitSyncErrorKind.validation,
+      '22P02' || 'PGRST204' => HabitSyncErrorKind.schemaMismatch,
+      _ => HabitSyncErrorKind.server,
+    };
+    return HabitSyncException(kind, error.message);
+  }
+}
+
+enum HabitSyncErrorKind {
+  network,
+  authentication,
+  ownership,
+  integrity,
+  foreignKeyDependency,
+  validation,
+  schemaMismatch,
+  server,
+  malformedPayload,
+}
+
+class HabitSyncException implements ClassifiedSyncFailure {
+  const HabitSyncException(this.kind, this.message);
+
+  final HabitSyncErrorKind kind;
+  final String message;
+
+  @override
+  bool get retryable => const {
+    HabitSyncErrorKind.network,
+    HabitSyncErrorKind.authentication,
+    HabitSyncErrorKind.foreignKeyDependency,
+    HabitSyncErrorKind.server,
+  }.contains(kind);
+
+  @override
+  String toString() => '${kind.name}: $message';
+}

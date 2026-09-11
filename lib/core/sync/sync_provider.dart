@@ -1,18 +1,35 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ruleup/core/database/database_provider.dart';
+import 'package:ruleup/core/config/app_config.dart';
+import 'package:ruleup/core/supabase/supabase_provider.dart';
 import 'package:ruleup/core/sync/api_sync_transport.dart';
+import 'package:ruleup/core/sync/supabase_habit_sync_data_source.dart';
+import 'package:ruleup/core/sync/supabase_habit_sync_transport.dart';
 import 'package:ruleup/core/sync/sync_service.dart';
 import 'package:ruleup/core/sync/sync_transport.dart';
 import 'package:ruleup/features/auth/presentation/auth_controller.dart';
 import 'package:ruleup/features/reminders/data/habit_reminder_scheduler_provider.dart';
 
-final syncTransportProvider = Provider<SyncTransport>(
-  (ref) => ApiSyncTransport(
-    ref.watch(databaseProvider),
-    ref.watch(apiClientProvider),
-    ref.watch(tokenStorageProvider),
-  ),
-);
+final syncTransportProvider = Provider<SyncTransport>((ref) {
+  final database = ref.watch(databaseProvider);
+  return switch (AppConfig.habitSyncBackend) {
+    HabitSyncBackend.cloudflare => ApiSyncTransport(
+      database,
+      ref.watch(apiClientProvider),
+      ref.watch(tokenStorageProvider),
+    ),
+    HabitSyncBackend.supabase => SupabaseHabitSyncTransport(
+      database,
+      SupabaseHabitSyncDataSourceImpl(
+        ref.watch(supabaseDatabaseServiceProvider) ??
+            (throw StateError(
+              'Supabase habit sync requires SUPABASE_URL and '
+              'SUPABASE_ANON_KEY.',
+            )),
+      ),
+    ),
+  };
+});
 
 final syncServiceProvider = Provider<SyncService>((ref) {
   final reminderScheduler = ref.watch(habitReminderSchedulerProvider);

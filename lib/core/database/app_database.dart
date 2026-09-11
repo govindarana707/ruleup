@@ -41,7 +41,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.defaults() : super(driftDatabase(name: 'ruleup'));
 
   @override
-  int get schemaVersion => 10;
+  int get schemaVersion => 11;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -125,6 +125,11 @@ class AppDatabase extends _$AppDatabase {
             'CREATE UNIQUE INDEX habit_reminders_user_habit_idx '
             'ON habit_reminders (user_id, habit_id)',
           );
+        case 11:
+          // Earlier upgrade paths create the current rewards table in v9.
+          if (from >= 10) {
+            await migrator.addColumn(rewards, rewards.imageKey);
+          }
       }
     }
   }

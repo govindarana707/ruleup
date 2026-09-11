@@ -75,7 +75,18 @@ class SyncService {
       ..orderBy([(row) => OrderingTerm.asc(row.createdAt)]);
     final items = await query.get();
 
-    for (final item in items) {
+    final transport = _transport;
+    final eligibleItems = transport is ScopedSyncTransport
+        ? items.where((item) => transport.supports(item.entityType)).toList()
+        : items;
+    eligibleItems.sort((left, right) {
+      final dependency = _dependencyOrder(left.entityType)
+          .compareTo(_dependencyOrder(right.entityType));
+      if (dependency != 0) return dependency;
+      return left.createdAt.compareTo(right.createdAt);
+    });
+
+    for (final item in eligibleItems) {
       try {
         await _transport.send(item);
         await (_database.delete(_database.syncQueue)..where(
@@ -85,12 +96,15 @@ class SyncService {
         succeeded++;
       } on Object catch (error) {
         final message = _boundedError(error);
+        final attempts = error is ClassifiedSyncFailure && !error.retryable
+            ? -1
+            : item.attempts + 1;
         await (_database.update(_database.syncQueue)..where(
               (row) => row.id.equals(item.id) & row.userId.equals(userId),
             ))
             .write(
               SyncQueueCompanion(
-                attempts: Value(item.attempts + 1),
+                attempts: Value(attempts),
                 lastError: Value(message),
                 updatedAt: Value(DateTime.now().toUtc()),
               ),
@@ -105,12 +119,22 @@ class SyncService {
     final transport = _transport;
     if (transport is! PullSyncTransport) return const SyncResult();
 
-    var cursor = await _merger.readCursor(userId);
+    final cursorKey = transport is CursorScopedPullSyncTransport
+        ? transport.cursorMetadataKey
+        : RemoteChangeMerger.cursorMetadataKey;
+    var cursor = await _merger.readCursor(userId, key: cursorKey);
     var pulled = 0;
     var pendingProtected = false;
     for (var page = 0; page < 20; page++) {
-      final batch = await transport.pull(cursor);
-      final merged = await _merger.apply(userId, cursor, batch);
+      final batch = transport is UserScopedPullSyncTransport
+          ? await transport.pullForUser(userId, cursor)
+          : await transport.pull(cursor);
+      final merged = await _merger.apply(
+        userId,
+        cursor,
+        batch,
+        cursorKey: cursorKey,
+      );
       cursor = merged.cursor;
       pulled += merged.merged;
       pendingProtected = merged.blockedByPendingLocalChange;
@@ -135,6 +159,17 @@ class SyncService {
     final message = error.toString();
     return message.length <= 1000 ? message : message.substring(0, 1000);
   }
+
+  int _dependencyOrder(String entityType) => switch (entityType) {
+    'category' => 0,
+    'habit' => 1,
+    'habit_option' => 2,
+    'habit_schedule' => 3,
+    'point_rule' => 4,
+    'habit_pause' => 5,
+    'habit_reminder' => 6,
+    _ => 100,
+  };
 }
 
 class SyncResult {

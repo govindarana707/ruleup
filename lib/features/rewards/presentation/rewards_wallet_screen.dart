@@ -6,6 +6,9 @@ import 'package:ruleup/features/auth/presentation/auth_controller.dart';
 import 'package:ruleup/features/home/presentation/home_dashboard_provider.dart';
 import 'package:ruleup/features/home/presentation/home_dashboard_theme.dart';
 import 'package:ruleup/features/rewards/presentation/reward_editor_dialog.dart';
+import 'package:ruleup/features/rewards/presentation/reward_image_thumbnail.dart';
+import 'package:ruleup/features/rewards/data/reward_image_service.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:ruleup/features/rewards/presentation/rewards_wallet_provider.dart';
 
 class RewardsWalletScreen extends ConsumerStatefulWidget {
@@ -156,7 +159,25 @@ class _RewardsWalletScreenState extends ConsumerState<RewardsWalletScreen> {
     );
     if (draft == null || !mounted) return;
     try {
-      await ref.read(rewardSaveActionProvider)(widget.userId, draft);
+      final rewardId = await ref.read(rewardSaveActionProvider)(
+        widget.userId,
+        draft,
+      );
+      final oldKey = reward?.imageKey;
+      if (draft.selectedImage case final XFile image) {
+        await ref
+            .read(rewardImageServiceProvider)
+            .replace(
+              userId: widget.userId,
+              rewardId: rewardId,
+              oldKey: oldKey,
+              image: image,
+            );
+      } else if (draft.removeImage && oldKey != null) {
+        await ref
+            .read(rewardImageServiceProvider)
+            .remove(userId: widget.userId, rewardId: rewardId, key: oldKey);
+      }
       _refresh();
       if (mounted) {
         _feedback(reward == null ? 'Reward created' : 'Reward updated');
@@ -416,22 +437,7 @@ class _RewardCard extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: affordable
-                        ? const Color(0xFF173C32)
-                        : HomeDashboardTheme.surfaceRaised,
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: Icon(
-                    Icons.card_giftcard_rounded,
-                    color: affordable
-                        ? HomeDashboardTheme.mint
-                        : HomeDashboardTheme.mutedText,
-                  ),
-                ),
+                RewardImageThumbnail(imageKey: reward.imageKey),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(

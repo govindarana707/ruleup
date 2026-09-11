@@ -6,6 +6,7 @@ import 'package:ruleup/core/network/api_client.dart';
 import 'package:ruleup/features/auth/data/auth_repository.dart';
 import 'package:ruleup/features/auth/data/local_user_store.dart';
 import 'package:ruleup/features/auth/data/token_storage.dart';
+import 'package:ruleup/features/auth/data/supabase_auth_provider.dart';
 import 'package:ruleup/features/auth/domain/auth_user.dart';
 
 final apiBaseUrlProvider = Provider<Uri>((ref) => AppConfig.apiBaseUrl);
@@ -31,6 +32,7 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
     ref.watch(apiClientProvider),
     ref.watch(tokenStorageProvider),
     DriftLocalUserStore(ref.watch(databaseProvider)),
+    supabaseAuth: ref.watch(supabaseAuthDataSourceProvider),
   );
 });
 

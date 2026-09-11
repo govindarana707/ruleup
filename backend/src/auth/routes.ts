@@ -11,6 +11,14 @@ import {
   revokeSession,
   type AuthenticatedUser,
 } from './sessions';
+import { transitionSupabaseAuth } from './supabase_transition';
+import {
+  createSupabaseAuthAdmin,
+  SupabaseAdminError,
+  syntheticAuthEmail,
+  type SupabaseAuthAdmin,
+  type SupabaseSessionPayload,
+} from '../supabase/admin';
 
 interface UserRow {
   id: string;
@@ -18,6 +26,8 @@ interface UserRow {
   password_hash: string;
   created_at: string;
   updated_at: string;
+  auth_migrated_at: string | null;
+  supabase_auth_email: string | null;
 }
 
 export async function handleSignup(
@@ -78,6 +88,8 @@ export async function handleSignup(
           password_hash: passwordHash,
           created_at: now,
           updated_at: now,
+          auth_migrated_at: null,
+          supabase_auth_email: null,
         }),
         token: session.token,
         expiresAt: session.expiresAt,
@@ -90,6 +102,7 @@ export async function handleSignup(
 export async function handleLogin(
   request: Request,
   env: Env,
+  adminOverride?: SupabaseAuthAdmin | null,
 ): Promise<Response> {
   const credentials = validateCredentials(await readJson(request));
   if (!credentials) {
@@ -97,7 +110,8 @@ export async function handleLogin(
   }
 
   const user = await env.DB.prepare(
-    `SELECT id, username, password_hash, created_at, updated_at
+    `SELECT id, username, password_hash, created_at, updated_at,
+            auth_migrated_at, supabase_auth_email
      FROM users
      WHERE username = ?
      LIMIT 1`,
@@ -105,30 +119,96 @@ export async function handleLogin(
     .bind(credentials.username)
     .first<UserRow>();
 
-  if (!user || !(await verifyPassword(credentials.password, user.password_hash))) {
+  if (!user) {
     return errorResponse('invalid_credentials', 'Invalid username or password.', 401);
   }
 
+  let supabaseSession: SupabaseSessionPayload | null = null;
+  let migratedAt = user.auth_migrated_at;
+  let legacyVerified = false;
+  let admin: SupabaseAuthAdmin | null = adminOverride ?? null;
+  if (adminOverride === undefined) {
+    try {
+      admin = createSupabaseAuthAdmin(env);
+    } catch {
+      // Incomplete optional configuration must never disable legacy login.
+    }
+  }
+
+  if (admin && user.auth_migrated_at) {
+    try {
+      const transition = await transitionSupabaseAuth(
+        admin,
+        {
+          id: user.id,
+          username: user.username,
+          authMigratedAt: user.auth_migrated_at,
+        },
+        credentials.password,
+      );
+      supabaseSession = transition.session;
+    } catch (error) {
+      if (error instanceof SupabaseAdminError && error.kind === 'invalid_credentials') {
+        return errorResponse('invalid_credentials', 'Invalid username or password.', 401);
+      }
+      legacyVerified = await verifyPassword(
+        credentials.password,
+        user.password_hash,
+      );
+    }
+  } else {
+    legacyVerified = await verifyPassword(credentials.password, user.password_hash);
+  }
+
+  if (!supabaseSession && !legacyVerified) {
+    return errorResponse('invalid_credentials', 'Invalid username or password.', 401);
+  }
+
+  if (admin && !user.auth_migrated_at && legacyVerified) {
+    try {
+      const transition = await transitionSupabaseAuth(
+        admin,
+        { id: user.id, username: user.username, authMigratedAt: null },
+        credentials.password,
+      );
+      supabaseSession = transition.session;
+      migratedAt = transition.migratedAt;
+    } catch {
+      // Lazy migration is best-effort. The verified legacy login remains valid.
+    }
+  }
+
   const session = await createSession();
-  await env.DB.prepare(
-    `INSERT INTO sessions
+  const statements = [
+    env.DB.prepare(
+      `INSERT INTO sessions
        (id, user_id, token_hash, expires_at, created_at)
-     VALUES (?, ?, ?, ?, ?)`,
-  )
-    .bind(
+       VALUES (?, ?, ?, ?, ?)`,
+    ).bind(
       session.id,
       user.id,
       session.tokenHash,
       session.expiresAt,
       session.createdAt,
-    )
-    .run();
+    ),
+  ];
+  if (supabaseSession && migratedAt && !user.auth_migrated_at) {
+    statements.push(
+      env.DB.prepare(
+        `UPDATE users
+         SET auth_migrated_at = ?, supabase_auth_email = ?, updated_at = ?
+         WHERE id = ? AND auth_migrated_at IS NULL`,
+      ).bind(migratedAt, syntheticAuthEmail(user.id), migratedAt, user.id),
+    );
+  }
+  await env.DB.batch(statements);
 
   return jsonResponse({
     data: {
       user: toPublicUser(user),
       token: session.token,
       expiresAt: session.expiresAt,
+      ...(supabaseSession ? { supabaseSession } : {}),
     },
   });
 }

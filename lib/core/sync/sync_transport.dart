@@ -4,6 +4,35 @@ abstract interface class SyncTransport {
   Future<void> send(SyncQueueData item);
 }
 
+abstract interface class ClassifiedSyncFailure implements Exception {
+  bool get retryable;
+}
+
+class SyncTransportException implements Exception {
+  const SyncTransportException(this.message);
+
+  final String message;
+
+  @override
+  String toString() => message;
+}
+
+/// Allows a staged transport to leave out-of-scope queue rows untouched.
+abstract interface class ScopedSyncTransport implements SyncTransport {
+  bool supports(String entityType);
+}
+
+/// Gives independent remotes independent durable pull cursors.
+abstract interface class CursorScopedPullSyncTransport
+    implements PullSyncTransport {
+  String get cursorMetadataKey;
+}
+
+abstract interface class UserScopedPullSyncTransport
+    implements PullSyncTransport {
+  Future<PullBatch> pullForUser(String userId, String cursor);
+}
+
 abstract interface class PullSyncTransport implements SyncTransport {
   Future<PullBatch> pull(String cursor);
 }

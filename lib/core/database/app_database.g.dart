@@ -5823,6 +5823,17 @@ class $RewardsTable extends Rewards with TableInfo<$RewardsTable, Reward> {
     type: DriftSqlType.double,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _imageKeyMeta = const VerificationMeta(
+    'imageKey',
+  );
+  @override
+  late final GeneratedColumn<String> imageKey = GeneratedColumn<String>(
+    'image_key',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _sortOrderMeta = const VerificationMeta(
     'sortOrder',
   );
@@ -5877,6 +5888,7 @@ class $RewardsTable extends Rewards with TableInfo<$RewardsTable, Reward> {
     name,
     pointsCost,
     monetaryCap,
+    imageKey,
     sortOrder,
     createdAt,
     updatedAt,
@@ -5928,6 +5940,12 @@ class $RewardsTable extends Rewards with TableInfo<$RewardsTable, Reward> {
           data['monetary_cap']!,
           _monetaryCapMeta,
         ),
+      );
+    }
+    if (data.containsKey('image_key')) {
+      context.handle(
+        _imageKeyMeta,
+        imageKey.isAcceptableOrUnknown(data['image_key']!, _imageKeyMeta),
       );
     }
     if (data.containsKey('sort_order')) {
@@ -5983,6 +6001,10 @@ class $RewardsTable extends Rewards with TableInfo<$RewardsTable, Reward> {
         DriftSqlType.double,
         data['${effectivePrefix}monetary_cap'],
       ),
+      imageKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}image_key'],
+      ),
       sortOrder: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}sort_order'],
@@ -6014,6 +6036,7 @@ class Reward extends DataClass implements Insertable<Reward> {
   final String name;
   final int pointsCost;
   final double? monetaryCap;
+  final String? imageKey;
   final int sortOrder;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -6024,6 +6047,7 @@ class Reward extends DataClass implements Insertable<Reward> {
     required this.name,
     required this.pointsCost,
     this.monetaryCap,
+    this.imageKey,
     required this.sortOrder,
     required this.createdAt,
     required this.updatedAt,
@@ -6038,6 +6062,9 @@ class Reward extends DataClass implements Insertable<Reward> {
     map['points_cost'] = Variable<int>(pointsCost);
     if (!nullToAbsent || monetaryCap != null) {
       map['monetary_cap'] = Variable<double>(monetaryCap);
+    }
+    if (!nullToAbsent || imageKey != null) {
+      map['image_key'] = Variable<String>(imageKey);
     }
     map['sort_order'] = Variable<int>(sortOrder);
     map['created_at'] = Variable<DateTime>(createdAt);
@@ -6057,6 +6084,9 @@ class Reward extends DataClass implements Insertable<Reward> {
       monetaryCap: monetaryCap == null && nullToAbsent
           ? const Value.absent()
           : Value(monetaryCap),
+      imageKey: imageKey == null && nullToAbsent
+          ? const Value.absent()
+          : Value(imageKey),
       sortOrder: Value(sortOrder),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
@@ -6077,6 +6107,7 @@ class Reward extends DataClass implements Insertable<Reward> {
       name: serializer.fromJson<String>(json['name']),
       pointsCost: serializer.fromJson<int>(json['pointsCost']),
       monetaryCap: serializer.fromJson<double?>(json['monetaryCap']),
+      imageKey: serializer.fromJson<String?>(json['imageKey']),
       sortOrder: serializer.fromJson<int>(json['sortOrder']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
@@ -6092,6 +6123,7 @@ class Reward extends DataClass implements Insertable<Reward> {
       'name': serializer.toJson<String>(name),
       'pointsCost': serializer.toJson<int>(pointsCost),
       'monetaryCap': serializer.toJson<double?>(monetaryCap),
+      'imageKey': serializer.toJson<String?>(imageKey),
       'sortOrder': serializer.toJson<int>(sortOrder),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
@@ -6105,6 +6137,7 @@ class Reward extends DataClass implements Insertable<Reward> {
     String? name,
     int? pointsCost,
     Value<double?> monetaryCap = const Value.absent(),
+    Value<String?> imageKey = const Value.absent(),
     int? sortOrder,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -6115,6 +6148,7 @@ class Reward extends DataClass implements Insertable<Reward> {
     name: name ?? this.name,
     pointsCost: pointsCost ?? this.pointsCost,
     monetaryCap: monetaryCap.present ? monetaryCap.value : this.monetaryCap,
+    imageKey: imageKey.present ? imageKey.value : this.imageKey,
     sortOrder: sortOrder ?? this.sortOrder,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
@@ -6131,6 +6165,7 @@ class Reward extends DataClass implements Insertable<Reward> {
       monetaryCap: data.monetaryCap.present
           ? data.monetaryCap.value
           : this.monetaryCap,
+      imageKey: data.imageKey.present ? data.imageKey.value : this.imageKey,
       sortOrder: data.sortOrder.present ? data.sortOrder.value : this.sortOrder,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
@@ -6148,6 +6183,7 @@ class Reward extends DataClass implements Insertable<Reward> {
           ..write('name: $name, ')
           ..write('pointsCost: $pointsCost, ')
           ..write('monetaryCap: $monetaryCap, ')
+          ..write('imageKey: $imageKey, ')
           ..write('sortOrder: $sortOrder, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
@@ -6163,6 +6199,7 @@ class Reward extends DataClass implements Insertable<Reward> {
     name,
     pointsCost,
     monetaryCap,
+    imageKey,
     sortOrder,
     createdAt,
     updatedAt,
@@ -6177,6 +6214,7 @@ class Reward extends DataClass implements Insertable<Reward> {
           other.name == this.name &&
           other.pointsCost == this.pointsCost &&
           other.monetaryCap == this.monetaryCap &&
+          other.imageKey == this.imageKey &&
           other.sortOrder == this.sortOrder &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
@@ -6189,6 +6227,7 @@ class RewardsCompanion extends UpdateCompanion<Reward> {
   final Value<String> name;
   final Value<int> pointsCost;
   final Value<double?> monetaryCap;
+  final Value<String?> imageKey;
   final Value<int> sortOrder;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
@@ -6200,6 +6239,7 @@ class RewardsCompanion extends UpdateCompanion<Reward> {
     this.name = const Value.absent(),
     this.pointsCost = const Value.absent(),
     this.monetaryCap = const Value.absent(),
+    this.imageKey = const Value.absent(),
     this.sortOrder = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
@@ -6212,6 +6252,7 @@ class RewardsCompanion extends UpdateCompanion<Reward> {
     required String name,
     required int pointsCost,
     this.monetaryCap = const Value.absent(),
+    this.imageKey = const Value.absent(),
     this.sortOrder = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
@@ -6226,6 +6267,7 @@ class RewardsCompanion extends UpdateCompanion<Reward> {
     Expression<String>? name,
     Expression<int>? pointsCost,
     Expression<double>? monetaryCap,
+    Expression<String>? imageKey,
     Expression<int>? sortOrder,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
@@ -6238,6 +6280,7 @@ class RewardsCompanion extends UpdateCompanion<Reward> {
       if (name != null) 'name': name,
       if (pointsCost != null) 'points_cost': pointsCost,
       if (monetaryCap != null) 'monetary_cap': monetaryCap,
+      if (imageKey != null) 'image_key': imageKey,
       if (sortOrder != null) 'sort_order': sortOrder,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
@@ -6252,6 +6295,7 @@ class RewardsCompanion extends UpdateCompanion<Reward> {
     Value<String>? name,
     Value<int>? pointsCost,
     Value<double?>? monetaryCap,
+    Value<String?>? imageKey,
     Value<int>? sortOrder,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
@@ -6264,6 +6308,7 @@ class RewardsCompanion extends UpdateCompanion<Reward> {
       name: name ?? this.name,
       pointsCost: pointsCost ?? this.pointsCost,
       monetaryCap: monetaryCap ?? this.monetaryCap,
+      imageKey: imageKey ?? this.imageKey,
       sortOrder: sortOrder ?? this.sortOrder,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -6289,6 +6334,9 @@ class RewardsCompanion extends UpdateCompanion<Reward> {
     }
     if (monetaryCap.present) {
       map['monetary_cap'] = Variable<double>(monetaryCap.value);
+    }
+    if (imageKey.present) {
+      map['image_key'] = Variable<String>(imageKey.value);
     }
     if (sortOrder.present) {
       map['sort_order'] = Variable<int>(sortOrder.value);
@@ -6316,6 +6364,7 @@ class RewardsCompanion extends UpdateCompanion<Reward> {
           ..write('name: $name, ')
           ..write('pointsCost: $pointsCost, ')
           ..write('monetaryCap: $monetaryCap, ')
+          ..write('imageKey: $imageKey, ')
           ..write('sortOrder: $sortOrder, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
@@ -13748,6 +13797,7 @@ typedef $$RewardsTableCreateCompanionBuilder = RewardsCompanion Function({
   required String name,
   required int pointsCost,
   Value<double?> monetaryCap,
+  Value<String?> imageKey,
   Value<int> sortOrder,
   Value<DateTime> createdAt,
   Value<DateTime> updatedAt,
@@ -13760,6 +13810,7 @@ typedef $$RewardsTableUpdateCompanionBuilder = RewardsCompanion Function({
   Value<String> name,
   Value<int> pointsCost,
   Value<double?> monetaryCap,
+  Value<String?> imageKey,
   Value<int> sortOrder,
   Value<DateTime> createdAt,
   Value<DateTime> updatedAt,
@@ -13815,6 +13866,11 @@ class $$RewardsTableFilterComposer
 
   ColumnFilters<double> get monetaryCap => $composableBuilder(
     column: $table.monetaryCap,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get imageKey => $composableBuilder(
+    column: $table.imageKey,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -13891,6 +13947,11 @@ class $$RewardsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get imageKey => $composableBuilder(
+    column: $table.imageKey,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get sortOrder => $composableBuilder(
     column: $table.sortOrder,
     builder: (column) => ColumnOrderings(column),
@@ -13959,6 +14020,9 @@ class $$RewardsTableAnnotationComposer
     column: $table.monetaryCap,
     builder: (column) => column,
   );
+
+  GeneratedColumn<String> get imageKey =>
+      $composableBuilder(column: $table.imageKey, builder: (column) => column);
 
   GeneratedColumn<int> get sortOrder =>
       $composableBuilder(column: $table.sortOrder, builder: (column) => column);
@@ -14031,6 +14095,7 @@ class $$RewardsTableTableManager
                 Value<String> name = const Value.absent(),
                 Value<int> pointsCost = const Value.absent(),
                 Value<double?> monetaryCap = const Value.absent(),
+                Value<String?> imageKey = const Value.absent(),
                 Value<int> sortOrder = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
@@ -14042,6 +14107,7 @@ class $$RewardsTableTableManager
                 name: name,
                 pointsCost: pointsCost,
                 monetaryCap: monetaryCap,
+                imageKey: imageKey,
                 sortOrder: sortOrder,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
@@ -14055,6 +14121,7 @@ class $$RewardsTableTableManager
                 required String name,
                 required int pointsCost,
                 Value<double?> monetaryCap = const Value.absent(),
+                Value<String?> imageKey = const Value.absent(),
                 Value<int> sortOrder = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
@@ -14066,6 +14133,7 @@ class $$RewardsTableTableManager
                 name: name,
                 pointsCost: pointsCost,
                 monetaryCap: monetaryCap,
+                imageKey: imageKey,
                 sortOrder: sortOrder,
                 createdAt: createdAt,
                 updatedAt: updatedAt,

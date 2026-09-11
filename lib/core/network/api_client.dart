@@ -17,6 +17,74 @@ class ApiClient {
     String? token,
   }) => _send('POST', path, body: body, token: token);
 
+  Uri resolve(String path) => _baseUrl.resolve(path);
+
+  Future<Map<String, dynamic>> postBytes(
+    String path, {
+    required List<int> bytes,
+    required String contentType,
+    required String token,
+  }) async {
+    final request = http.Request('POST', _baseUrl.resolve(path))
+      ..headers.addAll({
+        'accept': 'application/json',
+        'content-type': contentType,
+        'authorization': 'Bearer $token',
+      })
+      ..bodyBytes = bytes;
+    try {
+      final response = await http.Response.fromStream(
+        await _client.send(request),
+      );
+      final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        final error = decoded['error'] as Map<String, dynamic>?;
+        throw ApiException(
+          statusCode: response.statusCode,
+          code: error?['code'] as String? ?? 'request_failed',
+          message: error?['message'] as String? ?? 'Request failed.',
+        );
+      }
+      return decoded;
+    } on ApiException {
+      rethrow;
+    } on Object {
+      throw const ApiException(
+        statusCode: 0,
+        code: 'network_error',
+        message: 'Unable to connect. Check your network and try again.',
+      );
+    }
+  }
+
+  Future<void> delete(String path, {required String token}) async {
+    final request = http.Request('DELETE', _baseUrl.resolve(path))
+      ..headers.addAll({
+        'accept': 'application/json',
+        'authorization': 'Bearer $token',
+      });
+    try {
+      final response = await http.Response.fromStream(
+        await _client.send(request),
+      );
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        throw const ApiException(
+          statusCode: 0,
+          code: 'request_failed',
+          message: 'Image could not be removed.',
+        );
+      }
+    } on ApiException {
+      rethrow;
+    } on Object {
+      throw const ApiException(
+        statusCode: 0,
+        code: 'network_error',
+        message: 'Unable to connect. Check your network and try again.',
+      );
+    }
+  }
+
   Future<void> checkHealth() async {
     final response = await get('/health');
     if (response['status'] != 'ok') {

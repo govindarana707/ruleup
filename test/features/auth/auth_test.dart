@@ -9,7 +9,9 @@ import 'package:ruleup/core/network/api_client.dart';
 import 'package:ruleup/core/database/app_database.dart';
 import 'package:ruleup/features/auth/data/auth_repository.dart';
 import 'package:ruleup/features/auth/data/local_user_store.dart';
+import 'package:ruleup/features/auth/data/supabase_auth_data_source.dart';
 import 'package:ruleup/features/auth/data/token_storage.dart';
+import 'package:ruleup/features/auth/domain/auth_session.dart';
 import 'package:ruleup/features/auth/domain/auth_user.dart';
 import 'package:ruleup/features/auth/presentation/auth_controller.dart';
 import 'package:ruleup/features/auth/presentation/login_screen.dart';
@@ -64,6 +66,23 @@ void main() {
     expect(tokens.token, 'secure-session-token');
   });
 
+  test(
+    'login adopts an optional matching Supabase transition session',
+    () async {
+      final supabase = _FakeSupabaseAuthDataSource();
+      final repository = _repository(
+        _MemoryTokenStorage(),
+        (_) => Future.value(_authResponse(withSupabaseSession: true)),
+        supabaseAuth: supabase,
+      );
+
+      final user = await repository.login('tester', 'long-enough-password');
+
+      expect(supabase.adoptedFor?.id, user.id);
+      expect(supabase.adoptedPayload?['userId'], user.id);
+    },
+  );
+
   test('successful mocked signup stores token securely', () async {
     final tokens = _MemoryTokenStorage();
     final repository = _repository(tokens, (_) async => _authResponse());
@@ -90,6 +109,30 @@ void main() {
     expect(user?.id, 'user-id');
     expect(tokens.token, 'secure-session-token');
   });
+
+  test(
+    'legacy restoration also restores the optional Supabase session',
+    () async {
+      final tokens = _MemoryTokenStorage()..token = 'secure-session-token';
+      final supabase = _FakeSupabaseAuthDataSource();
+      final repository = _repository(
+        tokens,
+        (_) async => http.Response(
+          jsonEncode({
+            'data': {
+              'user': {'id': 'user-id', 'username': 'tester'},
+            },
+          }),
+          200,
+        ),
+        supabaseAuth: supabase,
+      );
+
+      await repository.restoreSession();
+
+      expect(supabase.restoredFor?.id, 'user-id');
+    },
+  );
 
   test('authenticated backend user is provisioned for local sync', () async {
     final database = AppDatabase(NativeDatabase.memory());
@@ -125,10 +168,33 @@ void main() {
     expect(tokens.token, isNull);
   });
 
+  test('logout clears both legacy and Supabase session state', () async {
+    final tokens = _MemoryTokenStorage()..token = 'secure-session-token';
+    final supabase = _FakeSupabaseAuthDataSource();
+    final repository = _repository(
+      tokens,
+      (_) => Future.value(
+        http.Response(
+          jsonEncode({
+            'data': {'success': true},
+          }),
+          200,
+        ),
+      ),
+      supabaseAuth: supabase,
+    );
+
+    await repository.logout();
+
+    expect(tokens.token, isNull);
+    expect(supabase.loggedOut, isTrue);
+  });
+
   test(
     'invalid stored session becomes unauthenticated and is cleared',
     () async {
       final tokens = _MemoryTokenStorage()..token = 'expired-token';
+      final supabase = _FakeSupabaseAuthDataSource();
       final repository = _repository(
         tokens,
         (_) async => http.Response(
@@ -140,9 +206,11 @@ void main() {
           }),
           401,
         ),
+        supabaseAuth: supabase,
       );
       expect(await repository.restoreSession(), isNull);
       expect(tokens.token, isNull);
+      expect(supabase.loggedOut, isTrue);
     },
   );
 
@@ -160,21 +228,31 @@ ApiAuthRepository _repository(
   TokenStorage tokens,
   Future<http.Response> Function(http.Request) handler, {
   LocalUserStore? localUsers,
+  SupabaseAuthDataSource? supabaseAuth,
 }) => ApiAuthRepository(
   ApiClient(Uri.parse('https://ruleup.test'), MockClient(handler)),
   tokens,
   localUsers ?? _MemoryLocalUserStore(),
+  supabaseAuth: supabaseAuth,
 );
 
-http.Response _authResponse() => http.Response(
-  jsonEncode({
-    'data': {
-      'user': {'id': 'user-id', 'username': 'tester'},
-      'token': 'secure-session-token',
-    },
-  }),
-  200,
-);
+http.Response _authResponse({bool withSupabaseSession = false}) =>
+    http.Response(
+      jsonEncode({
+        'data': {
+          'user': {'id': 'user-id', 'username': 'tester'},
+          'token': 'secure-session-token',
+          if (withSupabaseSession)
+            'supabaseSession': {
+              'accessToken': 'access-token',
+              'refreshToken': 'refresh-token',
+              'expiresAt': 2000000000,
+              'userId': 'user-id',
+            },
+        },
+      }),
+      200,
+    );
 
 class _MemoryTokenStorage implements TokenStorage {
   String? token;
@@ -189,6 +267,37 @@ class _MemoryTokenStorage implements TokenStorage {
 class _MemoryLocalUserStore implements LocalUserStore {
   @override
   Future<void> ensureExists(String userId) async {}
+}
+
+class _FakeSupabaseAuthDataSource implements SupabaseAuthDataSource {
+  Map<String, dynamic>? adoptedPayload;
+  AuthUser? adoptedFor;
+  AuthUser? restoredFor;
+  bool loggedOut = false;
+
+  @override
+  Future<AuthSession> adoptTransitionSession(
+    Map<String, dynamic> payload, {
+    required AuthUser expectedUser,
+  }) async {
+    adoptedPayload = payload;
+    adoptedFor = expectedUser;
+    return AuthSession(
+      user: expectedUser,
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+      expiresAt: DateTime.fromMillisecondsSinceEpoch(2000000000000),
+    );
+  }
+
+  @override
+  Future<void> logout() async => loggedOut = true;
+
+  @override
+  Future<AuthSession?> restoreSession({required AuthUser expectedUser}) async {
+    restoredFor = expectedUser;
+    return null;
+  }
 }
 
 class _FakeRepository implements AuthRepository {

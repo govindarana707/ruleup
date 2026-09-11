@@ -16,6 +16,7 @@ class Rewards extends Table {
   RealColumn get monetaryCap => real().nullable().check(
     const CustomExpression<bool>('monetary_cap >= 0'),
   )();
+  TextColumn get imageKey => text().nullable()();
   IntColumn get sortOrder => integer().withDefault(const Constant(0))();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();

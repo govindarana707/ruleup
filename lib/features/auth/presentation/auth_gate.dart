@@ -49,7 +49,13 @@ class _AuthGateState extends ConsumerState<AuthGate>
         _activeUserId = null;
       } else if (_activeUserId != user.id) {
         _activeUserId = user.id;
-        unawaited(_synchronize(user.id));
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted ||
+              ref.read(authControllerProvider).value?.id != user.id) {
+            return;
+          }
+          unawaited(_synchronize(user.id));
+        });
       }
     });
 

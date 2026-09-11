@@ -11,7 +11,7 @@ void main() {
 
   tearDown(() => database.close());
 
-  test('initializes the version 10 local schema', () async {
+  test('initializes the version 11 local schema', () async {
     final tables = await database
         .customSelect(
           "SELECT name FROM sqlite_master "
@@ -23,7 +23,7 @@ void main() {
         )
         .get();
 
-    expect(database.schemaVersion, 10);
+    expect(database.schemaVersion, 11);
     expect(tables.map((row) => row.read<String>('name')).toSet(), {
       'local_users',
       'sync_queue',

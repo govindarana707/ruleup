@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:ruleup/features/rewards/presentation/rewards_wallet_provider.dart';
 
 class RewardEditorDialog extends StatefulWidget {
@@ -15,6 +16,7 @@ class _RewardEditorDialogState extends State<RewardEditorDialog> {
   late final TextEditingController _name;
   late final TextEditingController _cost;
   late final TextEditingController _cap;
+  XFile? _image;
 
   @override
   void initState() {
@@ -58,6 +60,49 @@ class _RewardEditorDialogState extends State<RewardEditorDialog> {
                 validator: (value) => value == null || value.trim().isEmpty
                     ? 'Enter a reward name.'
                     : null,
+              ),
+              const SizedBox(height: 14),
+              Row(
+                children: [
+                  OutlinedButton.icon(
+                    key: const Key('pick-reward-image'),
+                    onPressed: () async {
+                      final image = await ImagePicker().pickImage(
+                        source: ImageSource.gallery,
+                        imageQuality: 82,
+                        maxWidth: 1600,
+                        maxHeight: 1600,
+                        requestFullMetadata: false,
+                      );
+                      if (image != null && mounted) {
+                        setState(() {
+                          _image = image;
+                          widget.draft.removeImage = false;
+                        });
+                      }
+                    },
+                    icon: const Icon(Icons.photo_outlined),
+                    label: Text(
+                      _image == null
+                          ? (widget.draft.imageKey == null
+                                ? 'Add photo'
+                                : 'Change photo')
+                          : 'Photo selected',
+                    ),
+                  ),
+                  if (_image != null || widget.draft.imageKey != null)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 8),
+                      child: TextButton(
+                        key: const Key('remove-reward-image'),
+                        onPressed: () => setState(() {
+                          _image = null;
+                          widget.draft.removeImage = true;
+                        }),
+                        child: const Text('Remove'),
+                      ),
+                    ),
+                ],
               ),
               const SizedBox(height: 14),
               TextFormField(
@@ -111,6 +156,7 @@ class _RewardEditorDialogState extends State<RewardEditorDialog> {
               ..name = _name.text.trim()
               ..pointsCost = _cost.text.trim()
               ..monetaryCap = _cap.text.trim();
+            widget.draft.selectedImage = _image;
             Navigator.pop(context, widget.draft);
           },
           child: Text(editing ? 'Save' : 'Create'),

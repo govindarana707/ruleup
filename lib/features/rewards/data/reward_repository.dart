@@ -113,6 +113,21 @@ class RewardRepository {
     },
   );
 
+  Future<Reward?> setImageKey(String userId, String id, String? imageKey) =>
+      _database.transaction(() async {
+        final existing = await getById(userId, id);
+        if (existing == null) return null;
+        final now = DateTime.now().toUtc();
+        await (_database.update(
+          _database.rewards,
+        )..where((row) => row.id.equals(id) & row.userId.equals(userId))).write(
+          RewardsCompanion(imageKey: Value(imageKey), updatedAt: Value(now)),
+        );
+        final updated = await getById(userId, id);
+        await _enqueueReward(updated!, 'update');
+        return updated;
+      });
+
   Future<PointLedgerData> redeem({
     required String userId,
     required String rewardId,

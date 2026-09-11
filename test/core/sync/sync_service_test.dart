@@ -93,6 +93,87 @@ void main() {
     final remaining = await database.select(database.syncQueue).getSingle();
     expect(remaining.userId, otherUserId);
   });
+
+  test('scoped transport leaves unsupported domain work queued', () async {
+    final scoped = _ScopedTransport();
+    final scopedService = SyncService(database, scoped);
+    await scopedService.enqueue(
+      userId: userId,
+      entityType: 'habit',
+      entityId: 'habit-id',
+      operation: 'create',
+    );
+    await scopedService.enqueue(
+      userId: userId,
+      entityType: 'check_in',
+      entityId: 'check-in-id',
+      operation: 'create',
+    );
+
+    final result = await scopedService.syncPending(userId);
+
+    expect(result.succeeded, 1);
+    expect(scoped.sent.single.entityType, 'habit');
+    final remaining = await database.select(database.syncQueue).getSingle();
+    expect(remaining.entityType, 'check_in');
+    expect(remaining.attempts, 0);
+  });
+
+  test(
+    'habit parents are sent before children regardless of enqueue order',
+    () async {
+      final scoped = _ScopedTransport();
+      final scopedService = SyncService(database, scoped);
+      for (final entityType in [
+        'habit_reminder',
+        'point_rule',
+        'habit_schedule',
+        'habit_option',
+        'habit',
+        'category',
+      ]) {
+        await scopedService.enqueue(
+          userId: userId,
+          entityType: entityType,
+          entityId: '$entityType-id',
+          operation: 'create',
+        );
+      }
+
+      await scopedService.syncPending(userId);
+
+      expect(scoped.sent.map((item) => item.entityType), [
+        'category',
+        'habit',
+        'habit_option',
+        'habit_schedule',
+        'point_rule',
+        'habit_reminder',
+      ]);
+    },
+  );
+
+  test(
+    'permanent failures remain diagnosed but are not retried forever',
+    () async {
+      final scoped = _ScopedTransport(permanentFailure: true);
+      final scopedService = SyncService(database, scoped);
+      await scopedService.enqueue(
+        userId: userId,
+        entityType: 'habit',
+        entityId: 'habit-id',
+        operation: 'create',
+      );
+
+      await scopedService.syncPending(userId);
+      final failed = await database.select(database.syncQueue).getSingle();
+      expect(failed.attempts, -1);
+      expect(failed.lastError, contains('ownership'));
+
+      await scopedService.retryFailed(userId);
+      expect(scoped.sent, hasLength(1));
+    },
+  );
 }
 
 Future<void> _enqueue(SyncService service, String userId, String entityId) =>
@@ -112,4 +193,30 @@ class _FakeSyncTransport implements SyncTransport {
     sent.add(item);
     if (shouldFail) throw Exception('transport failed');
   }
+}
+
+class _ScopedTransport implements ScopedSyncTransport {
+  _ScopedTransport({this.permanentFailure = false});
+
+  final bool permanentFailure;
+  final List<SyncQueueData> sent = [];
+
+  @override
+  bool supports(String entityType) => entityType != 'check_in';
+
+  @override
+  Future<void> send(SyncQueueData item) async {
+    sent.add(item);
+    if (permanentFailure) throw const _PermanentFailure();
+  }
+}
+
+class _PermanentFailure implements ClassifiedSyncFailure {
+  const _PermanentFailure();
+
+  @override
+  bool get retryable => false;
+
+  @override
+  String toString() => 'ownership: permanent';
 }

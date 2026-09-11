@@ -54,6 +54,7 @@ describe('authentication', () => {
     expect(body.data.user.id).toMatch(/^[0-9a-f-]{36}$/);
     expect(body.data.token).toMatch(/^[A-Za-z0-9_-]{43}$/);
     expect(JSON.stringify(body)).not.toContain(validPassword);
+    expect(JSON.stringify(body)).not.toContain('SUPABASE_SERVICE_ROLE_KEY');
   });
 
   it('rejects a duplicate normalized username', async () => {

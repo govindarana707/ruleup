@@ -191,6 +191,7 @@ export const entityContracts: Record<string, EntityContract> = {
       name: { column: 'name', type: 'string' },
       pointsCost: { column: 'points_cost', type: 'integer' },
       monetaryCap: { column: 'monetary_cap', type: 'number', nullable: true },
+      imageKey: { column: 'image_key', type: 'string', nullable: true },
       sortOrder: { column: 'sort_order', type: 'integer' },
       archivedAt,
     },

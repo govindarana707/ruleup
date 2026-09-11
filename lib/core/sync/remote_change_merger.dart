@@ -14,12 +14,13 @@ class RemoteChangeMerger {
 
   final AppDatabase _database;
 
-  Future<String> readCursor(String userId) async {
+  Future<String> readCursor(
+    String userId, {
+    String key = cursorMetadataKey,
+  }) async {
     final metadata =
-        await (_database.select(_database.syncMetadata)..where(
-              (row) =>
-                  row.userId.equals(userId) & row.key.equals(cursorMetadataKey),
-            ))
+        await (_database.select(_database.syncMetadata)
+              ..where((row) => row.userId.equals(userId) & row.key.equals(key)))
             .getSingleOrNull();
     return metadata?.value ?? '0';
   }
@@ -27,8 +28,9 @@ class RemoteChangeMerger {
   Future<RemoteMergeResult> apply(
     String userId,
     String currentCursor,
-    PullBatch batch,
-  ) => _database.transaction(() async {
+    PullBatch batch, {
+    String cursorKey = cursorMetadataKey,
+  }) => _database.transaction(() async {
     var cursor = currentCursor;
     var merged = 0;
     var blocked = false;
@@ -52,7 +54,7 @@ class RemoteChangeMerger {
     }
 
     if (!blocked && batch.changes.isEmpty) cursor = batch.nextCursor;
-    await _writeCursor(userId, cursor);
+    await _writeCursor(userId, cursor, cursorKey);
     return RemoteMergeResult(
       cursor: cursor,
       merged: merged,
@@ -223,6 +225,7 @@ class RemoteChangeMerger {
             name: _required<String>(data, 'name'),
             pointsCost: _integer(data, 'pointsCost'),
             monetaryCap: Value(_nullableNumber(data, 'monetaryCap')),
+            imageKey: Value(_nullableString(data, 'imageKey')),
             sortOrder: Value(_integer(data, 'sortOrder')),
             createdAt: Value(_date(data, 'createdAt')),
             updatedAt: Value(_date(data, 'updatedAt')),
@@ -293,14 +296,14 @@ class RemoteChangeMerger {
     return existing?.read<String>('habit_id');
   }
 
-  Future<void> _writeCursor(String userId, String cursor) async {
+  Future<void> _writeCursor(String userId, String cursor, String key) async {
     final now = DateTime.now().toUtc();
     await _database
         .into(_database.syncMetadata)
         .insert(
           SyncMetadataCompanion.insert(
             userId: userId,
-            key: cursorMetadataKey,
+            key: key,
             value: Value(cursor),
             updatedAt: Value(now),
           ),
@@ -357,6 +360,9 @@ class RemoteChangeMerger {
     if (value is! num) throw FormatException('Invalid remote field: $key');
     return value.toDouble();
   }
+
+  String? _nullableString(Map<String, dynamic> data, String key) =>
+      _nullable<String>(data, key);
 
   DateTime _date(Map<String, dynamic> data, String key) {
     final value = _required<String>(data, key);

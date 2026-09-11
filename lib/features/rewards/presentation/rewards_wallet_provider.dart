@@ -62,6 +62,7 @@ class RewardsWalletCoordinator {
               name: row.name,
               pointsCost: row.pointsCost,
               monetaryCap: row.monetaryCap,
+              imageKey: row.imageKey,
               sortOrder: row.sortOrder,
               archived: row.archivedAt != null,
             ),
@@ -147,12 +148,14 @@ class RewardListItem {
     required this.sortOrder,
     required this.archived,
     this.monetaryCap,
+    this.imageKey,
   });
 
   final String id;
   final String name;
   final int pointsCost;
   final double? monetaryCap;
+  final String? imageKey;
   final int sortOrder;
   final bool archived;
 
@@ -161,6 +164,7 @@ class RewardListItem {
     name: name,
     pointsCost: pointsCost.toString(),
     monetaryCap: monetaryCap?.toString() ?? '',
+    imageKey: imageKey,
     sortOrder: sortOrder,
   );
 }
@@ -172,6 +176,7 @@ class RewardDraft {
     this.pointsCost = '',
     this.monetaryCap = '',
     this.sortOrder = 0,
+    this.imageKey,
   });
 
   String? id;
@@ -179,6 +184,9 @@ class RewardDraft {
   String pointsCost;
   String monetaryCap;
   int sortOrder;
+  String? imageKey;
+  Object? selectedImage;
+  bool removeImage = false;
 
   String? validate() {
     if (name.trim().isEmpty) return 'Enter a reward name.';
