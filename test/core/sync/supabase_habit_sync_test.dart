@@ -456,7 +456,7 @@ void main() {
   );
 
   test(
-    'missed penalty is supported while Phase 5 redemption stays queued',
+    'missed penalty and deferred redemption use their trusted RPC shapes',
     () async {
       await database
           .into(database.habits)
@@ -477,6 +477,17 @@ void main() {
         points: -5,
       );
       const redemptionId = '50000000-0000-4000-8000-000000000001';
+      const rewardId = '60000000-0000-4000-8000-000000000001';
+      await database
+          .into(database.rewards)
+          .insert(
+            RewardsCompanion.insert(
+              id: const Value(rewardId),
+              userId: userId,
+              name: 'Deferred',
+              pointsCost: 10,
+            ),
+          );
       await database
           .into(database.pointLedger)
           .insert(
@@ -484,8 +495,9 @@ void main() {
               id: const Value(redemptionId),
               userId: userId,
               sourceType: PointLedgerSourceType.rewardRedemption,
-              sourceId: '60000000-0000-4000-8000-000000000001',
+              sourceId: '70000000-0000-4000-8000-000000000001',
               points: -10,
+              reason: const Value('Reward: Deferred'),
             ),
           );
       await service.enqueue(
@@ -497,12 +509,159 @@ void main() {
 
       final result = await service.syncPending(userId);
 
-      expect(result.succeeded, 1);
-      expect(remote.pushed.single.id, missed.id);
-      expect(remote.pushed.single.row?['source_type'], 'missed_check_in');
-      final remaining = await database.select(database.syncQueue).getSingle();
-      expect(remaining.entityId, redemptionId);
-      expect(remaining.attempts, 0);
+      expect(result.succeeded, 2);
+      expect(remote.pushed, hasLength(2));
+      final missedMutation = remote.pushed.singleWhere(
+        (mutation) => mutation.row?['source_type'] == 'missed_check_in',
+      );
+      final redemptionMutation = remote.pushed.singleWhere(
+        (mutation) => mutation.row?['source_type'] == 'reward_redemption',
+      );
+      expect(missedMutation.id, missed.id);
+      expect(redemptionMutation.id, redemptionId);
+      expect(redemptionMutation.row?['reward_id'], rewardId);
+      expect(await database.select(database.syncQueue).get(), isEmpty);
+    },
+  );
+
+  test('reward image upload is durable, owner-bound, and idempotent', () async {
+    const rewardId = '60000000-0000-4000-8000-000000000001';
+    const operationId = '70000000-0000-4000-8000-000000000001';
+    const objectId = '80000000-0000-4000-8000-000000000001';
+    final objectKey = '$userId/$rewardId/$objectId.jpg';
+    await database
+        .into(database.rewards)
+        .insert(
+          RewardsCompanion.insert(
+            id: const Value(rewardId),
+            userId: userId,
+            name: 'Photo reward',
+            pointsCost: 10,
+          ),
+        );
+    await database
+        .into(database.rewardImageOperations)
+        .insert(
+          RewardImageOperationsCompanion.insert(
+            id: const Value(operationId),
+            userId: userId,
+            rewardId: rewardId,
+            operation: 'upload',
+            objectKey: objectKey,
+            bytes: Value(Uint8List.fromList([0xff, 0xd8, 0xff, 0xd9])),
+            mimeType: const Value('image/jpeg'),
+          ),
+        );
+    final item = queueItem(userId, 'reward_image_upload', operationId);
+
+    await transport.send(item);
+    await transport.send(item);
+
+    expect(remote.uploadedImages, [objectKey]);
+    final operation = await database
+        .select(database.rewardImageOperations)
+        .getSingle();
+    expect(operation.completed, isTrue);
+    expect(operation.bytes, isNull);
+
+    const invalidOperationId = '90000000-0000-4000-8000-000000000001';
+    await database
+        .into(database.rewardImageOperations)
+        .insert(
+          RewardImageOperationsCompanion.insert(
+            id: const Value(invalidOperationId),
+            userId: userId,
+            rewardId: rewardId,
+            operation: 'delete',
+            objectKey: '$otherUserId/$rewardId/$objectId.jpg',
+          ),
+        );
+    await expectLater(
+      transport.send(
+        queueItem(userId, 'reward_image_delete', invalidOperationId),
+      ),
+      throwsA(
+        isA<SyncIntegrityException>().having(
+          (error) => error.retryable,
+          'retryable',
+          isFalse,
+        ),
+      ),
+    );
+  });
+
+  test(
+    'reward replacement pushes upload, reference, then old deletion',
+    () async {
+      const rewardId = '60000000-0000-4000-8000-000000000001';
+      const uploadId = '70000000-0000-4000-8000-000000000001';
+      const deleteId = '80000000-0000-4000-8000-000000000001';
+      const newObject = '90000000-0000-4000-8000-000000000001';
+      const oldObject = 'a0000000-0000-4000-8000-000000000001';
+      final newKey = '$userId/$rewardId/$newObject.webp';
+      final oldKey = '$userId/$rewardId/$oldObject.jpg';
+      await database
+          .into(database.rewards)
+          .insert(
+            RewardsCompanion.insert(
+              id: const Value(rewardId),
+              userId: userId,
+              name: 'Replacement',
+              pointsCost: 10,
+              imageKey: Value(newKey),
+            ),
+          );
+      await database
+          .into(database.rewardImageOperations)
+          .insert(
+            RewardImageOperationsCompanion.insert(
+              id: const Value(uploadId),
+              userId: userId,
+              rewardId: rewardId,
+              operation: 'upload',
+              objectKey: newKey,
+              bytes: Value(Uint8List.fromList([1, 2, 3])),
+              mimeType: const Value('image/webp'),
+            ),
+          );
+      await database
+          .into(database.rewardImageOperations)
+          .insert(
+            RewardImageOperationsCompanion.insert(
+              id: const Value(deleteId),
+              userId: userId,
+              rewardId: rewardId,
+              operation: 'delete',
+              objectKey: oldKey,
+            ),
+          );
+      final service = SyncService(database, transport);
+      await service.enqueue(
+        userId: userId,
+        entityType: 'reward_image_delete',
+        entityId: deleteId,
+        operation: 'delete',
+      );
+      await service.enqueue(
+        userId: userId,
+        entityType: 'reward',
+        entityId: rewardId,
+        operation: 'update',
+      );
+      await service.enqueue(
+        userId: userId,
+        entityType: 'reward_image_upload',
+        entityId: uploadId,
+        operation: 'upload',
+      );
+
+      expect((await service.syncPending(userId)).succeeded, 3);
+      expect(remote.events, [
+        'upload:$newKey',
+        'push:reward',
+        'delete:$oldKey',
+      ]);
+      expect(remote.pushed.single.row?['image_key'], newKey);
     },
   );
 }
@@ -546,7 +705,8 @@ RemoteChange remoteCategoryChange(String cursor, String id, String name) =>
       },
     );
 
-class _FakeRemote implements SupabaseHabitSyncDataSource {
+class _FakeRemote
+    implements SupabaseHabitSyncDataSource, SupabaseRewardImageDataSource {
   _FakeRemote(this.authenticatedUserId);
 
   @override
@@ -555,10 +715,14 @@ class _FakeRemote implements SupabaseHabitSyncDataSource {
   final List<String> pullUsers = [];
   final Map<String, PullBatch> batches = {};
   bool failPush = false;
+  final List<String> uploadedImages = [];
+  final List<String> deletedImages = [];
+  final List<String> events = [];
 
   @override
   Future<void> push(HabitSyncMutation mutation) async {
     pushed.add(mutation);
+    events.add('push:${mutation.type.wireName}');
     if (failPush) {
       throw const HabitSyncException(HabitSyncErrorKind.network, 'offline');
     }
@@ -569,5 +733,21 @@ class _FakeRemote implements SupabaseHabitSyncDataSource {
     pullUsers.add(userId);
     return batches[cursor] ??
         PullBatch(changes: const [], nextCursor: cursor, hasMore: false);
+  }
+
+  @override
+  Future<void> uploadRewardImage(
+    String path,
+    Uint8List bytes,
+    String mimeType,
+  ) async {
+    uploadedImages.add(path);
+    events.add('upload:$path');
+  }
+
+  @override
+  Future<void> deleteRewardImage(String path) async {
+    deletedImages.add(path);
+    events.add('delete:$path');
   }
 }

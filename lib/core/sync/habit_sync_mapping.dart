@@ -20,9 +20,11 @@ const phase3HabitEntityTypes = <String>{
 };
 
 const phase4FinancialEntityTypes = <String>{'check_in', 'point_ledger'};
+const phase5RewardEntityTypes = <String>{'reward'};
 const supabaseSyncEntityTypes = <String>{
   ...phase3HabitEntityTypes,
   ...phase4FinancialEntityTypes,
+  ...phase5RewardEntityTypes,
 };
 
 enum HabitSyncEntityType {
@@ -34,7 +36,8 @@ enum HabitSyncEntityType {
   checkIn('check_in', 'check_ins'),
   pointLedger('point_ledger', 'point_ledger'),
   habitPause('habit_pause', 'habit_pauses'),
-  habitReminder('habit_reminder', 'habit_reminders');
+  habitReminder('habit_reminder', 'habit_reminders'),
+  reward('reward', 'rewards');
 
   const HabitSyncEntityType(this.wireName, this.tableName);
   final String wireName;
@@ -184,6 +187,7 @@ abstract final class HabitSyncMapper {
         'sourceId': _string(row, 'source_id'),
         'points': _integer(row, 'points'),
         'reason': _nullableString(row, 'reason'),
+        'rewardId': _nullableString(row, 'reward_id'),
       },
       HabitSyncEntityType.habitPause => {
         ...common,
@@ -196,6 +200,15 @@ abstract final class HabitSyncMapper {
         'habitId': _string(row, 'habit_id'),
         'enabled': _boolean(row, 'enabled'),
         'timeOfDay': _timeOfDay(row, 'time_of_day'),
+      },
+      HabitSyncEntityType.reward => {
+        ...common,
+        'name': _string(row, 'name'),
+        'pointsCost': _integer(row, 'points_cost'),
+        'monetaryCap': _nullableNumber(row, 'monetary_cap'),
+        'imageKey': _nullableString(row, 'image_key'),
+        'sortOrder': _integer(row, 'sort_order'),
+        'archivedAt': _nullableTimestamp(row, 'archived_at'),
       },
     };
   }
@@ -215,6 +228,7 @@ abstract final class HabitSyncMapper {
       HabitSyncEntityType.pointLedger => _ledger(database, item),
       HabitSyncEntityType.habitPause => _pause(database, item),
       HabitSyncEntityType.habitReminder => _reminder(database, item),
+      HabitSyncEntityType.reward => _reward(database, item),
     };
   }
 
@@ -404,6 +418,7 @@ abstract final class HabitSyncMapper {
             'source_id': row.sourceId,
             'points': row.points,
             'reason': row.reason,
+            'reward_id': row.rewardId,
             'created_at': _date(row.createdAt),
             'updated_at': _date(row.createdAt),
           };
@@ -425,6 +440,28 @@ abstract final class HabitSyncMapper {
             'habit_id': row.habitId,
             'enabled': row.enabled,
             'time_of_day': row.timeOfDay,
+          };
+  }
+
+  static Future<Map<String, Object?>?> _reward(
+    AppDatabase db,
+    SyncQueueData item,
+  ) async {
+    final row =
+        await (db.select(db.rewards)..where(
+              (r) => r.id.equals(item.entityId) & r.userId.equals(item.userId),
+            ))
+            .getSingleOrNull();
+    return row == null
+        ? null
+        : {
+            ..._common(row.id, row.userId, row.createdAt, row.updatedAt),
+            'name': row.name,
+            'points_cost': row.pointsCost,
+            'monetary_cap': row.monetaryCap,
+            'image_key': row.imageKey,
+            'sort_order': row.sortOrder,
+            'archived_at': _date(row.archivedAt),
           };
   }
 

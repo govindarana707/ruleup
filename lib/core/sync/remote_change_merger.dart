@@ -202,6 +202,7 @@ class RemoteChangeMerger {
             sourceId: _required<String>(data, 'sourceId'),
             points: _integer(data, 'points'),
             reason: Value(_nullable<String>(data, 'reason')),
+            rewardId: Value(_nullable<String>(data, 'rewardId')),
             createdAt: Value(_date(data, 'createdAt')),
           ),
         );
@@ -277,6 +278,10 @@ class RemoteChangeMerger {
       case 'habit_pause':
         await (_database.delete(
           _database.habitPauses,
+        )..where((row) => row.id.equals(id) & row.userId.equals(userId))).go();
+      case 'reward':
+        await (_database.delete(
+          _database.rewards,
         )..where((row) => row.id.equals(id) & row.userId.equals(userId))).go();
       case 'habit_reminder':
         await (_database.delete(

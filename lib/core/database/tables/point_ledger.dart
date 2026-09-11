@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:ruleup/core/database/database_uuid.dart';
 import 'package:ruleup/core/database/tables/local_users.dart';
+import 'package:ruleup/core/database/tables/rewards.dart';
 import 'package:ruleup/features/points/domain/point_ledger_source_type.dart';
 
 export 'package:ruleup/features/points/domain/point_ledger_source_type.dart';
@@ -42,6 +43,7 @@ class PointLedger extends Table {
   TextColumn get sourceId => text()();
   IntColumn get points => integer()();
   TextColumn get reason => text().nullable()();
+  TextColumn get rewardId => text().nullable().references(Rewards, #id)();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 
   @override

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ruleup/features/auth/presentation/auth_controller.dart';
 import 'package:ruleup/features/home/presentation/home_dashboard_theme.dart';
+import 'package:ruleup/features/rewards/data/reward_image_service.dart';
 
 class RewardImageThumbnail extends ConsumerWidget {
   const RewardImageThumbnail({super.key, required this.imageKey});
@@ -9,23 +9,20 @@ class RewardImageThumbnail extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final token = ref.read(tokenStorageProvider).read();
     if (imageKey == null) return const _Fallback();
-    return FutureBuilder<String?>(
-      future: token,
+    return FutureBuilder<RewardImageAccess?>(
+      future: ref.read(rewardImageServiceProvider).access(imageKey!),
       builder: (context, snapshot) {
         if (!snapshot.hasData) return const _Fallback();
-        final uri = ref
-            .read(apiClientProvider)
-            .resolve('/reward-images/${Uri.encodeComponent(imageKey!)}');
+        final access = snapshot.data!;
         return ClipRRect(
           borderRadius: BorderRadius.circular(14),
           child: Image.network(
-            uri.toString(),
+            access.uri.toString(),
             width: 48,
             height: 48,
             fit: BoxFit.cover,
-            headers: {'authorization': 'Bearer ${snapshot.data}'},
+            headers: access.headers,
             errorBuilder: (_, _, _) => const _Fallback(),
           ),
         );

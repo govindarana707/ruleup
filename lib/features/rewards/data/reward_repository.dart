@@ -5,10 +5,15 @@ import 'package:ruleup/core/database/tables/point_ledger.dart';
 import 'package:ruleup/core/sync/sync_service.dart';
 
 class RewardRepository {
-  RewardRepository(this._database, this._sync);
+  RewardRepository(
+    this._database,
+    this._sync, {
+    this.authoritativeRemoteRedemption = false,
+  });
 
   final AppDatabase _database;
   final SyncService _sync;
+  final bool authoritativeRemoteRedemption;
 
   Future<Reward> create({
     required String userId,
@@ -132,43 +137,146 @@ class RewardRepository {
     required String userId,
     required String rewardId,
     String? redemptionId,
-  }) => _database.transaction(() async {
-    final sourceId = redemptionId ?? createDatabaseUuid();
-    _validateUuid(sourceId);
-    final existing = await _getRedemption(userId, sourceId);
-    if (existing != null) return existing;
+  }) async {
+    if (authoritativeRemoteRedemption) {
+      return _redeemAuthoritatively(
+        userId: userId,
+        rewardId: rewardId,
+        redemptionId: redemptionId,
+      );
+    }
+    return _database.transaction(() async {
+      final sourceId = redemptionId ?? createDatabaseUuid();
+      _validateUuid(sourceId);
+      final existing = await _getRedemption(userId, sourceId);
+      if (existing != null) return existing;
 
+      final reward = await getById(userId, rewardId);
+      if (reward == null || reward.archivedAt != null) {
+        throw ArgumentError.value(rewardId, 'rewardId');
+      }
+      final availablePoints = await _availablePoints(userId);
+      if (availablePoints < reward.pointsCost) {
+        throw InsufficientPointsException(
+          availablePoints: availablePoints,
+          requiredPoints: reward.pointsCost,
+        );
+      }
+
+      final redemption = await _database
+          .into(_database.pointLedger)
+          .insertReturning(
+            PointLedgerCompanion.insert(
+              userId: userId,
+              sourceType: PointLedgerSourceType.rewardRedemption,
+              sourceId: sourceId,
+              points: -reward.pointsCost,
+              reason: Value('Reward: ${reward.name}'),
+              rewardId: Value(reward.id),
+            ),
+          );
+      await _sync.enqueue(
+        userId: userId,
+        entityType: 'point_ledger',
+        entityId: redemption.id,
+        operation: 'create',
+      );
+      return redemption;
+    });
+  }
+
+  Future<PointLedgerData> _redeemAuthoritatively({
+    required String userId,
+    required String rewardId,
+    String? redemptionId,
+  }) async {
     final reward = await getById(userId, rewardId);
     if (reward == null || reward.archivedAt != null) {
       throw ArgumentError.value(rewardId, 'rewardId');
     }
-    final availablePoints = await _availablePoints(userId);
-    if (availablePoints < reward.pointsCost) {
+    RewardRedemptionRequest? request;
+    if (redemptionId != null) {
+      _validateUuid(redemptionId);
+      request =
+          await (_database.select(_database.rewardRedemptionRequests)..where(
+                (row) =>
+                    row.id.equals(redemptionId) & row.userId.equals(userId),
+              ))
+              .getSingleOrNull();
+    } else {
+      final unresolved =
+          await (_database.select(_database.rewardRedemptionRequests)
+                ..where(
+                  (row) =>
+                      row.userId.equals(userId) &
+                      row.rewardId.equals(rewardId) &
+                      row.status.isIn(['pending', 'completed']),
+                )
+                ..orderBy([(row) => OrderingTerm.desc(row.updatedAt)]))
+              .get();
+      for (final candidate in unresolved) {
+        if (await _getRedemption(userId, candidate.id) == null) {
+          request = candidate;
+          break;
+        }
+      }
+    }
+    final sourceId = request?.id ?? redemptionId ?? createDatabaseUuid();
+    final existing = await _getRedemption(userId, sourceId);
+    if (existing != null) return existing;
+
+    request ??= await _database.transaction(() async {
+      final created = await _database
+          .into(_database.rewardRedemptionRequests)
+          .insertReturning(
+            RewardRedemptionRequestsCompanion.insert(
+              id: sourceId,
+              userId: userId,
+              rewardId: rewardId,
+            ),
+          );
+      await _sync.enqueue(
+        userId: userId,
+        entityType: 'reward_redemption',
+        entityId: created.id,
+        operation: 'create',
+      );
+      return created;
+    });
+
+    await _sync.synchronize(userId, retryFailures: true);
+    final result = await _getRedemption(userId, sourceId);
+    if (result != null) return result;
+    final queued =
+        await (_database.select(_database.syncQueue)..where(
+              (row) =>
+                  row.userId.equals(userId) &
+                  row.entityType.equals('reward_redemption') &
+                  row.entityId.equals(sourceId),
+            ))
+            .getSingleOrNull();
+    final detail =
+        queued?.lastError ?? 'Redemption is waiting for synchronization.';
+    if (queued?.attempts == -1) {
+      await (_database.update(_database.rewardRedemptionRequests)..where(
+            (row) => row.id.equals(sourceId) & row.userId.equals(userId),
+          ))
+          .write(
+            RewardRedemptionRequestsCompanion(
+              status: const Value('rejected'),
+              lastError: Value(detail),
+              updatedAt: Value(DateTime.now().toUtc()),
+            ),
+          );
+    }
+    if (detail.contains('insufficient points')) {
       throw InsufficientPointsException(
-        availablePoints: availablePoints,
+        availablePoints: await _availablePoints(userId),
         requiredPoints: reward.pointsCost,
       );
     }
-
-    final redemption = await _database
-        .into(_database.pointLedger)
-        .insertReturning(
-          PointLedgerCompanion.insert(
-            userId: userId,
-            sourceType: PointLedgerSourceType.rewardRedemption,
-            sourceId: sourceId,
-            points: -reward.pointsCost,
-            reason: Value('Reward: ${reward.name}'),
-          ),
-        );
-    await _sync.enqueue(
-      userId: userId,
-      entityType: 'point_ledger',
-      entityId: redemption.id,
-      operation: 'create',
-    );
-    return redemption;
-  });
+    throw RedemptionPendingException(detail);
+  }
 
   Future<PointLedgerData?> getRedemption(String userId, String redemptionId) {
     return _getRedemption(userId, redemptionId);
@@ -245,4 +353,12 @@ class InsufficientPointsException implements Exception {
   @override
   String toString() =>
       'Insufficient points: $availablePoints available, $requiredPoints required';
+}
+
+class RedemptionPendingException implements Exception {
+  const RedemptionPendingException(this.message);
+  final String message;
+
+  @override
+  String toString() => message;
 }

@@ -11,7 +11,7 @@ void main() {
 
   tearDown(() => database.close());
 
-  test('initializes the version 11 local schema', () async {
+  test('initializes the version 12 local schema', () async {
     final tables = await database
         .customSelect(
           "SELECT name FROM sqlite_master "
@@ -19,11 +19,12 @@ void main() {
           "('local_users', 'sync_queue', 'sync_metadata', "
           "'categories', 'habits', 'habit_options', 'habit_schedules', "
           "'point_rules', 'check_ins', 'point_ledger', 'habit_pauses', "
-          "'rewards', 'habit_reminders')",
+          "'rewards', 'habit_reminders', 'reward_image_operations', "
+          "'reward_redemption_requests')",
         )
         .get();
 
-    expect(database.schemaVersion, 11);
+    expect(database.schemaVersion, 12);
     expect(tables.map((row) => row.read<String>('name')).toSet(), {
       'local_users',
       'sync_queue',
@@ -38,6 +39,8 @@ void main() {
       'habit_pauses',
       'rewards',
       'habit_reminders',
+      'reward_image_operations',
+      'reward_redemption_requests',
     });
   });
 
@@ -92,11 +95,15 @@ void main() {
           "'point_ledger_user_created_idx', 'habit_pauses', "
           "'habit_pauses_user_habit_dates_idx', 'rewards', "
           "'rewards_user_order_idx', 'habit_reminders', "
-          "'habit_reminders_user_habit_idx')",
+          "'habit_reminders_user_habit_idx', 'reward_image_operations', "
+          "'reward_redemption_requests')",
         )
         .get();
     final habitColumns = await upgraded
         .customSelect('PRAGMA table_info(habits)')
+        .get();
+    final ledgerColumns = await upgraded
+        .customSelect('PRAGMA table_info(point_ledger)')
         .get();
 
     expect(entities.map((row) => row.read<String>('name')).toSet(), {
@@ -121,10 +128,16 @@ void main() {
       'rewards_user_order_idx',
       'habit_reminders',
       'habit_reminders_user_habit_idx',
+      'reward_image_operations',
+      'reward_redemption_requests',
     });
     expect(
       habitColumns.map((row) => row.read<String>('name')),
       containsAll(['missed_penalty_enabled', 'missed_penalty_points']),
+    );
+    expect(
+      ledgerColumns.map((row) => row.read<String>('name')),
+      contains('reward_id'),
     );
   });
 }

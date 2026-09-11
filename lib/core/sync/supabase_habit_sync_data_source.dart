@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:ruleup/core/supabase/supabase_database_service.dart';
 import 'package:ruleup/core/sync/habit_sync_mapping.dart';
 import 'package:ruleup/core/sync/sync_transport.dart';
@@ -10,7 +12,13 @@ abstract interface class SupabaseHabitSyncDataSource {
   Future<PullBatch> pull(String cursor, {required String userId});
 }
 
-class SupabaseHabitSyncDataSourceImpl implements SupabaseHabitSyncDataSource {
+abstract interface class SupabaseRewardImageDataSource {
+  Future<void> uploadRewardImage(String path, Uint8List bytes, String mimeType);
+  Future<void> deleteRewardImage(String path);
+}
+
+class SupabaseHabitSyncDataSourceImpl
+    implements SupabaseHabitSyncDataSource, SupabaseRewardImageDataSource {
   SupabaseHabitSyncDataSourceImpl(this._database);
 
   static const _pageSize = 200;
@@ -235,6 +243,28 @@ class SupabaseHabitSyncDataSourceImpl implements SupabaseHabitSyncDataSource {
         'The outgoing ledger owner is invalid.',
       );
     }
+    if (row['source_type'] == 'reward_redemption') {
+      final rewardId = row['reward_id'];
+      final redemptionId = row['source_id'];
+      final ledgerId = row['id'];
+      if (rewardId is! String ||
+          redemptionId is! String ||
+          ledgerId is! String) {
+        throw const HabitSyncException(
+          HabitSyncErrorKind.integrity,
+          'The reward redemption is missing stable identities.',
+        );
+      }
+      await _database.rpc(
+        'redeem_reward',
+        params: {
+          'p_reward_id': rewardId,
+          'p_redemption_id': redemptionId,
+          'p_ledger_id': ledgerId,
+        },
+      );
+      return;
+    }
     if (row['source_type'] != 'missed_check_in') {
       throw const HabitSyncException(
         HabitSyncErrorKind.validation,
@@ -268,6 +298,48 @@ class SupabaseHabitSyncDataSourceImpl implements SupabaseHabitSyncDataSource {
     );
   }
 
+  @override
+  Future<void> uploadRewardImage(
+    String path,
+    Uint8List bytes,
+    String mimeType,
+  ) async {
+    try {
+      await _database.client.storage
+          .from('reward-images')
+          .uploadBinary(
+            path,
+            bytes,
+            fileOptions: FileOptions(contentType: mimeType, upsert: true),
+          );
+    } on StorageException catch (error) {
+      throw HabitSyncException(HabitSyncErrorKind.server, error.message);
+    } on AuthException catch (error) {
+      throw HabitSyncException(
+        HabitSyncErrorKind.authentication,
+        error.message,
+      );
+    } on Object catch (error) {
+      throw HabitSyncException(HabitSyncErrorKind.network, error.toString());
+    }
+  }
+
+  @override
+  Future<void> deleteRewardImage(String path) async {
+    try {
+      await _database.client.storage.from('reward-images').remove([path]);
+    } on StorageException catch (error) {
+      throw HabitSyncException(HabitSyncErrorKind.server, error.message);
+    } on AuthException catch (error) {
+      throw HabitSyncException(
+        HabitSyncErrorKind.authentication,
+        error.message,
+      );
+    } on Object catch (error) {
+      throw HabitSyncException(HabitSyncErrorKind.network, error.toString());
+    }
+  }
+
   String _requireOwner(String expectedUserId) {
     final current = authenticatedUserId;
     if (current == null) {
@@ -292,6 +364,7 @@ class SupabaseHabitSyncDataSourceImpl implements SupabaseHabitSyncDataSource {
       '23503' => HabitSyncErrorKind.foreignKeyDependency,
       '22003' ||
       '22023' ||
+      'P0001' ||
       '23505' ||
       '23514' ||
       '23P01' => HabitSyncErrorKind.validation,

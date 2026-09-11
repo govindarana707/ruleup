@@ -174,8 +174,11 @@ class SyncService {
     'point_rule' => 4,
     'habit_pause' => 5,
     'habit_reminder' => 6,
-    'check_in' => 7,
-    'point_ledger' => 8,
+    'reward_image_upload' => 7,
+    'reward' => 8,
+    'check_in' => 9,
+    'point_ledger' => 10,
+    'reward_image_delete' => 11,
     _ => 100,
   };
 }

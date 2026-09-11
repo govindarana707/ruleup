@@ -13,6 +13,8 @@ import 'package:ruleup/core/database/tables/local_users.dart';
 import 'package:ruleup/core/database/tables/point_rules.dart';
 import 'package:ruleup/core/database/tables/point_ledger.dart';
 import 'package:ruleup/core/database/tables/rewards.dart';
+import 'package:ruleup/core/database/tables/reward_image_operations.dart';
+import 'package:ruleup/core/database/tables/reward_redemption_requests.dart';
 import 'package:ruleup/core/database/tables/sync_metadata.dart';
 import 'package:ruleup/core/database/tables/sync_queue.dart';
 
@@ -32,6 +34,8 @@ part 'app_database.g.dart';
     PointLedger,
     HabitPauses,
     Rewards,
+    RewardImageOperations,
+    RewardRedemptionRequests,
     HabitReminders,
   ],
 )
@@ -41,7 +45,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.defaults() : super(driftDatabase(name: 'ruleup'));
 
   @override
-  int get schemaVersion => 11;
+  int get schemaVersion => 12;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -130,6 +134,13 @@ class AppDatabase extends _$AppDatabase {
           if (from >= 10) {
             await migrator.addColumn(rewards, rewards.imageKey);
           }
+        case 12:
+          // Earlier upgrade paths create the current ledger table in v6.
+          if (from >= 6) {
+            await migrator.addColumn(pointLedger, pointLedger.rewardId);
+          }
+          await migrator.createTable(rewardImageOperations);
+          await migrator.createTable(rewardRedemptionRequests);
       }
     }
   }

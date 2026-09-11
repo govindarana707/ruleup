@@ -4837,932 +4837,6 @@ class CheckInsCompanion extends UpdateCompanion<CheckIn> {
   }
 }
 
-class $PointLedgerTable extends PointLedger
-    with TableInfo<$PointLedgerTable, PointLedgerData> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  $PointLedgerTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _idMeta = const VerificationMeta('id');
-  @override
-  late final GeneratedColumn<String> id = GeneratedColumn<String>(
-    'id',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    clientDefault: createDatabaseUuid,
-  );
-  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
-  @override
-  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
-    'user_id',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES local_users (id) ON DELETE CASCADE',
-    ),
-  );
-  @override
-  late final GeneratedColumnWithTypeConverter<PointLedgerSourceType, String>
-  sourceType =
-      GeneratedColumn<String>(
-        'source_type',
-        aliasedName,
-        false,
-        type: DriftSqlType.string,
-        requiredDuringInsert: true,
-      ).withConverter<PointLedgerSourceType>(
-        $PointLedgerTable.$convertersourceType,
-      );
-  static const VerificationMeta _sourceIdMeta = const VerificationMeta(
-    'sourceId',
-  );
-  @override
-  late final GeneratedColumn<String> sourceId = GeneratedColumn<String>(
-    'source_id',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _pointsMeta = const VerificationMeta('points');
-  @override
-  late final GeneratedColumn<int> points = GeneratedColumn<int>(
-    'points',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _reasonMeta = const VerificationMeta('reason');
-  @override
-  late final GeneratedColumn<String> reason = GeneratedColumn<String>(
-    'reason',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _createdAtMeta = const VerificationMeta(
-    'createdAt',
-  );
-  @override
-  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
-    'created_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: false,
-    defaultValue: currentDateAndTime,
-  );
-  @override
-  List<GeneratedColumn> get $columns => [
-    id,
-    userId,
-    sourceType,
-    sourceId,
-    points,
-    reason,
-    createdAt,
-  ];
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-  @override
-  String get actualTableName => $name;
-  static const String $name = 'point_ledger';
-  @override
-  VerificationContext validateIntegrity(
-    Insertable<PointLedgerData> instance, {
-    bool isInserting = false,
-  }) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('id')) {
-      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    }
-    if (data.containsKey('user_id')) {
-      context.handle(
-        _userIdMeta,
-        userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_userIdMeta);
-    }
-    if (data.containsKey('source_id')) {
-      context.handle(
-        _sourceIdMeta,
-        sourceId.isAcceptableOrUnknown(data['source_id']!, _sourceIdMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_sourceIdMeta);
-    }
-    if (data.containsKey('points')) {
-      context.handle(
-        _pointsMeta,
-        points.isAcceptableOrUnknown(data['points']!, _pointsMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_pointsMeta);
-    }
-    if (data.containsKey('reason')) {
-      context.handle(
-        _reasonMeta,
-        reason.isAcceptableOrUnknown(data['reason']!, _reasonMeta),
-      );
-    }
-    if (data.containsKey('created_at')) {
-      context.handle(
-        _createdAtMeta,
-        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
-      );
-    }
-    return context;
-  }
-
-  @override
-  Set<GeneratedColumn> get $primaryKey => {id};
-  @override
-  List<Set<GeneratedColumn>> get uniqueKeys => [
-    {userId, sourceType, sourceId},
-  ];
-  @override
-  PointLedgerData map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return PointLedgerData(
-      id: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}id'],
-      )!,
-      userId: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}user_id'],
-      )!,
-      sourceType: $PointLedgerTable.$convertersourceType.fromSql(
-        attachedDatabase.typeMapping.read(
-          DriftSqlType.string,
-          data['${effectivePrefix}source_type'],
-        )!,
-      ),
-      sourceId: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}source_id'],
-      )!,
-      points: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}points'],
-      )!,
-      reason: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}reason'],
-      ),
-      createdAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}created_at'],
-      )!,
-    );
-  }
-
-  @override
-  $PointLedgerTable createAlias(String alias) {
-    return $PointLedgerTable(attachedDatabase, alias);
-  }
-
-  static TypeConverter<PointLedgerSourceType, String> $convertersourceType =
-      const PointLedgerSourceTypeConverter();
-}
-
-class PointLedgerData extends DataClass implements Insertable<PointLedgerData> {
-  final String id;
-  final String userId;
-  final PointLedgerSourceType sourceType;
-  final String sourceId;
-  final int points;
-  final String? reason;
-  final DateTime createdAt;
-  const PointLedgerData({
-    required this.id,
-    required this.userId,
-    required this.sourceType,
-    required this.sourceId,
-    required this.points,
-    this.reason,
-    required this.createdAt,
-  });
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['id'] = Variable<String>(id);
-    map['user_id'] = Variable<String>(userId);
-    {
-      map['source_type'] = Variable<String>(
-        $PointLedgerTable.$convertersourceType.toSql(sourceType),
-      );
-    }
-    map['source_id'] = Variable<String>(sourceId);
-    map['points'] = Variable<int>(points);
-    if (!nullToAbsent || reason != null) {
-      map['reason'] = Variable<String>(reason);
-    }
-    map['created_at'] = Variable<DateTime>(createdAt);
-    return map;
-  }
-
-  PointLedgerCompanion toCompanion(bool nullToAbsent) {
-    return PointLedgerCompanion(
-      id: Value(id),
-      userId: Value(userId),
-      sourceType: Value(sourceType),
-      sourceId: Value(sourceId),
-      points: Value(points),
-      reason: reason == null && nullToAbsent
-          ? const Value.absent()
-          : Value(reason),
-      createdAt: Value(createdAt),
-    );
-  }
-
-  factory PointLedgerData.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return PointLedgerData(
-      id: serializer.fromJson<String>(json['id']),
-      userId: serializer.fromJson<String>(json['userId']),
-      sourceType: serializer.fromJson<PointLedgerSourceType>(
-        json['sourceType'],
-      ),
-      sourceId: serializer.fromJson<String>(json['sourceId']),
-      points: serializer.fromJson<int>(json['points']),
-      reason: serializer.fromJson<String?>(json['reason']),
-      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'id': serializer.toJson<String>(id),
-      'userId': serializer.toJson<String>(userId),
-      'sourceType': serializer.toJson<PointLedgerSourceType>(sourceType),
-      'sourceId': serializer.toJson<String>(sourceId),
-      'points': serializer.toJson<int>(points),
-      'reason': serializer.toJson<String?>(reason),
-      'createdAt': serializer.toJson<DateTime>(createdAt),
-    };
-  }
-
-  PointLedgerData copyWith({
-    String? id,
-    String? userId,
-    PointLedgerSourceType? sourceType,
-    String? sourceId,
-    int? points,
-    Value<String?> reason = const Value.absent(),
-    DateTime? createdAt,
-  }) => PointLedgerData(
-    id: id ?? this.id,
-    userId: userId ?? this.userId,
-    sourceType: sourceType ?? this.sourceType,
-    sourceId: sourceId ?? this.sourceId,
-    points: points ?? this.points,
-    reason: reason.present ? reason.value : this.reason,
-    createdAt: createdAt ?? this.createdAt,
-  );
-  PointLedgerData copyWithCompanion(PointLedgerCompanion data) {
-    return PointLedgerData(
-      id: data.id.present ? data.id.value : this.id,
-      userId: data.userId.present ? data.userId.value : this.userId,
-      sourceType: data.sourceType.present
-          ? data.sourceType.value
-          : this.sourceType,
-      sourceId: data.sourceId.present ? data.sourceId.value : this.sourceId,
-      points: data.points.present ? data.points.value : this.points,
-      reason: data.reason.present ? data.reason.value : this.reason,
-      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
-    );
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('PointLedgerData(')
-          ..write('id: $id, ')
-          ..write('userId: $userId, ')
-          ..write('sourceType: $sourceType, ')
-          ..write('sourceId: $sourceId, ')
-          ..write('points: $points, ')
-          ..write('reason: $reason, ')
-          ..write('createdAt: $createdAt')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode =>
-      Object.hash(id, userId, sourceType, sourceId, points, reason, createdAt);
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is PointLedgerData &&
-          other.id == this.id &&
-          other.userId == this.userId &&
-          other.sourceType == this.sourceType &&
-          other.sourceId == this.sourceId &&
-          other.points == this.points &&
-          other.reason == this.reason &&
-          other.createdAt == this.createdAt);
-}
-
-class PointLedgerCompanion extends UpdateCompanion<PointLedgerData> {
-  final Value<String> id;
-  final Value<String> userId;
-  final Value<PointLedgerSourceType> sourceType;
-  final Value<String> sourceId;
-  final Value<int> points;
-  final Value<String?> reason;
-  final Value<DateTime> createdAt;
-  final Value<int> rowid;
-  const PointLedgerCompanion({
-    this.id = const Value.absent(),
-    this.userId = const Value.absent(),
-    this.sourceType = const Value.absent(),
-    this.sourceId = const Value.absent(),
-    this.points = const Value.absent(),
-    this.reason = const Value.absent(),
-    this.createdAt = const Value.absent(),
-    this.rowid = const Value.absent(),
-  });
-  PointLedgerCompanion.insert({
-    this.id = const Value.absent(),
-    required String userId,
-    required PointLedgerSourceType sourceType,
-    required String sourceId,
-    required int points,
-    this.reason = const Value.absent(),
-    this.createdAt = const Value.absent(),
-    this.rowid = const Value.absent(),
-  }) : userId = Value(userId),
-       sourceType = Value(sourceType),
-       sourceId = Value(sourceId),
-       points = Value(points);
-  static Insertable<PointLedgerData> custom({
-    Expression<String>? id,
-    Expression<String>? userId,
-    Expression<String>? sourceType,
-    Expression<String>? sourceId,
-    Expression<int>? points,
-    Expression<String>? reason,
-    Expression<DateTime>? createdAt,
-    Expression<int>? rowid,
-  }) {
-    return RawValuesInsertable({
-      if (id != null) 'id': id,
-      if (userId != null) 'user_id': userId,
-      if (sourceType != null) 'source_type': sourceType,
-      if (sourceId != null) 'source_id': sourceId,
-      if (points != null) 'points': points,
-      if (reason != null) 'reason': reason,
-      if (createdAt != null) 'created_at': createdAt,
-      if (rowid != null) 'rowid': rowid,
-    });
-  }
-
-  PointLedgerCompanion copyWith({
-    Value<String>? id,
-    Value<String>? userId,
-    Value<PointLedgerSourceType>? sourceType,
-    Value<String>? sourceId,
-    Value<int>? points,
-    Value<String?>? reason,
-    Value<DateTime>? createdAt,
-    Value<int>? rowid,
-  }) {
-    return PointLedgerCompanion(
-      id: id ?? this.id,
-      userId: userId ?? this.userId,
-      sourceType: sourceType ?? this.sourceType,
-      sourceId: sourceId ?? this.sourceId,
-      points: points ?? this.points,
-      reason: reason ?? this.reason,
-      createdAt: createdAt ?? this.createdAt,
-      rowid: rowid ?? this.rowid,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (id.present) {
-      map['id'] = Variable<String>(id.value);
-    }
-    if (userId.present) {
-      map['user_id'] = Variable<String>(userId.value);
-    }
-    if (sourceType.present) {
-      map['source_type'] = Variable<String>(
-        $PointLedgerTable.$convertersourceType.toSql(sourceType.value),
-      );
-    }
-    if (sourceId.present) {
-      map['source_id'] = Variable<String>(sourceId.value);
-    }
-    if (points.present) {
-      map['points'] = Variable<int>(points.value);
-    }
-    if (reason.present) {
-      map['reason'] = Variable<String>(reason.value);
-    }
-    if (createdAt.present) {
-      map['created_at'] = Variable<DateTime>(createdAt.value);
-    }
-    if (rowid.present) {
-      map['rowid'] = Variable<int>(rowid.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('PointLedgerCompanion(')
-          ..write('id: $id, ')
-          ..write('userId: $userId, ')
-          ..write('sourceType: $sourceType, ')
-          ..write('sourceId: $sourceId, ')
-          ..write('points: $points, ')
-          ..write('reason: $reason, ')
-          ..write('createdAt: $createdAt, ')
-          ..write('rowid: $rowid')
-          ..write(')'))
-        .toString();
-  }
-}
-
-class $HabitPausesTable extends HabitPauses
-    with TableInfo<$HabitPausesTable, HabitPause> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  $HabitPausesTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _idMeta = const VerificationMeta('id');
-  @override
-  late final GeneratedColumn<String> id = GeneratedColumn<String>(
-    'id',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    clientDefault: createDatabaseUuid,
-  );
-  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
-  @override
-  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
-    'user_id',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES local_users (id) ON DELETE CASCADE',
-    ),
-  );
-  static const VerificationMeta _habitIdMeta = const VerificationMeta(
-    'habitId',
-  );
-  @override
-  late final GeneratedColumn<String> habitId = GeneratedColumn<String>(
-    'habit_id',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES habits (id) ON DELETE CASCADE',
-    ),
-  );
-  @override
-  late final GeneratedColumnWithTypeConverter<DateTime, String> startDate =
-      GeneratedColumn<String>(
-        'start_date',
-        aliasedName,
-        false,
-        type: DriftSqlType.string,
-        requiredDuringInsert: true,
-      ).withConverter<DateTime>($HabitPausesTable.$converterstartDate);
-  @override
-  late final GeneratedColumnWithTypeConverter<DateTime, String> endDate =
-      GeneratedColumn<String>(
-        'end_date',
-        aliasedName,
-        false,
-        type: DriftSqlType.string,
-        requiredDuringInsert: true,
-      ).withConverter<DateTime>($HabitPausesTable.$converterendDate);
-  static const VerificationMeta _createdAtMeta = const VerificationMeta(
-    'createdAt',
-  );
-  @override
-  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
-    'created_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: false,
-    defaultValue: currentDateAndTime,
-  );
-  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
-    'updatedAt',
-  );
-  @override
-  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
-    'updated_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: false,
-    defaultValue: currentDateAndTime,
-  );
-  @override
-  List<GeneratedColumn> get $columns => [
-    id,
-    userId,
-    habitId,
-    startDate,
-    endDate,
-    createdAt,
-    updatedAt,
-  ];
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-  @override
-  String get actualTableName => $name;
-  static const String $name = 'habit_pauses';
-  @override
-  VerificationContext validateIntegrity(
-    Insertable<HabitPause> instance, {
-    bool isInserting = false,
-  }) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('id')) {
-      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    }
-    if (data.containsKey('user_id')) {
-      context.handle(
-        _userIdMeta,
-        userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_userIdMeta);
-    }
-    if (data.containsKey('habit_id')) {
-      context.handle(
-        _habitIdMeta,
-        habitId.isAcceptableOrUnknown(data['habit_id']!, _habitIdMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_habitIdMeta);
-    }
-    if (data.containsKey('created_at')) {
-      context.handle(
-        _createdAtMeta,
-        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
-      );
-    }
-    if (data.containsKey('updated_at')) {
-      context.handle(
-        _updatedAtMeta,
-        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
-      );
-    }
-    return context;
-  }
-
-  @override
-  Set<GeneratedColumn> get $primaryKey => {id};
-  @override
-  HabitPause map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return HabitPause(
-      id: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}id'],
-      )!,
-      userId: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}user_id'],
-      )!,
-      habitId: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}habit_id'],
-      )!,
-      startDate: $HabitPausesTable.$converterstartDate.fromSql(
-        attachedDatabase.typeMapping.read(
-          DriftSqlType.string,
-          data['${effectivePrefix}start_date'],
-        )!,
-      ),
-      endDate: $HabitPausesTable.$converterendDate.fromSql(
-        attachedDatabase.typeMapping.read(
-          DriftSqlType.string,
-          data['${effectivePrefix}end_date'],
-        )!,
-      ),
-      createdAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}created_at'],
-      )!,
-      updatedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}updated_at'],
-      )!,
-    );
-  }
-
-  @override
-  $HabitPausesTable createAlias(String alias) {
-    return $HabitPausesTable(attachedDatabase, alias);
-  }
-
-  static TypeConverter<DateTime, String> $converterstartDate =
-      const HabitDateConverter();
-  static TypeConverter<DateTime, String> $converterendDate =
-      const HabitDateConverter();
-}
-
-class HabitPause extends DataClass implements Insertable<HabitPause> {
-  final String id;
-  final String userId;
-  final String habitId;
-  final DateTime startDate;
-  final DateTime endDate;
-  final DateTime createdAt;
-  final DateTime updatedAt;
-  const HabitPause({
-    required this.id,
-    required this.userId,
-    required this.habitId,
-    required this.startDate,
-    required this.endDate,
-    required this.createdAt,
-    required this.updatedAt,
-  });
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['id'] = Variable<String>(id);
-    map['user_id'] = Variable<String>(userId);
-    map['habit_id'] = Variable<String>(habitId);
-    {
-      map['start_date'] = Variable<String>(
-        $HabitPausesTable.$converterstartDate.toSql(startDate),
-      );
-    }
-    {
-      map['end_date'] = Variable<String>(
-        $HabitPausesTable.$converterendDate.toSql(endDate),
-      );
-    }
-    map['created_at'] = Variable<DateTime>(createdAt);
-    map['updated_at'] = Variable<DateTime>(updatedAt);
-    return map;
-  }
-
-  HabitPausesCompanion toCompanion(bool nullToAbsent) {
-    return HabitPausesCompanion(
-      id: Value(id),
-      userId: Value(userId),
-      habitId: Value(habitId),
-      startDate: Value(startDate),
-      endDate: Value(endDate),
-      createdAt: Value(createdAt),
-      updatedAt: Value(updatedAt),
-    );
-  }
-
-  factory HabitPause.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return HabitPause(
-      id: serializer.fromJson<String>(json['id']),
-      userId: serializer.fromJson<String>(json['userId']),
-      habitId: serializer.fromJson<String>(json['habitId']),
-      startDate: serializer.fromJson<DateTime>(json['startDate']),
-      endDate: serializer.fromJson<DateTime>(json['endDate']),
-      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
-      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'id': serializer.toJson<String>(id),
-      'userId': serializer.toJson<String>(userId),
-      'habitId': serializer.toJson<String>(habitId),
-      'startDate': serializer.toJson<DateTime>(startDate),
-      'endDate': serializer.toJson<DateTime>(endDate),
-      'createdAt': serializer.toJson<DateTime>(createdAt),
-      'updatedAt': serializer.toJson<DateTime>(updatedAt),
-    };
-  }
-
-  HabitPause copyWith({
-    String? id,
-    String? userId,
-    String? habitId,
-    DateTime? startDate,
-    DateTime? endDate,
-    DateTime? createdAt,
-    DateTime? updatedAt,
-  }) => HabitPause(
-    id: id ?? this.id,
-    userId: userId ?? this.userId,
-    habitId: habitId ?? this.habitId,
-    startDate: startDate ?? this.startDate,
-    endDate: endDate ?? this.endDate,
-    createdAt: createdAt ?? this.createdAt,
-    updatedAt: updatedAt ?? this.updatedAt,
-  );
-  HabitPause copyWithCompanion(HabitPausesCompanion data) {
-    return HabitPause(
-      id: data.id.present ? data.id.value : this.id,
-      userId: data.userId.present ? data.userId.value : this.userId,
-      habitId: data.habitId.present ? data.habitId.value : this.habitId,
-      startDate: data.startDate.present ? data.startDate.value : this.startDate,
-      endDate: data.endDate.present ? data.endDate.value : this.endDate,
-      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
-      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
-    );
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('HabitPause(')
-          ..write('id: $id, ')
-          ..write('userId: $userId, ')
-          ..write('habitId: $habitId, ')
-          ..write('startDate: $startDate, ')
-          ..write('endDate: $endDate, ')
-          ..write('createdAt: $createdAt, ')
-          ..write('updatedAt: $updatedAt')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode => Object.hash(
-    id,
-    userId,
-    habitId,
-    startDate,
-    endDate,
-    createdAt,
-    updatedAt,
-  );
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is HabitPause &&
-          other.id == this.id &&
-          other.userId == this.userId &&
-          other.habitId == this.habitId &&
-          other.startDate == this.startDate &&
-          other.endDate == this.endDate &&
-          other.createdAt == this.createdAt &&
-          other.updatedAt == this.updatedAt);
-}
-
-class HabitPausesCompanion extends UpdateCompanion<HabitPause> {
-  final Value<String> id;
-  final Value<String> userId;
-  final Value<String> habitId;
-  final Value<DateTime> startDate;
-  final Value<DateTime> endDate;
-  final Value<DateTime> createdAt;
-  final Value<DateTime> updatedAt;
-  final Value<int> rowid;
-  const HabitPausesCompanion({
-    this.id = const Value.absent(),
-    this.userId = const Value.absent(),
-    this.habitId = const Value.absent(),
-    this.startDate = const Value.absent(),
-    this.endDate = const Value.absent(),
-    this.createdAt = const Value.absent(),
-    this.updatedAt = const Value.absent(),
-    this.rowid = const Value.absent(),
-  });
-  HabitPausesCompanion.insert({
-    this.id = const Value.absent(),
-    required String userId,
-    required String habitId,
-    required DateTime startDate,
-    required DateTime endDate,
-    this.createdAt = const Value.absent(),
-    this.updatedAt = const Value.absent(),
-    this.rowid = const Value.absent(),
-  }) : userId = Value(userId),
-       habitId = Value(habitId),
-       startDate = Value(startDate),
-       endDate = Value(endDate);
-  static Insertable<HabitPause> custom({
-    Expression<String>? id,
-    Expression<String>? userId,
-    Expression<String>? habitId,
-    Expression<String>? startDate,
-    Expression<String>? endDate,
-    Expression<DateTime>? createdAt,
-    Expression<DateTime>? updatedAt,
-    Expression<int>? rowid,
-  }) {
-    return RawValuesInsertable({
-      if (id != null) 'id': id,
-      if (userId != null) 'user_id': userId,
-      if (habitId != null) 'habit_id': habitId,
-      if (startDate != null) 'start_date': startDate,
-      if (endDate != null) 'end_date': endDate,
-      if (createdAt != null) 'created_at': createdAt,
-      if (updatedAt != null) 'updated_at': updatedAt,
-      if (rowid != null) 'rowid': rowid,
-    });
-  }
-
-  HabitPausesCompanion copyWith({
-    Value<String>? id,
-    Value<String>? userId,
-    Value<String>? habitId,
-    Value<DateTime>? startDate,
-    Value<DateTime>? endDate,
-    Value<DateTime>? createdAt,
-    Value<DateTime>? updatedAt,
-    Value<int>? rowid,
-  }) {
-    return HabitPausesCompanion(
-      id: id ?? this.id,
-      userId: userId ?? this.userId,
-      habitId: habitId ?? this.habitId,
-      startDate: startDate ?? this.startDate,
-      endDate: endDate ?? this.endDate,
-      createdAt: createdAt ?? this.createdAt,
-      updatedAt: updatedAt ?? this.updatedAt,
-      rowid: rowid ?? this.rowid,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (id.present) {
-      map['id'] = Variable<String>(id.value);
-    }
-    if (userId.present) {
-      map['user_id'] = Variable<String>(userId.value);
-    }
-    if (habitId.present) {
-      map['habit_id'] = Variable<String>(habitId.value);
-    }
-    if (startDate.present) {
-      map['start_date'] = Variable<String>(
-        $HabitPausesTable.$converterstartDate.toSql(startDate.value),
-      );
-    }
-    if (endDate.present) {
-      map['end_date'] = Variable<String>(
-        $HabitPausesTable.$converterendDate.toSql(endDate.value),
-      );
-    }
-    if (createdAt.present) {
-      map['created_at'] = Variable<DateTime>(createdAt.value);
-    }
-    if (updatedAt.present) {
-      map['updated_at'] = Variable<DateTime>(updatedAt.value);
-    }
-    if (rowid.present) {
-      map['rowid'] = Variable<int>(rowid.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('HabitPausesCompanion(')
-          ..write('id: $id, ')
-          ..write('userId: $userId, ')
-          ..write('habitId: $habitId, ')
-          ..write('startDate: $startDate, ')
-          ..write('endDate: $endDate, ')
-          ..write('createdAt: $createdAt, ')
-          ..write('updatedAt: $updatedAt, ')
-          ..write('rowid: $rowid')
-          ..write(')'))
-        .toString();
-  }
-}
-
 class $RewardsTable extends Rewards with TableInfo<$RewardsTable, Reward> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -6375,6 +5449,2169 @@ class RewardsCompanion extends UpdateCompanion<Reward> {
   }
 }
 
+class $PointLedgerTable extends PointLedger
+    with TableInfo<$PointLedgerTable, PointLedgerData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PointLedgerTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    clientDefault: createDatabaseUuid,
+  );
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+    'user_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES local_users (id) ON DELETE CASCADE',
+    ),
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<PointLedgerSourceType, String>
+  sourceType =
+      GeneratedColumn<String>(
+        'source_type',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<PointLedgerSourceType>(
+        $PointLedgerTable.$convertersourceType,
+      );
+  static const VerificationMeta _sourceIdMeta = const VerificationMeta(
+    'sourceId',
+  );
+  @override
+  late final GeneratedColumn<String> sourceId = GeneratedColumn<String>(
+    'source_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _pointsMeta = const VerificationMeta('points');
+  @override
+  late final GeneratedColumn<int> points = GeneratedColumn<int>(
+    'points',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _reasonMeta = const VerificationMeta('reason');
+  @override
+  late final GeneratedColumn<String> reason = GeneratedColumn<String>(
+    'reason',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _rewardIdMeta = const VerificationMeta(
+    'rewardId',
+  );
+  @override
+  late final GeneratedColumn<String> rewardId = GeneratedColumn<String>(
+    'reward_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES rewards (id)',
+    ),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    userId,
+    sourceType,
+    sourceId,
+    points,
+    reason,
+    rewardId,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'point_ledger';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<PointLedgerData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(
+        _userIdMeta,
+        userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
+    if (data.containsKey('source_id')) {
+      context.handle(
+        _sourceIdMeta,
+        sourceId.isAcceptableOrUnknown(data['source_id']!, _sourceIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sourceIdMeta);
+    }
+    if (data.containsKey('points')) {
+      context.handle(
+        _pointsMeta,
+        points.isAcceptableOrUnknown(data['points']!, _pointsMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_pointsMeta);
+    }
+    if (data.containsKey('reason')) {
+      context.handle(
+        _reasonMeta,
+        reason.isAcceptableOrUnknown(data['reason']!, _reasonMeta),
+      );
+    }
+    if (data.containsKey('reward_id')) {
+      context.handle(
+        _rewardIdMeta,
+        rewardId.isAcceptableOrUnknown(data['reward_id']!, _rewardIdMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+    {userId, sourceType, sourceId},
+  ];
+  @override
+  PointLedgerData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return PointLedgerData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      userId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}user_id'],
+      )!,
+      sourceType: $PointLedgerTable.$convertersourceType.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}source_type'],
+        )!,
+      ),
+      sourceId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source_id'],
+      )!,
+      points: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}points'],
+      )!,
+      reason: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}reason'],
+      ),
+      rewardId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}reward_id'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $PointLedgerTable createAlias(String alias) {
+    return $PointLedgerTable(attachedDatabase, alias);
+  }
+
+  static TypeConverter<PointLedgerSourceType, String> $convertersourceType =
+      const PointLedgerSourceTypeConverter();
+}
+
+class PointLedgerData extends DataClass implements Insertable<PointLedgerData> {
+  final String id;
+  final String userId;
+  final PointLedgerSourceType sourceType;
+  final String sourceId;
+  final int points;
+  final String? reason;
+  final String? rewardId;
+  final DateTime createdAt;
+  const PointLedgerData({
+    required this.id,
+    required this.userId,
+    required this.sourceType,
+    required this.sourceId,
+    required this.points,
+    this.reason,
+    this.rewardId,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['user_id'] = Variable<String>(userId);
+    {
+      map['source_type'] = Variable<String>(
+        $PointLedgerTable.$convertersourceType.toSql(sourceType),
+      );
+    }
+    map['source_id'] = Variable<String>(sourceId);
+    map['points'] = Variable<int>(points);
+    if (!nullToAbsent || reason != null) {
+      map['reason'] = Variable<String>(reason);
+    }
+    if (!nullToAbsent || rewardId != null) {
+      map['reward_id'] = Variable<String>(rewardId);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  PointLedgerCompanion toCompanion(bool nullToAbsent) {
+    return PointLedgerCompanion(
+      id: Value(id),
+      userId: Value(userId),
+      sourceType: Value(sourceType),
+      sourceId: Value(sourceId),
+      points: Value(points),
+      reason: reason == null && nullToAbsent
+          ? const Value.absent()
+          : Value(reason),
+      rewardId: rewardId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(rewardId),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory PointLedgerData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return PointLedgerData(
+      id: serializer.fromJson<String>(json['id']),
+      userId: serializer.fromJson<String>(json['userId']),
+      sourceType: serializer.fromJson<PointLedgerSourceType>(
+        json['sourceType'],
+      ),
+      sourceId: serializer.fromJson<String>(json['sourceId']),
+      points: serializer.fromJson<int>(json['points']),
+      reason: serializer.fromJson<String?>(json['reason']),
+      rewardId: serializer.fromJson<String?>(json['rewardId']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'userId': serializer.toJson<String>(userId),
+      'sourceType': serializer.toJson<PointLedgerSourceType>(sourceType),
+      'sourceId': serializer.toJson<String>(sourceId),
+      'points': serializer.toJson<int>(points),
+      'reason': serializer.toJson<String?>(reason),
+      'rewardId': serializer.toJson<String?>(rewardId),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  PointLedgerData copyWith({
+    String? id,
+    String? userId,
+    PointLedgerSourceType? sourceType,
+    String? sourceId,
+    int? points,
+    Value<String?> reason = const Value.absent(),
+    Value<String?> rewardId = const Value.absent(),
+    DateTime? createdAt,
+  }) => PointLedgerData(
+    id: id ?? this.id,
+    userId: userId ?? this.userId,
+    sourceType: sourceType ?? this.sourceType,
+    sourceId: sourceId ?? this.sourceId,
+    points: points ?? this.points,
+    reason: reason.present ? reason.value : this.reason,
+    rewardId: rewardId.present ? rewardId.value : this.rewardId,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  PointLedgerData copyWithCompanion(PointLedgerCompanion data) {
+    return PointLedgerData(
+      id: data.id.present ? data.id.value : this.id,
+      userId: data.userId.present ? data.userId.value : this.userId,
+      sourceType: data.sourceType.present
+          ? data.sourceType.value
+          : this.sourceType,
+      sourceId: data.sourceId.present ? data.sourceId.value : this.sourceId,
+      points: data.points.present ? data.points.value : this.points,
+      reason: data.reason.present ? data.reason.value : this.reason,
+      rewardId: data.rewardId.present ? data.rewardId.value : this.rewardId,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PointLedgerData(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('sourceType: $sourceType, ')
+          ..write('sourceId: $sourceId, ')
+          ..write('points: $points, ')
+          ..write('reason: $reason, ')
+          ..write('rewardId: $rewardId, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    userId,
+    sourceType,
+    sourceId,
+    points,
+    reason,
+    rewardId,
+    createdAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is PointLedgerData &&
+          other.id == this.id &&
+          other.userId == this.userId &&
+          other.sourceType == this.sourceType &&
+          other.sourceId == this.sourceId &&
+          other.points == this.points &&
+          other.reason == this.reason &&
+          other.rewardId == this.rewardId &&
+          other.createdAt == this.createdAt);
+}
+
+class PointLedgerCompanion extends UpdateCompanion<PointLedgerData> {
+  final Value<String> id;
+  final Value<String> userId;
+  final Value<PointLedgerSourceType> sourceType;
+  final Value<String> sourceId;
+  final Value<int> points;
+  final Value<String?> reason;
+  final Value<String?> rewardId;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const PointLedgerCompanion({
+    this.id = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.sourceType = const Value.absent(),
+    this.sourceId = const Value.absent(),
+    this.points = const Value.absent(),
+    this.reason = const Value.absent(),
+    this.rewardId = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  PointLedgerCompanion.insert({
+    this.id = const Value.absent(),
+    required String userId,
+    required PointLedgerSourceType sourceType,
+    required String sourceId,
+    required int points,
+    this.reason = const Value.absent(),
+    this.rewardId = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : userId = Value(userId),
+       sourceType = Value(sourceType),
+       sourceId = Value(sourceId),
+       points = Value(points);
+  static Insertable<PointLedgerData> custom({
+    Expression<String>? id,
+    Expression<String>? userId,
+    Expression<String>? sourceType,
+    Expression<String>? sourceId,
+    Expression<int>? points,
+    Expression<String>? reason,
+    Expression<String>? rewardId,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (userId != null) 'user_id': userId,
+      if (sourceType != null) 'source_type': sourceType,
+      if (sourceId != null) 'source_id': sourceId,
+      if (points != null) 'points': points,
+      if (reason != null) 'reason': reason,
+      if (rewardId != null) 'reward_id': rewardId,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  PointLedgerCompanion copyWith({
+    Value<String>? id,
+    Value<String>? userId,
+    Value<PointLedgerSourceType>? sourceType,
+    Value<String>? sourceId,
+    Value<int>? points,
+    Value<String?>? reason,
+    Value<String?>? rewardId,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return PointLedgerCompanion(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      sourceType: sourceType ?? this.sourceType,
+      sourceId: sourceId ?? this.sourceId,
+      points: points ?? this.points,
+      reason: reason ?? this.reason,
+      rewardId: rewardId ?? this.rewardId,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (sourceType.present) {
+      map['source_type'] = Variable<String>(
+        $PointLedgerTable.$convertersourceType.toSql(sourceType.value),
+      );
+    }
+    if (sourceId.present) {
+      map['source_id'] = Variable<String>(sourceId.value);
+    }
+    if (points.present) {
+      map['points'] = Variable<int>(points.value);
+    }
+    if (reason.present) {
+      map['reason'] = Variable<String>(reason.value);
+    }
+    if (rewardId.present) {
+      map['reward_id'] = Variable<String>(rewardId.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PointLedgerCompanion(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('sourceType: $sourceType, ')
+          ..write('sourceId: $sourceId, ')
+          ..write('points: $points, ')
+          ..write('reason: $reason, ')
+          ..write('rewardId: $rewardId, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $HabitPausesTable extends HabitPauses
+    with TableInfo<$HabitPausesTable, HabitPause> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $HabitPausesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    clientDefault: createDatabaseUuid,
+  );
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+    'user_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES local_users (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _habitIdMeta = const VerificationMeta(
+    'habitId',
+  );
+  @override
+  late final GeneratedColumn<String> habitId = GeneratedColumn<String>(
+    'habit_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES habits (id) ON DELETE CASCADE',
+    ),
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<DateTime, String> startDate =
+      GeneratedColumn<String>(
+        'start_date',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<DateTime>($HabitPausesTable.$converterstartDate);
+  @override
+  late final GeneratedColumnWithTypeConverter<DateTime, String> endDate =
+      GeneratedColumn<String>(
+        'end_date',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<DateTime>($HabitPausesTable.$converterendDate);
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    userId,
+    habitId,
+    startDate,
+    endDate,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'habit_pauses';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<HabitPause> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(
+        _userIdMeta,
+        userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
+    if (data.containsKey('habit_id')) {
+      context.handle(
+        _habitIdMeta,
+        habitId.isAcceptableOrUnknown(data['habit_id']!, _habitIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_habitIdMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  HabitPause map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return HabitPause(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      userId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}user_id'],
+      )!,
+      habitId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}habit_id'],
+      )!,
+      startDate: $HabitPausesTable.$converterstartDate.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}start_date'],
+        )!,
+      ),
+      endDate: $HabitPausesTable.$converterendDate.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}end_date'],
+        )!,
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $HabitPausesTable createAlias(String alias) {
+    return $HabitPausesTable(attachedDatabase, alias);
+  }
+
+  static TypeConverter<DateTime, String> $converterstartDate =
+      const HabitDateConverter();
+  static TypeConverter<DateTime, String> $converterendDate =
+      const HabitDateConverter();
+}
+
+class HabitPause extends DataClass implements Insertable<HabitPause> {
+  final String id;
+  final String userId;
+  final String habitId;
+  final DateTime startDate;
+  final DateTime endDate;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const HabitPause({
+    required this.id,
+    required this.userId,
+    required this.habitId,
+    required this.startDate,
+    required this.endDate,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['user_id'] = Variable<String>(userId);
+    map['habit_id'] = Variable<String>(habitId);
+    {
+      map['start_date'] = Variable<String>(
+        $HabitPausesTable.$converterstartDate.toSql(startDate),
+      );
+    }
+    {
+      map['end_date'] = Variable<String>(
+        $HabitPausesTable.$converterendDate.toSql(endDate),
+      );
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  HabitPausesCompanion toCompanion(bool nullToAbsent) {
+    return HabitPausesCompanion(
+      id: Value(id),
+      userId: Value(userId),
+      habitId: Value(habitId),
+      startDate: Value(startDate),
+      endDate: Value(endDate),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory HabitPause.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return HabitPause(
+      id: serializer.fromJson<String>(json['id']),
+      userId: serializer.fromJson<String>(json['userId']),
+      habitId: serializer.fromJson<String>(json['habitId']),
+      startDate: serializer.fromJson<DateTime>(json['startDate']),
+      endDate: serializer.fromJson<DateTime>(json['endDate']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'userId': serializer.toJson<String>(userId),
+      'habitId': serializer.toJson<String>(habitId),
+      'startDate': serializer.toJson<DateTime>(startDate),
+      'endDate': serializer.toJson<DateTime>(endDate),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  HabitPause copyWith({
+    String? id,
+    String? userId,
+    String? habitId,
+    DateTime? startDate,
+    DateTime? endDate,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => HabitPause(
+    id: id ?? this.id,
+    userId: userId ?? this.userId,
+    habitId: habitId ?? this.habitId,
+    startDate: startDate ?? this.startDate,
+    endDate: endDate ?? this.endDate,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  HabitPause copyWithCompanion(HabitPausesCompanion data) {
+    return HabitPause(
+      id: data.id.present ? data.id.value : this.id,
+      userId: data.userId.present ? data.userId.value : this.userId,
+      habitId: data.habitId.present ? data.habitId.value : this.habitId,
+      startDate: data.startDate.present ? data.startDate.value : this.startDate,
+      endDate: data.endDate.present ? data.endDate.value : this.endDate,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('HabitPause(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('habitId: $habitId, ')
+          ..write('startDate: $startDate, ')
+          ..write('endDate: $endDate, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    userId,
+    habitId,
+    startDate,
+    endDate,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is HabitPause &&
+          other.id == this.id &&
+          other.userId == this.userId &&
+          other.habitId == this.habitId &&
+          other.startDate == this.startDate &&
+          other.endDate == this.endDate &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class HabitPausesCompanion extends UpdateCompanion<HabitPause> {
+  final Value<String> id;
+  final Value<String> userId;
+  final Value<String> habitId;
+  final Value<DateTime> startDate;
+  final Value<DateTime> endDate;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const HabitPausesCompanion({
+    this.id = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.habitId = const Value.absent(),
+    this.startDate = const Value.absent(),
+    this.endDate = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  HabitPausesCompanion.insert({
+    this.id = const Value.absent(),
+    required String userId,
+    required String habitId,
+    required DateTime startDate,
+    required DateTime endDate,
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : userId = Value(userId),
+       habitId = Value(habitId),
+       startDate = Value(startDate),
+       endDate = Value(endDate);
+  static Insertable<HabitPause> custom({
+    Expression<String>? id,
+    Expression<String>? userId,
+    Expression<String>? habitId,
+    Expression<String>? startDate,
+    Expression<String>? endDate,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (userId != null) 'user_id': userId,
+      if (habitId != null) 'habit_id': habitId,
+      if (startDate != null) 'start_date': startDate,
+      if (endDate != null) 'end_date': endDate,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  HabitPausesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? userId,
+    Value<String>? habitId,
+    Value<DateTime>? startDate,
+    Value<DateTime>? endDate,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return HabitPausesCompanion(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      habitId: habitId ?? this.habitId,
+      startDate: startDate ?? this.startDate,
+      endDate: endDate ?? this.endDate,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (habitId.present) {
+      map['habit_id'] = Variable<String>(habitId.value);
+    }
+    if (startDate.present) {
+      map['start_date'] = Variable<String>(
+        $HabitPausesTable.$converterstartDate.toSql(startDate.value),
+      );
+    }
+    if (endDate.present) {
+      map['end_date'] = Variable<String>(
+        $HabitPausesTable.$converterendDate.toSql(endDate.value),
+      );
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('HabitPausesCompanion(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('habitId: $habitId, ')
+          ..write('startDate: $startDate, ')
+          ..write('endDate: $endDate, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $RewardImageOperationsTable extends RewardImageOperations
+    with TableInfo<$RewardImageOperationsTable, RewardImageOperation> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $RewardImageOperationsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    clientDefault: createDatabaseUuid,
+  );
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+    'user_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES local_users (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _rewardIdMeta = const VerificationMeta(
+    'rewardId',
+  );
+  @override
+  late final GeneratedColumn<String> rewardId = GeneratedColumn<String>(
+    'reward_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES rewards (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _operationMeta = const VerificationMeta(
+    'operation',
+  );
+  @override
+  late final GeneratedColumn<String> operation = GeneratedColumn<String>(
+    'operation',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _objectKeyMeta = const VerificationMeta(
+    'objectKey',
+  );
+  @override
+  late final GeneratedColumn<String> objectKey = GeneratedColumn<String>(
+    'object_key',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _oldObjectKeyMeta = const VerificationMeta(
+    'oldObjectKey',
+  );
+  @override
+  late final GeneratedColumn<String> oldObjectKey = GeneratedColumn<String>(
+    'old_object_key',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _bytesMeta = const VerificationMeta('bytes');
+  @override
+  late final GeneratedColumn<Uint8List> bytes = GeneratedColumn<Uint8List>(
+    'bytes',
+    aliasedName,
+    true,
+    type: DriftSqlType.blob,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _mimeTypeMeta = const VerificationMeta(
+    'mimeType',
+  );
+  @override
+  late final GeneratedColumn<String> mimeType = GeneratedColumn<String>(
+    'mime_type',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _completedMeta = const VerificationMeta(
+    'completed',
+  );
+  @override
+  late final GeneratedColumn<bool> completed = GeneratedColumn<bool>(
+    'completed',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("completed" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    userId,
+    rewardId,
+    operation,
+    objectKey,
+    oldObjectKey,
+    bytes,
+    mimeType,
+    completed,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'reward_image_operations';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<RewardImageOperation> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(
+        _userIdMeta,
+        userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
+    if (data.containsKey('reward_id')) {
+      context.handle(
+        _rewardIdMeta,
+        rewardId.isAcceptableOrUnknown(data['reward_id']!, _rewardIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_rewardIdMeta);
+    }
+    if (data.containsKey('operation')) {
+      context.handle(
+        _operationMeta,
+        operation.isAcceptableOrUnknown(data['operation']!, _operationMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_operationMeta);
+    }
+    if (data.containsKey('object_key')) {
+      context.handle(
+        _objectKeyMeta,
+        objectKey.isAcceptableOrUnknown(data['object_key']!, _objectKeyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_objectKeyMeta);
+    }
+    if (data.containsKey('old_object_key')) {
+      context.handle(
+        _oldObjectKeyMeta,
+        oldObjectKey.isAcceptableOrUnknown(
+          data['old_object_key']!,
+          _oldObjectKeyMeta,
+        ),
+      );
+    }
+    if (data.containsKey('bytes')) {
+      context.handle(
+        _bytesMeta,
+        bytes.isAcceptableOrUnknown(data['bytes']!, _bytesMeta),
+      );
+    }
+    if (data.containsKey('mime_type')) {
+      context.handle(
+        _mimeTypeMeta,
+        mimeType.isAcceptableOrUnknown(data['mime_type']!, _mimeTypeMeta),
+      );
+    }
+    if (data.containsKey('completed')) {
+      context.handle(
+        _completedMeta,
+        completed.isAcceptableOrUnknown(data['completed']!, _completedMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  RewardImageOperation map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return RewardImageOperation(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      userId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}user_id'],
+      )!,
+      rewardId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}reward_id'],
+      )!,
+      operation: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}operation'],
+      )!,
+      objectKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}object_key'],
+      )!,
+      oldObjectKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}old_object_key'],
+      ),
+      bytes: attachedDatabase.typeMapping.read(
+        DriftSqlType.blob,
+        data['${effectivePrefix}bytes'],
+      ),
+      mimeType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}mime_type'],
+      ),
+      completed: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}completed'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $RewardImageOperationsTable createAlias(String alias) {
+    return $RewardImageOperationsTable(attachedDatabase, alias);
+  }
+}
+
+class RewardImageOperation extends DataClass
+    implements Insertable<RewardImageOperation> {
+  final String id;
+  final String userId;
+  final String rewardId;
+  final String operation;
+  final String objectKey;
+  final String? oldObjectKey;
+  final Uint8List? bytes;
+  final String? mimeType;
+  final bool completed;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const RewardImageOperation({
+    required this.id,
+    required this.userId,
+    required this.rewardId,
+    required this.operation,
+    required this.objectKey,
+    this.oldObjectKey,
+    this.bytes,
+    this.mimeType,
+    required this.completed,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['user_id'] = Variable<String>(userId);
+    map['reward_id'] = Variable<String>(rewardId);
+    map['operation'] = Variable<String>(operation);
+    map['object_key'] = Variable<String>(objectKey);
+    if (!nullToAbsent || oldObjectKey != null) {
+      map['old_object_key'] = Variable<String>(oldObjectKey);
+    }
+    if (!nullToAbsent || bytes != null) {
+      map['bytes'] = Variable<Uint8List>(bytes);
+    }
+    if (!nullToAbsent || mimeType != null) {
+      map['mime_type'] = Variable<String>(mimeType);
+    }
+    map['completed'] = Variable<bool>(completed);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  RewardImageOperationsCompanion toCompanion(bool nullToAbsent) {
+    return RewardImageOperationsCompanion(
+      id: Value(id),
+      userId: Value(userId),
+      rewardId: Value(rewardId),
+      operation: Value(operation),
+      objectKey: Value(objectKey),
+      oldObjectKey: oldObjectKey == null && nullToAbsent
+          ? const Value.absent()
+          : Value(oldObjectKey),
+      bytes: bytes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(bytes),
+      mimeType: mimeType == null && nullToAbsent
+          ? const Value.absent()
+          : Value(mimeType),
+      completed: Value(completed),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory RewardImageOperation.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return RewardImageOperation(
+      id: serializer.fromJson<String>(json['id']),
+      userId: serializer.fromJson<String>(json['userId']),
+      rewardId: serializer.fromJson<String>(json['rewardId']),
+      operation: serializer.fromJson<String>(json['operation']),
+      objectKey: serializer.fromJson<String>(json['objectKey']),
+      oldObjectKey: serializer.fromJson<String?>(json['oldObjectKey']),
+      bytes: serializer.fromJson<Uint8List?>(json['bytes']),
+      mimeType: serializer.fromJson<String?>(json['mimeType']),
+      completed: serializer.fromJson<bool>(json['completed']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'userId': serializer.toJson<String>(userId),
+      'rewardId': serializer.toJson<String>(rewardId),
+      'operation': serializer.toJson<String>(operation),
+      'objectKey': serializer.toJson<String>(objectKey),
+      'oldObjectKey': serializer.toJson<String?>(oldObjectKey),
+      'bytes': serializer.toJson<Uint8List?>(bytes),
+      'mimeType': serializer.toJson<String?>(mimeType),
+      'completed': serializer.toJson<bool>(completed),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  RewardImageOperation copyWith({
+    String? id,
+    String? userId,
+    String? rewardId,
+    String? operation,
+    String? objectKey,
+    Value<String?> oldObjectKey = const Value.absent(),
+    Value<Uint8List?> bytes = const Value.absent(),
+    Value<String?> mimeType = const Value.absent(),
+    bool? completed,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => RewardImageOperation(
+    id: id ?? this.id,
+    userId: userId ?? this.userId,
+    rewardId: rewardId ?? this.rewardId,
+    operation: operation ?? this.operation,
+    objectKey: objectKey ?? this.objectKey,
+    oldObjectKey: oldObjectKey.present ? oldObjectKey.value : this.oldObjectKey,
+    bytes: bytes.present ? bytes.value : this.bytes,
+    mimeType: mimeType.present ? mimeType.value : this.mimeType,
+    completed: completed ?? this.completed,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  RewardImageOperation copyWithCompanion(RewardImageOperationsCompanion data) {
+    return RewardImageOperation(
+      id: data.id.present ? data.id.value : this.id,
+      userId: data.userId.present ? data.userId.value : this.userId,
+      rewardId: data.rewardId.present ? data.rewardId.value : this.rewardId,
+      operation: data.operation.present ? data.operation.value : this.operation,
+      objectKey: data.objectKey.present ? data.objectKey.value : this.objectKey,
+      oldObjectKey: data.oldObjectKey.present
+          ? data.oldObjectKey.value
+          : this.oldObjectKey,
+      bytes: data.bytes.present ? data.bytes.value : this.bytes,
+      mimeType: data.mimeType.present ? data.mimeType.value : this.mimeType,
+      completed: data.completed.present ? data.completed.value : this.completed,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RewardImageOperation(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('rewardId: $rewardId, ')
+          ..write('operation: $operation, ')
+          ..write('objectKey: $objectKey, ')
+          ..write('oldObjectKey: $oldObjectKey, ')
+          ..write('bytes: $bytes, ')
+          ..write('mimeType: $mimeType, ')
+          ..write('completed: $completed, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    userId,
+    rewardId,
+    operation,
+    objectKey,
+    oldObjectKey,
+    $driftBlobEquality.hash(bytes),
+    mimeType,
+    completed,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is RewardImageOperation &&
+          other.id == this.id &&
+          other.userId == this.userId &&
+          other.rewardId == this.rewardId &&
+          other.operation == this.operation &&
+          other.objectKey == this.objectKey &&
+          other.oldObjectKey == this.oldObjectKey &&
+          $driftBlobEquality.equals(other.bytes, this.bytes) &&
+          other.mimeType == this.mimeType &&
+          other.completed == this.completed &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class RewardImageOperationsCompanion
+    extends UpdateCompanion<RewardImageOperation> {
+  final Value<String> id;
+  final Value<String> userId;
+  final Value<String> rewardId;
+  final Value<String> operation;
+  final Value<String> objectKey;
+  final Value<String?> oldObjectKey;
+  final Value<Uint8List?> bytes;
+  final Value<String?> mimeType;
+  final Value<bool> completed;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const RewardImageOperationsCompanion({
+    this.id = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.rewardId = const Value.absent(),
+    this.operation = const Value.absent(),
+    this.objectKey = const Value.absent(),
+    this.oldObjectKey = const Value.absent(),
+    this.bytes = const Value.absent(),
+    this.mimeType = const Value.absent(),
+    this.completed = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  RewardImageOperationsCompanion.insert({
+    this.id = const Value.absent(),
+    required String userId,
+    required String rewardId,
+    required String operation,
+    required String objectKey,
+    this.oldObjectKey = const Value.absent(),
+    this.bytes = const Value.absent(),
+    this.mimeType = const Value.absent(),
+    this.completed = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : userId = Value(userId),
+       rewardId = Value(rewardId),
+       operation = Value(operation),
+       objectKey = Value(objectKey);
+  static Insertable<RewardImageOperation> custom({
+    Expression<String>? id,
+    Expression<String>? userId,
+    Expression<String>? rewardId,
+    Expression<String>? operation,
+    Expression<String>? objectKey,
+    Expression<String>? oldObjectKey,
+    Expression<Uint8List>? bytes,
+    Expression<String>? mimeType,
+    Expression<bool>? completed,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (userId != null) 'user_id': userId,
+      if (rewardId != null) 'reward_id': rewardId,
+      if (operation != null) 'operation': operation,
+      if (objectKey != null) 'object_key': objectKey,
+      if (oldObjectKey != null) 'old_object_key': oldObjectKey,
+      if (bytes != null) 'bytes': bytes,
+      if (mimeType != null) 'mime_type': mimeType,
+      if (completed != null) 'completed': completed,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  RewardImageOperationsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? userId,
+    Value<String>? rewardId,
+    Value<String>? operation,
+    Value<String>? objectKey,
+    Value<String?>? oldObjectKey,
+    Value<Uint8List?>? bytes,
+    Value<String?>? mimeType,
+    Value<bool>? completed,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return RewardImageOperationsCompanion(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      rewardId: rewardId ?? this.rewardId,
+      operation: operation ?? this.operation,
+      objectKey: objectKey ?? this.objectKey,
+      oldObjectKey: oldObjectKey ?? this.oldObjectKey,
+      bytes: bytes ?? this.bytes,
+      mimeType: mimeType ?? this.mimeType,
+      completed: completed ?? this.completed,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (rewardId.present) {
+      map['reward_id'] = Variable<String>(rewardId.value);
+    }
+    if (operation.present) {
+      map['operation'] = Variable<String>(operation.value);
+    }
+    if (objectKey.present) {
+      map['object_key'] = Variable<String>(objectKey.value);
+    }
+    if (oldObjectKey.present) {
+      map['old_object_key'] = Variable<String>(oldObjectKey.value);
+    }
+    if (bytes.present) {
+      map['bytes'] = Variable<Uint8List>(bytes.value);
+    }
+    if (mimeType.present) {
+      map['mime_type'] = Variable<String>(mimeType.value);
+    }
+    if (completed.present) {
+      map['completed'] = Variable<bool>(completed.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RewardImageOperationsCompanion(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('rewardId: $rewardId, ')
+          ..write('operation: $operation, ')
+          ..write('objectKey: $objectKey, ')
+          ..write('oldObjectKey: $oldObjectKey, ')
+          ..write('bytes: $bytes, ')
+          ..write('mimeType: $mimeType, ')
+          ..write('completed: $completed, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $RewardRedemptionRequestsTable extends RewardRedemptionRequests
+    with TableInfo<$RewardRedemptionRequestsTable, RewardRedemptionRequest> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $RewardRedemptionRequestsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _ledgerIdMeta = const VerificationMeta(
+    'ledgerId',
+  );
+  @override
+  late final GeneratedColumn<String> ledgerId = GeneratedColumn<String>(
+    'ledger_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
+    clientDefault: createDatabaseUuid,
+  );
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+    'user_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES local_users (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _rewardIdMeta = const VerificationMeta(
+    'rewardId',
+  );
+  @override
+  late final GeneratedColumn<String> rewardId = GeneratedColumn<String>(
+    'reward_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES rewards (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('pending'),
+  );
+  static const VerificationMeta _lastErrorMeta = const VerificationMeta(
+    'lastError',
+  );
+  @override
+  late final GeneratedColumn<String> lastError = GeneratedColumn<String>(
+    'last_error',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    ledgerId,
+    userId,
+    rewardId,
+    status,
+    lastError,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'reward_redemption_requests';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<RewardRedemptionRequest> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('ledger_id')) {
+      context.handle(
+        _ledgerIdMeta,
+        ledgerId.isAcceptableOrUnknown(data['ledger_id']!, _ledgerIdMeta),
+      );
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(
+        _userIdMeta,
+        userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
+    if (data.containsKey('reward_id')) {
+      context.handle(
+        _rewardIdMeta,
+        rewardId.isAcceptableOrUnknown(data['reward_id']!, _rewardIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_rewardIdMeta);
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    }
+    if (data.containsKey('last_error')) {
+      context.handle(
+        _lastErrorMeta,
+        lastError.isAcceptableOrUnknown(data['last_error']!, _lastErrorMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  RewardRedemptionRequest map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return RewardRedemptionRequest(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      ledgerId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}ledger_id'],
+      )!,
+      userId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}user_id'],
+      )!,
+      rewardId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}reward_id'],
+      )!,
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      )!,
+      lastError: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}last_error'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $RewardRedemptionRequestsTable createAlias(String alias) {
+    return $RewardRedemptionRequestsTable(attachedDatabase, alias);
+  }
+}
+
+class RewardRedemptionRequest extends DataClass
+    implements Insertable<RewardRedemptionRequest> {
+  final String id;
+  final String ledgerId;
+  final String userId;
+  final String rewardId;
+  final String status;
+  final String? lastError;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const RewardRedemptionRequest({
+    required this.id,
+    required this.ledgerId,
+    required this.userId,
+    required this.rewardId,
+    required this.status,
+    this.lastError,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['ledger_id'] = Variable<String>(ledgerId);
+    map['user_id'] = Variable<String>(userId);
+    map['reward_id'] = Variable<String>(rewardId);
+    map['status'] = Variable<String>(status);
+    if (!nullToAbsent || lastError != null) {
+      map['last_error'] = Variable<String>(lastError);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  RewardRedemptionRequestsCompanion toCompanion(bool nullToAbsent) {
+    return RewardRedemptionRequestsCompanion(
+      id: Value(id),
+      ledgerId: Value(ledgerId),
+      userId: Value(userId),
+      rewardId: Value(rewardId),
+      status: Value(status),
+      lastError: lastError == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastError),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory RewardRedemptionRequest.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return RewardRedemptionRequest(
+      id: serializer.fromJson<String>(json['id']),
+      ledgerId: serializer.fromJson<String>(json['ledgerId']),
+      userId: serializer.fromJson<String>(json['userId']),
+      rewardId: serializer.fromJson<String>(json['rewardId']),
+      status: serializer.fromJson<String>(json['status']),
+      lastError: serializer.fromJson<String?>(json['lastError']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'ledgerId': serializer.toJson<String>(ledgerId),
+      'userId': serializer.toJson<String>(userId),
+      'rewardId': serializer.toJson<String>(rewardId),
+      'status': serializer.toJson<String>(status),
+      'lastError': serializer.toJson<String?>(lastError),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  RewardRedemptionRequest copyWith({
+    String? id,
+    String? ledgerId,
+    String? userId,
+    String? rewardId,
+    String? status,
+    Value<String?> lastError = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => RewardRedemptionRequest(
+    id: id ?? this.id,
+    ledgerId: ledgerId ?? this.ledgerId,
+    userId: userId ?? this.userId,
+    rewardId: rewardId ?? this.rewardId,
+    status: status ?? this.status,
+    lastError: lastError.present ? lastError.value : this.lastError,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  RewardRedemptionRequest copyWithCompanion(
+    RewardRedemptionRequestsCompanion data,
+  ) {
+    return RewardRedemptionRequest(
+      id: data.id.present ? data.id.value : this.id,
+      ledgerId: data.ledgerId.present ? data.ledgerId.value : this.ledgerId,
+      userId: data.userId.present ? data.userId.value : this.userId,
+      rewardId: data.rewardId.present ? data.rewardId.value : this.rewardId,
+      status: data.status.present ? data.status.value : this.status,
+      lastError: data.lastError.present ? data.lastError.value : this.lastError,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RewardRedemptionRequest(')
+          ..write('id: $id, ')
+          ..write('ledgerId: $ledgerId, ')
+          ..write('userId: $userId, ')
+          ..write('rewardId: $rewardId, ')
+          ..write('status: $status, ')
+          ..write('lastError: $lastError, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    ledgerId,
+    userId,
+    rewardId,
+    status,
+    lastError,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is RewardRedemptionRequest &&
+          other.id == this.id &&
+          other.ledgerId == this.ledgerId &&
+          other.userId == this.userId &&
+          other.rewardId == this.rewardId &&
+          other.status == this.status &&
+          other.lastError == this.lastError &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class RewardRedemptionRequestsCompanion
+    extends UpdateCompanion<RewardRedemptionRequest> {
+  final Value<String> id;
+  final Value<String> ledgerId;
+  final Value<String> userId;
+  final Value<String> rewardId;
+  final Value<String> status;
+  final Value<String?> lastError;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const RewardRedemptionRequestsCompanion({
+    this.id = const Value.absent(),
+    this.ledgerId = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.rewardId = const Value.absent(),
+    this.status = const Value.absent(),
+    this.lastError = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  RewardRedemptionRequestsCompanion.insert({
+    required String id,
+    this.ledgerId = const Value.absent(),
+    required String userId,
+    required String rewardId,
+    this.status = const Value.absent(),
+    this.lastError = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       userId = Value(userId),
+       rewardId = Value(rewardId);
+  static Insertable<RewardRedemptionRequest> custom({
+    Expression<String>? id,
+    Expression<String>? ledgerId,
+    Expression<String>? userId,
+    Expression<String>? rewardId,
+    Expression<String>? status,
+    Expression<String>? lastError,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (ledgerId != null) 'ledger_id': ledgerId,
+      if (userId != null) 'user_id': userId,
+      if (rewardId != null) 'reward_id': rewardId,
+      if (status != null) 'status': status,
+      if (lastError != null) 'last_error': lastError,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  RewardRedemptionRequestsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? ledgerId,
+    Value<String>? userId,
+    Value<String>? rewardId,
+    Value<String>? status,
+    Value<String?>? lastError,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return RewardRedemptionRequestsCompanion(
+      id: id ?? this.id,
+      ledgerId: ledgerId ?? this.ledgerId,
+      userId: userId ?? this.userId,
+      rewardId: rewardId ?? this.rewardId,
+      status: status ?? this.status,
+      lastError: lastError ?? this.lastError,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (ledgerId.present) {
+      map['ledger_id'] = Variable<String>(ledgerId.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (rewardId.present) {
+      map['reward_id'] = Variable<String>(rewardId.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (lastError.present) {
+      map['last_error'] = Variable<String>(lastError.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RewardRedemptionRequestsCompanion(')
+          ..write('id: $id, ')
+          ..write('ledgerId: $ledgerId, ')
+          ..write('userId: $userId, ')
+          ..write('rewardId: $rewardId, ')
+          ..write('status: $status, ')
+          ..write('lastError: $lastError, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $HabitRemindersTable extends HabitReminders
     with TableInfo<$HabitRemindersTable, HabitReminder> {
   @override
@@ -6850,9 +8087,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $HabitSchedulesTable habitSchedules = $HabitSchedulesTable(this);
   late final $PointRulesTable pointRules = $PointRulesTable(this);
   late final $CheckInsTable checkIns = $CheckInsTable(this);
+  late final $RewardsTable rewards = $RewardsTable(this);
   late final $PointLedgerTable pointLedger = $PointLedgerTable(this);
   late final $HabitPausesTable habitPauses = $HabitPausesTable(this);
-  late final $RewardsTable rewards = $RewardsTable(this);
+  late final $RewardImageOperationsTable rewardImageOperations =
+      $RewardImageOperationsTable(this);
+  late final $RewardRedemptionRequestsTable rewardRedemptionRequests =
+      $RewardRedemptionRequestsTable(this);
   late final $HabitRemindersTable habitReminders = $HabitRemindersTable(this);
   late final Index categoriesUserOrderIdx = Index(
     'categories_user_order_idx',
@@ -6912,9 +8153,11 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     habitSchedules,
     pointRules,
     checkIns,
+    rewards,
     pointLedger,
     habitPauses,
-    rewards,
+    rewardImageOperations,
+    rewardRedemptionRequests,
     habitReminders,
     categoriesUserOrderIdx,
     habitsUserOrderIdx,
@@ -7033,6 +8276,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         'local_users',
         limitUpdateKind: UpdateKind.delete,
       ),
+      result: [TableUpdate('rewards', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'local_users',
+        limitUpdateKind: UpdateKind.delete,
+      ),
       result: [TableUpdate('point_ledger', kind: UpdateKind.delete)],
     ),
     WritePropagation(
@@ -7054,7 +8304,32 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         'local_users',
         limitUpdateKind: UpdateKind.delete,
       ),
-      result: [TableUpdate('rewards', kind: UpdateKind.delete)],
+      result: [TableUpdate('reward_image_operations', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'rewards',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('reward_image_operations', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'local_users',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [
+        TableUpdate('reward_redemption_requests', kind: UpdateKind.delete),
+      ],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'rewards',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [
+        TableUpdate('reward_redemption_requests', kind: UpdateKind.delete),
+      ],
     ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(
@@ -7236,6 +8511,25 @@ final class $$LocalUsersTableReferences
     );
   }
 
+  static MultiTypedResultKey<$RewardsTable, List<Reward>> _rewardsRefsTable(
+    _$AppDatabase db,
+  ) => MultiTypedResultKey.fromTable(
+    db.rewards,
+    aliasName: 'local_users__id__rewards__user_id',
+  );
+
+  $$RewardsTableProcessedTableManager get rewardsRefs {
+    final manager = $$RewardsTableTableManager(
+      $_db,
+      $_db.rewards,
+    ).filter((f) => f.userId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_rewardsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
   static MultiTypedResultKey<$PointLedgerTable, List<PointLedgerData>>
   _pointLedgerRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
     db.pointLedger,
@@ -7272,20 +8566,51 @@ final class $$LocalUsersTableReferences
     );
   }
 
-  static MultiTypedResultKey<$RewardsTable, List<Reward>> _rewardsRefsTable(
-    _$AppDatabase db,
-  ) => MultiTypedResultKey.fromTable(
-    db.rewards,
-    aliasName: 'local_users__id__rewards__user_id',
-  );
+  static MultiTypedResultKey<
+    $RewardImageOperationsTable,
+    List<RewardImageOperation>
+  >
+  _rewardImageOperationsRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.rewardImageOperations,
+        aliasName: 'local_users__id__reward_image_operations__user_id',
+      );
 
-  $$RewardsTableProcessedTableManager get rewardsRefs {
-    final manager = $$RewardsTableTableManager(
+  $$RewardImageOperationsTableProcessedTableManager
+  get rewardImageOperationsRefs {
+    final manager = $$RewardImageOperationsTableTableManager(
       $_db,
-      $_db.rewards,
+      $_db.rewardImageOperations,
     ).filter((f) => f.userId.id.sqlEquals($_itemColumn<String>('id')!));
 
-    final cache = $_typedResult.readTableOrNull(_rewardsRefsTable($_db));
+    final cache = $_typedResult.readTableOrNull(
+      _rewardImageOperationsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<
+    $RewardRedemptionRequestsTable,
+    List<RewardRedemptionRequest>
+  >
+  _rewardRedemptionRequestsRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.rewardRedemptionRequests,
+        aliasName: 'local_users__id__reward_redemption_requests__user_id',
+      );
+
+  $$RewardRedemptionRequestsTableProcessedTableManager
+  get rewardRedemptionRequestsRefs {
+    final manager = $$RewardRedemptionRequestsTableTableManager(
+      $_db,
+      $_db.rewardRedemptionRequests,
+    ).filter((f) => f.userId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _rewardRedemptionRequestsRefsTable($_db),
+    );
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -7534,6 +8859,31 @@ class $$LocalUsersTableFilterComposer
     return f(composer);
   }
 
+  Expression<bool> rewardsRefs(
+    Expression<bool> Function($$RewardsTableFilterComposer f) f,
+  ) {
+    final $$RewardsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.rewards,
+      getReferencedColumn: (t) => t.userId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$RewardsTableFilterComposer(
+            $db: $db,
+            $table: $db.rewards,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
   Expression<bool> pointLedgerRefs(
     Expression<bool> Function($$PointLedgerTableFilterComposer f) f,
   ) {
@@ -7584,28 +8934,56 @@ class $$LocalUsersTableFilterComposer
     return f(composer);
   }
 
-  Expression<bool> rewardsRefs(
-    Expression<bool> Function($$RewardsTableFilterComposer f) f,
+  Expression<bool> rewardImageOperationsRefs(
+    Expression<bool> Function($$RewardImageOperationsTableFilterComposer f) f,
   ) {
-    final $$RewardsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.rewards,
-      getReferencedColumn: (t) => t.userId,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$RewardsTableFilterComposer(
-            $db: $db,
-            $table: $db.rewards,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
+    final $$RewardImageOperationsTableFilterComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.rewardImageOperations,
+          getReferencedColumn: (t) => t.userId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
                 $removeJoinBuilderFromRootComposer,
-          ),
-    );
+              }) => $$RewardImageOperationsTableFilterComposer(
+                $db: $db,
+                $table: $db.rewardImageOperations,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+
+  Expression<bool> rewardRedemptionRequestsRefs(
+    Expression<bool> Function($$RewardRedemptionRequestsTableFilterComposer f)
+    f,
+  ) {
+    final $$RewardRedemptionRequestsTableFilterComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.rewardRedemptionRequests,
+          getReferencedColumn: (t) => t.userId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$RewardRedemptionRequestsTableFilterComposer(
+                $db: $db,
+                $table: $db.rewardRedemptionRequests,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
     return f(composer);
   }
 
@@ -7878,6 +9256,31 @@ class $$LocalUsersTableAnnotationComposer
     return f(composer);
   }
 
+  Expression<T> rewardsRefs<T extends Object>(
+    Expression<T> Function($$RewardsTableAnnotationComposer a) f,
+  ) {
+    final $$RewardsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.rewards,
+      getReferencedColumn: (t) => t.userId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$RewardsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.rewards,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
   Expression<T> pointLedgerRefs<T extends Object>(
     Expression<T> Function($$PointLedgerTableAnnotationComposer a) f,
   ) {
@@ -7928,28 +9331,56 @@ class $$LocalUsersTableAnnotationComposer
     return f(composer);
   }
 
-  Expression<T> rewardsRefs<T extends Object>(
-    Expression<T> Function($$RewardsTableAnnotationComposer a) f,
+  Expression<T> rewardImageOperationsRefs<T extends Object>(
+    Expression<T> Function($$RewardImageOperationsTableAnnotationComposer a) f,
   ) {
-    final $$RewardsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.rewards,
-      getReferencedColumn: (t) => t.userId,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$RewardsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.rewards,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
+    final $$RewardImageOperationsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.rewardImageOperations,
+          getReferencedColumn: (t) => t.userId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
                 $removeJoinBuilderFromRootComposer,
-          ),
-    );
+              }) => $$RewardImageOperationsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.rewardImageOperations,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+
+  Expression<T> rewardRedemptionRequestsRefs<T extends Object>(
+    Expression<T> Function($$RewardRedemptionRequestsTableAnnotationComposer a)
+    f,
+  ) {
+    final $$RewardRedemptionRequestsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.rewardRedemptionRequests,
+          getReferencedColumn: (t) => t.userId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$RewardRedemptionRequestsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.rewardRedemptionRequests,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
     return f(composer);
   }
 
@@ -8001,9 +9432,11 @@ class $$LocalUsersTableTableManager
             bool habitSchedulesRefs,
             bool pointRulesRefs,
             bool checkInsRefs,
+            bool rewardsRefs,
             bool pointLedgerRefs,
             bool habitPausesRefs,
-            bool rewardsRefs,
+            bool rewardImageOperationsRefs,
+            bool rewardRedemptionRequestsRefs,
             bool habitRemindersRefs,
           })
         > {
@@ -8060,9 +9493,11 @@ class $$LocalUsersTableTableManager
                 habitSchedulesRefs = false,
                 pointRulesRefs = false,
                 checkInsRefs = false,
+                rewardsRefs = false,
                 pointLedgerRefs = false,
                 habitPausesRefs = false,
-                rewardsRefs = false,
+                rewardImageOperationsRefs = false,
+                rewardRedemptionRequestsRefs = false,
                 habitRemindersRefs = false,
               }) {
                 return PrefetchHooks(
@@ -8076,9 +9511,12 @@ class $$LocalUsersTableTableManager
                     if (habitSchedulesRefs) db.habitSchedules,
                     if (pointRulesRefs) db.pointRules,
                     if (checkInsRefs) db.checkIns,
+                    if (rewardsRefs) db.rewards,
                     if (pointLedgerRefs) db.pointLedger,
                     if (habitPausesRefs) db.habitPauses,
-                    if (rewardsRefs) db.rewards,
+                    if (rewardImageOperationsRefs) db.rewardImageOperations,
+                    if (rewardRedemptionRequestsRefs)
+                      db.rewardRedemptionRequests,
                     if (habitRemindersRefs) db.habitReminders,
                   ],
                   addJoins: null,
@@ -8252,6 +9690,27 @@ class $$LocalUsersTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (rewardsRefs)
+                        await $_getPrefetchedData<
+                          LocalUser,
+                          $LocalUsersTable,
+                          Reward
+                        >(
+                          currentTable: table,
+                          referencedTable: $$LocalUsersTableReferences
+                              ._rewardsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$LocalUsersTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).rewardsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.userId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                       if (pointLedgerRefs)
                         await $_getPrefetchedData<
                           LocalUser,
@@ -8294,21 +9753,42 @@ class $$LocalUsersTableTableManager
                               ),
                           typedResults: items,
                         ),
-                      if (rewardsRefs)
+                      if (rewardImageOperationsRefs)
                         await $_getPrefetchedData<
                           LocalUser,
                           $LocalUsersTable,
-                          Reward
+                          RewardImageOperation
                         >(
                           currentTable: table,
                           referencedTable: $$LocalUsersTableReferences
-                              ._rewardsRefsTable(db),
+                              ._rewardImageOperationsRefsTable(db),
                           managerFromTypedResult: (p0) =>
                               $$LocalUsersTableReferences(
                                 db,
                                 table,
                                 p0,
-                              ).rewardsRefs,
+                              ).rewardImageOperationsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.userId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (rewardRedemptionRequestsRefs)
+                        await $_getPrefetchedData<
+                          LocalUser,
+                          $LocalUsersTable,
+                          RewardRedemptionRequest
+                        >(
+                          currentTable: table,
+                          referencedTable: $$LocalUsersTableReferences
+                              ._rewardRedemptionRequestsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$LocalUsersTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).rewardRedemptionRequestsRefs,
                           referencedItemsForCurrentItem:
                               (item, referencedItems) => referencedItems.where(
                                 (e) => e.userId == item.id,
@@ -8365,9 +9845,11 @@ typedef $$LocalUsersTableProcessedTableManager =
         bool habitSchedulesRefs,
         bool pointRulesRefs,
         bool checkInsRefs,
+        bool rewardsRefs,
         bool pointLedgerRefs,
         bool habitPausesRefs,
-        bool rewardsRefs,
+        bool rewardImageOperationsRefs,
+        bool rewardRedemptionRequestsRefs,
         bool habitRemindersRefs,
       })
     >;
@@ -12991,6 +14473,729 @@ typedef $$CheckInsTableProcessedTableManager =
         bool matchedRuleId,
       })
     >;
+typedef $$RewardsTableCreateCompanionBuilder = RewardsCompanion Function({
+  Value<String> id,
+  required String userId,
+  required String name,
+  required int pointsCost,
+  Value<double?> monetaryCap,
+  Value<String?> imageKey,
+  Value<int> sortOrder,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<DateTime?> archivedAt,
+  Value<int> rowid,
+});
+typedef $$RewardsTableUpdateCompanionBuilder = RewardsCompanion Function({
+  Value<String> id,
+  Value<String> userId,
+  Value<String> name,
+  Value<int> pointsCost,
+  Value<double?> monetaryCap,
+  Value<String?> imageKey,
+  Value<int> sortOrder,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<DateTime?> archivedAt,
+  Value<int> rowid,
+});
+
+final class $$RewardsTableReferences
+    extends BaseReferences<_$AppDatabase, $RewardsTable, Reward> {
+  $$RewardsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $LocalUsersTable _userIdTable(_$AppDatabase db) =>
+      db.localUsers.createAlias('rewards__user_id__local_users__id');
+
+  $$LocalUsersTableProcessedTableManager get userId {
+    final $_column = $_itemColumn<String>('user_id')!;
+
+    final manager = $$LocalUsersTableTableManager(
+      $_db,
+      $_db.localUsers,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_userIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static MultiTypedResultKey<$PointLedgerTable, List<PointLedgerData>>
+  _pointLedgerRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.pointLedger,
+    aliasName: 'rewards__id__point_ledger__reward_id',
+  );
+
+  $$PointLedgerTableProcessedTableManager get pointLedgerRefs {
+    final manager = $$PointLedgerTableTableManager(
+      $_db,
+      $_db.pointLedger,
+    ).filter((f) => f.rewardId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_pointLedgerRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<
+    $RewardImageOperationsTable,
+    List<RewardImageOperation>
+  >
+  _rewardImageOperationsRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.rewardImageOperations,
+        aliasName: 'rewards__id__reward_image_operations__reward_id',
+      );
+
+  $$RewardImageOperationsTableProcessedTableManager
+  get rewardImageOperationsRefs {
+    final manager = $$RewardImageOperationsTableTableManager(
+      $_db,
+      $_db.rewardImageOperations,
+    ).filter((f) => f.rewardId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _rewardImageOperationsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<
+    $RewardRedemptionRequestsTable,
+    List<RewardRedemptionRequest>
+  >
+  _rewardRedemptionRequestsRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.rewardRedemptionRequests,
+        aliasName: 'rewards__id__reward_redemption_requests__reward_id',
+      );
+
+  $$RewardRedemptionRequestsTableProcessedTableManager
+  get rewardRedemptionRequestsRefs {
+    final manager = $$RewardRedemptionRequestsTableTableManager(
+      $_db,
+      $_db.rewardRedemptionRequests,
+    ).filter((f) => f.rewardId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _rewardRedemptionRequestsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$RewardsTableFilterComposer
+    extends Composer<_$AppDatabase, $RewardsTable> {
+  $$RewardsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get pointsCost => $composableBuilder(
+    column: $table.pointsCost,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get monetaryCap => $composableBuilder(
+    column: $table.monetaryCap,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get imageKey => $composableBuilder(
+    column: $table.imageKey,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get sortOrder => $composableBuilder(
+    column: $table.sortOrder,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get archivedAt => $composableBuilder(
+    column: $table.archivedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$LocalUsersTableFilterComposer get userId {
+    final $$LocalUsersTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userId,
+      referencedTable: $db.localUsers,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalUsersTableFilterComposer(
+            $db: $db,
+            $table: $db.localUsers,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<bool> pointLedgerRefs(
+    Expression<bool> Function($$PointLedgerTableFilterComposer f) f,
+  ) {
+    final $$PointLedgerTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.pointLedger,
+      getReferencedColumn: (t) => t.rewardId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PointLedgerTableFilterComposer(
+            $db: $db,
+            $table: $db.pointLedger,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> rewardImageOperationsRefs(
+    Expression<bool> Function($$RewardImageOperationsTableFilterComposer f) f,
+  ) {
+    final $$RewardImageOperationsTableFilterComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.rewardImageOperations,
+          getReferencedColumn: (t) => t.rewardId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$RewardImageOperationsTableFilterComposer(
+                $db: $db,
+                $table: $db.rewardImageOperations,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+
+  Expression<bool> rewardRedemptionRequestsRefs(
+    Expression<bool> Function($$RewardRedemptionRequestsTableFilterComposer f)
+    f,
+  ) {
+    final $$RewardRedemptionRequestsTableFilterComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.rewardRedemptionRequests,
+          getReferencedColumn: (t) => t.rewardId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$RewardRedemptionRequestsTableFilterComposer(
+                $db: $db,
+                $table: $db.rewardRedemptionRequests,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+}
+
+class $$RewardsTableOrderingComposer
+    extends Composer<_$AppDatabase, $RewardsTable> {
+  $$RewardsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get pointsCost => $composableBuilder(
+    column: $table.pointsCost,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get monetaryCap => $composableBuilder(
+    column: $table.monetaryCap,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get imageKey => $composableBuilder(
+    column: $table.imageKey,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get sortOrder => $composableBuilder(
+    column: $table.sortOrder,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get archivedAt => $composableBuilder(
+    column: $table.archivedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$LocalUsersTableOrderingComposer get userId {
+    final $$LocalUsersTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userId,
+      referencedTable: $db.localUsers,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalUsersTableOrderingComposer(
+            $db: $db,
+            $table: $db.localUsers,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$RewardsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $RewardsTable> {
+  $$RewardsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<int> get pointsCost => $composableBuilder(
+    column: $table.pointsCost,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get monetaryCap => $composableBuilder(
+    column: $table.monetaryCap,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get imageKey =>
+      $composableBuilder(column: $table.imageKey, builder: (column) => column);
+
+  GeneratedColumn<int> get sortOrder =>
+      $composableBuilder(column: $table.sortOrder, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get archivedAt => $composableBuilder(
+    column: $table.archivedAt,
+    builder: (column) => column,
+  );
+
+  $$LocalUsersTableAnnotationComposer get userId {
+    final $$LocalUsersTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userId,
+      referencedTable: $db.localUsers,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalUsersTableAnnotationComposer(
+            $db: $db,
+            $table: $db.localUsers,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<T> pointLedgerRefs<T extends Object>(
+    Expression<T> Function($$PointLedgerTableAnnotationComposer a) f,
+  ) {
+    final $$PointLedgerTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.pointLedger,
+      getReferencedColumn: (t) => t.rewardId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PointLedgerTableAnnotationComposer(
+            $db: $db,
+            $table: $db.pointLedger,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> rewardImageOperationsRefs<T extends Object>(
+    Expression<T> Function($$RewardImageOperationsTableAnnotationComposer a) f,
+  ) {
+    final $$RewardImageOperationsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.rewardImageOperations,
+          getReferencedColumn: (t) => t.rewardId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$RewardImageOperationsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.rewardImageOperations,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+
+  Expression<T> rewardRedemptionRequestsRefs<T extends Object>(
+    Expression<T> Function($$RewardRedemptionRequestsTableAnnotationComposer a)
+    f,
+  ) {
+    final $$RewardRedemptionRequestsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.rewardRedemptionRequests,
+          getReferencedColumn: (t) => t.rewardId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$RewardRedemptionRequestsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.rewardRedemptionRequests,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+}
+
+class $$RewardsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $RewardsTable,
+          Reward,
+          $$RewardsTableFilterComposer,
+          $$RewardsTableOrderingComposer,
+          $$RewardsTableAnnotationComposer,
+          $$RewardsTableCreateCompanionBuilder,
+          $$RewardsTableUpdateCompanionBuilder,
+          (Reward, $$RewardsTableReferences),
+          Reward,
+          PrefetchHooks Function({
+            bool userId,
+            bool pointLedgerRefs,
+            bool rewardImageOperationsRefs,
+            bool rewardRedemptionRequestsRefs,
+          })
+        > {
+  $$RewardsTableTableManager(_$AppDatabase db, $RewardsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$RewardsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$RewardsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$RewardsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> userId = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<int> pointsCost = const Value.absent(),
+                Value<double?> monetaryCap = const Value.absent(),
+                Value<String?> imageKey = const Value.absent(),
+                Value<int> sortOrder = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> archivedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => RewardsCompanion(
+                id: id,
+                userId: userId,
+                name: name,
+                pointsCost: pointsCost,
+                monetaryCap: monetaryCap,
+                imageKey: imageKey,
+                sortOrder: sortOrder,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                archivedAt: archivedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                required String userId,
+                required String name,
+                required int pointsCost,
+                Value<double?> monetaryCap = const Value.absent(),
+                Value<String?> imageKey = const Value.absent(),
+                Value<int> sortOrder = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> archivedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => RewardsCompanion.insert(
+                id: id,
+                userId: userId,
+                name: name,
+                pointsCost: pointsCost,
+                monetaryCap: monetaryCap,
+                imageKey: imageKey,
+                sortOrder: sortOrder,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                archivedAt: archivedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$RewardsTable, Reward>(table),
+                  $$RewardsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback:
+              ({
+                userId = false,
+                pointLedgerRefs = false,
+                rewardImageOperationsRefs = false,
+                rewardRedemptionRequestsRefs = false,
+              }) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (pointLedgerRefs) db.pointLedger,
+                    if (rewardImageOperationsRefs) db.rewardImageOperations,
+                    if (rewardRedemptionRequestsRefs)
+                      db.rewardRedemptionRequests,
+                  ],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (userId) {
+                          state = state.withJoin(
+                            currentTable: table,
+                            currentColumn: table.userId,
+                            referencedTable: $$RewardsTableReferences
+                                ._userIdTable(db),
+                            referencedColumn: $$RewardsTableReferences
+                                ._userIdTable(db)
+                                .id,
+                          ) as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (pointLedgerRefs)
+                        await $_getPrefetchedData<
+                          Reward,
+                          $RewardsTable,
+                          PointLedgerData
+                        >(
+                          currentTable: table,
+                          referencedTable: $$RewardsTableReferences
+                              ._pointLedgerRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$RewardsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).pointLedgerRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.rewardId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (rewardImageOperationsRefs)
+                        await $_getPrefetchedData<
+                          Reward,
+                          $RewardsTable,
+                          RewardImageOperation
+                        >(
+                          currentTable: table,
+                          referencedTable: $$RewardsTableReferences
+                              ._rewardImageOperationsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$RewardsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).rewardImageOperationsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.rewardId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (rewardRedemptionRequestsRefs)
+                        await $_getPrefetchedData<
+                          Reward,
+                          $RewardsTable,
+                          RewardRedemptionRequest
+                        >(
+                          currentTable: table,
+                          referencedTable: $$RewardsTableReferences
+                              ._rewardRedemptionRequestsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$RewardsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).rewardRedemptionRequestsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.rewardId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $$RewardsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $RewardsTable,
+      Reward,
+      $$RewardsTableFilterComposer,
+      $$RewardsTableOrderingComposer,
+      $$RewardsTableAnnotationComposer,
+      $$RewardsTableCreateCompanionBuilder,
+      $$RewardsTableUpdateCompanionBuilder,
+      (Reward, $$RewardsTableReferences),
+      Reward,
+      PrefetchHooks Function({
+        bool userId,
+        bool pointLedgerRefs,
+        bool rewardImageOperationsRefs,
+        bool rewardRedemptionRequestsRefs,
+      })
+    >;
 typedef $$PointLedgerTableCreateCompanionBuilder =
     PointLedgerCompanion Function({
       Value<String> id,
@@ -12999,6 +15204,7 @@ typedef $$PointLedgerTableCreateCompanionBuilder =
       required String sourceId,
       required int points,
       Value<String?> reason,
+      Value<String?> rewardId,
       Value<DateTime> createdAt,
       Value<int> rowid,
     });
@@ -13010,6 +15216,7 @@ typedef $$PointLedgerTableUpdateCompanionBuilder =
       Value<String> sourceId,
       Value<int> points,
       Value<String?> reason,
+      Value<String?> rewardId,
       Value<DateTime> createdAt,
       Value<int> rowid,
     });
@@ -13029,6 +15236,23 @@ final class $$PointLedgerTableReferences
       $_db.localUsers,
     ).filter((f) => f.id.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(_userIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $RewardsTable _rewardIdTable(_$AppDatabase db) =>
+      db.rewards.createAlias('point_ledger__reward_id__rewards__id');
+
+  $$RewardsTableProcessedTableManager? get rewardId {
+    final $_column = $_itemColumn<String>('reward_id');
+    if ($_column == null) return null;
+    final manager = $$RewardsTableTableManager(
+      $_db,
+      $_db.rewards,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_rewardIdTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: [item]),
@@ -13102,6 +15326,29 @@ class $$PointLedgerTableFilterComposer
     );
     return composer;
   }
+
+  $$RewardsTableFilterComposer get rewardId {
+    final $$RewardsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.rewardId,
+      referencedTable: $db.rewards,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$RewardsTableFilterComposer(
+            $db: $db,
+            $table: $db.rewards,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$PointLedgerTableOrderingComposer
@@ -13165,6 +15412,29 @@ class $$PointLedgerTableOrderingComposer
     );
     return composer;
   }
+
+  $$RewardsTableOrderingComposer get rewardId {
+    final $$RewardsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.rewardId,
+      referencedTable: $db.rewards,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$RewardsTableOrderingComposer(
+            $db: $db,
+            $table: $db.rewards,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$PointLedgerTableAnnotationComposer
@@ -13219,6 +15489,29 @@ class $$PointLedgerTableAnnotationComposer
     );
     return composer;
   }
+
+  $$RewardsTableAnnotationComposer get rewardId {
+    final $$RewardsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.rewardId,
+      referencedTable: $db.rewards,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$RewardsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.rewards,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$PointLedgerTableTableManager
@@ -13234,7 +15527,7 @@ class $$PointLedgerTableTableManager
           $$PointLedgerTableUpdateCompanionBuilder,
           (PointLedgerData, $$PointLedgerTableReferences),
           PointLedgerData,
-          PrefetchHooks Function({bool userId})
+          PrefetchHooks Function({bool userId, bool rewardId})
         > {
   $$PointLedgerTableTableManager(_$AppDatabase db, $PointLedgerTable table)
     : super(
@@ -13255,6 +15548,7 @@ class $$PointLedgerTableTableManager
                 Value<String> sourceId = const Value.absent(),
                 Value<int> points = const Value.absent(),
                 Value<String?> reason = const Value.absent(),
+                Value<String?> rewardId = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => PointLedgerCompanion(
@@ -13264,6 +15558,7 @@ class $$PointLedgerTableTableManager
                 sourceId: sourceId,
                 points: points,
                 reason: reason,
+                rewardId: rewardId,
                 createdAt: createdAt,
                 rowid: rowid,
               ),
@@ -13275,6 +15570,7 @@ class $$PointLedgerTableTableManager
                 required String sourceId,
                 required int points,
                 Value<String?> reason = const Value.absent(),
+                Value<String?> rewardId = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => PointLedgerCompanion.insert(
@@ -13284,6 +15580,7 @@ class $$PointLedgerTableTableManager
                 sourceId: sourceId,
                 points: points,
                 reason: reason,
+                rewardId: rewardId,
                 createdAt: createdAt,
                 rowid: rowid,
               ),
@@ -13295,7 +15592,7 @@ class $$PointLedgerTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({userId = false}) {
+          prefetchHooksCallback: ({userId = false, rewardId = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [],
@@ -13326,6 +15623,17 @@ class $$PointLedgerTableTableManager
                             .id,
                       ) as T;
                     }
+                    if (rewardId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.rewardId,
+                        referencedTable: $$PointLedgerTableReferences
+                            ._rewardIdTable(db),
+                        referencedColumn: $$PointLedgerTableReferences
+                            ._rewardIdTable(db)
+                            .id,
+                      ) as T;
+                    }
 
                     return state;
                   },
@@ -13350,7 +15658,7 @@ typedef $$PointLedgerTableProcessedTableManager =
       $$PointLedgerTableUpdateCompanionBuilder,
       (PointLedgerData, $$PointLedgerTableReferences),
       PointLedgerData,
-      PrefetchHooks Function({bool userId})
+      PrefetchHooks Function({bool userId, bool rewardId})
     >;
 typedef $$HabitPausesTableCreateCompanionBuilder =
     HabitPausesCompanion Function({
@@ -13791,39 +16099,52 @@ typedef $$HabitPausesTableProcessedTableManager =
       HabitPause,
       PrefetchHooks Function({bool userId, bool habitId})
     >;
-typedef $$RewardsTableCreateCompanionBuilder = RewardsCompanion Function({
-  Value<String> id,
-  required String userId,
-  required String name,
-  required int pointsCost,
-  Value<double?> monetaryCap,
-  Value<String?> imageKey,
-  Value<int> sortOrder,
-  Value<DateTime> createdAt,
-  Value<DateTime> updatedAt,
-  Value<DateTime?> archivedAt,
-  Value<int> rowid,
-});
-typedef $$RewardsTableUpdateCompanionBuilder = RewardsCompanion Function({
-  Value<String> id,
-  Value<String> userId,
-  Value<String> name,
-  Value<int> pointsCost,
-  Value<double?> monetaryCap,
-  Value<String?> imageKey,
-  Value<int> sortOrder,
-  Value<DateTime> createdAt,
-  Value<DateTime> updatedAt,
-  Value<DateTime?> archivedAt,
-  Value<int> rowid,
-});
+typedef $$RewardImageOperationsTableCreateCompanionBuilder =
+    RewardImageOperationsCompanion Function({
+      Value<String> id,
+      required String userId,
+      required String rewardId,
+      required String operation,
+      required String objectKey,
+      Value<String?> oldObjectKey,
+      Value<Uint8List?> bytes,
+      Value<String?> mimeType,
+      Value<bool> completed,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+typedef $$RewardImageOperationsTableUpdateCompanionBuilder =
+    RewardImageOperationsCompanion Function({
+      Value<String> id,
+      Value<String> userId,
+      Value<String> rewardId,
+      Value<String> operation,
+      Value<String> objectKey,
+      Value<String?> oldObjectKey,
+      Value<Uint8List?> bytes,
+      Value<String?> mimeType,
+      Value<bool> completed,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
 
-final class $$RewardsTableReferences
-    extends BaseReferences<_$AppDatabase, $RewardsTable, Reward> {
-  $$RewardsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+final class $$RewardImageOperationsTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $RewardImageOperationsTable,
+          RewardImageOperation
+        > {
+  $$RewardImageOperationsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
 
-  static $LocalUsersTable _userIdTable(_$AppDatabase db) =>
-      db.localUsers.createAlias('rewards__user_id__local_users__id');
+  static $LocalUsersTable _userIdTable(_$AppDatabase db) => db.localUsers
+      .createAlias('reward_image_operations__user_id__local_users__id');
 
   $$LocalUsersTableProcessedTableManager get userId {
     final $_column = $_itemColumn<String>('user_id')!;
@@ -13838,11 +16159,28 @@ final class $$RewardsTableReferences
       manager.$state.copyWith(prefetchedData: [item]),
     );
   }
+
+  static $RewardsTable _rewardIdTable(_$AppDatabase db) =>
+      db.rewards.createAlias('reward_image_operations__reward_id__rewards__id');
+
+  $$RewardsTableProcessedTableManager get rewardId {
+    final $_column = $_itemColumn<String>('reward_id')!;
+
+    final manager = $$RewardsTableTableManager(
+      $_db,
+      $_db.rewards,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_rewardIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
 }
 
-class $$RewardsTableFilterComposer
-    extends Composer<_$AppDatabase, $RewardsTable> {
-  $$RewardsTableFilterComposer({
+class $$RewardImageOperationsTableFilterComposer
+    extends Composer<_$AppDatabase, $RewardImageOperationsTable> {
+  $$RewardImageOperationsTableFilterComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -13854,28 +16192,33 @@ class $$RewardsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get name => $composableBuilder(
-    column: $table.name,
+  ColumnFilters<String> get operation => $composableBuilder(
+    column: $table.operation,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get pointsCost => $composableBuilder(
-    column: $table.pointsCost,
+  ColumnFilters<String> get objectKey => $composableBuilder(
+    column: $table.objectKey,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<double> get monetaryCap => $composableBuilder(
-    column: $table.monetaryCap,
+  ColumnFilters<String> get oldObjectKey => $composableBuilder(
+    column: $table.oldObjectKey,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get imageKey => $composableBuilder(
-    column: $table.imageKey,
+  ColumnFilters<Uint8List> get bytes => $composableBuilder(
+    column: $table.bytes,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get sortOrder => $composableBuilder(
-    column: $table.sortOrder,
+  ColumnFilters<String> get mimeType => $composableBuilder(
+    column: $table.mimeType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get completed => $composableBuilder(
+    column: $table.completed,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -13886,11 +16229,6 @@ class $$RewardsTableFilterComposer
 
   ColumnFilters<DateTime> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get archivedAt => $composableBuilder(
-    column: $table.archivedAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -13916,11 +16254,34 @@ class $$RewardsTableFilterComposer
     );
     return composer;
   }
+
+  $$RewardsTableFilterComposer get rewardId {
+    final $$RewardsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.rewardId,
+      referencedTable: $db.rewards,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$RewardsTableFilterComposer(
+            $db: $db,
+            $table: $db.rewards,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
-class $$RewardsTableOrderingComposer
-    extends Composer<_$AppDatabase, $RewardsTable> {
-  $$RewardsTableOrderingComposer({
+class $$RewardImageOperationsTableOrderingComposer
+    extends Composer<_$AppDatabase, $RewardImageOperationsTable> {
+  $$RewardImageOperationsTableOrderingComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -13932,28 +16293,33 @@ class $$RewardsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get name => $composableBuilder(
-    column: $table.name,
+  ColumnOrderings<String> get operation => $composableBuilder(
+    column: $table.operation,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get pointsCost => $composableBuilder(
-    column: $table.pointsCost,
+  ColumnOrderings<String> get objectKey => $composableBuilder(
+    column: $table.objectKey,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<double> get monetaryCap => $composableBuilder(
-    column: $table.monetaryCap,
+  ColumnOrderings<String> get oldObjectKey => $composableBuilder(
+    column: $table.oldObjectKey,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get imageKey => $composableBuilder(
-    column: $table.imageKey,
+  ColumnOrderings<Uint8List> get bytes => $composableBuilder(
+    column: $table.bytes,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get sortOrder => $composableBuilder(
-    column: $table.sortOrder,
+  ColumnOrderings<String> get mimeType => $composableBuilder(
+    column: $table.mimeType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get completed => $composableBuilder(
+    column: $table.completed,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -13964,11 +16330,6 @@ class $$RewardsTableOrderingComposer
 
   ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get archivedAt => $composableBuilder(
-    column: $table.archivedAt,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -13994,11 +16355,34 @@ class $$RewardsTableOrderingComposer
     );
     return composer;
   }
+
+  $$RewardsTableOrderingComposer get rewardId {
+    final $$RewardsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.rewardId,
+      referencedTable: $db.rewards,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$RewardsTableOrderingComposer(
+            $db: $db,
+            $table: $db.rewards,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
-class $$RewardsTableAnnotationComposer
-    extends Composer<_$AppDatabase, $RewardsTable> {
-  $$RewardsTableAnnotationComposer({
+class $$RewardImageOperationsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $RewardImageOperationsTable> {
+  $$RewardImageOperationsTableAnnotationComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -14008,35 +16392,31 @@ class $$RewardsTableAnnotationComposer
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<String> get name =>
-      $composableBuilder(column: $table.name, builder: (column) => column);
+  GeneratedColumn<String> get operation =>
+      $composableBuilder(column: $table.operation, builder: (column) => column);
 
-  GeneratedColumn<int> get pointsCost => $composableBuilder(
-    column: $table.pointsCost,
+  GeneratedColumn<String> get objectKey =>
+      $composableBuilder(column: $table.objectKey, builder: (column) => column);
+
+  GeneratedColumn<String> get oldObjectKey => $composableBuilder(
+    column: $table.oldObjectKey,
     builder: (column) => column,
   );
 
-  GeneratedColumn<double> get monetaryCap => $composableBuilder(
-    column: $table.monetaryCap,
-    builder: (column) => column,
-  );
+  GeneratedColumn<Uint8List> get bytes =>
+      $composableBuilder(column: $table.bytes, builder: (column) => column);
 
-  GeneratedColumn<String> get imageKey =>
-      $composableBuilder(column: $table.imageKey, builder: (column) => column);
+  GeneratedColumn<String> get mimeType =>
+      $composableBuilder(column: $table.mimeType, builder: (column) => column);
 
-  GeneratedColumn<int> get sortOrder =>
-      $composableBuilder(column: $table.sortOrder, builder: (column) => column);
+  GeneratedColumn<bool> get completed =>
+      $composableBuilder(column: $table.completed, builder: (column) => column);
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
-
-  GeneratedColumn<DateTime> get archivedAt => $composableBuilder(
-    column: $table.archivedAt,
-    builder: (column) => column,
-  );
 
   $$LocalUsersTableAnnotationComposer get userId {
     final $$LocalUsersTableAnnotationComposer composer = $composerBuilder(
@@ -14060,95 +16440,136 @@ class $$RewardsTableAnnotationComposer
     );
     return composer;
   }
+
+  $$RewardsTableAnnotationComposer get rewardId {
+    final $$RewardsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.rewardId,
+      referencedTable: $db.rewards,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$RewardsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.rewards,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
-class $$RewardsTableTableManager
+class $$RewardImageOperationsTableTableManager
     extends
         RootTableManager<
           _$AppDatabase,
-          $RewardsTable,
-          Reward,
-          $$RewardsTableFilterComposer,
-          $$RewardsTableOrderingComposer,
-          $$RewardsTableAnnotationComposer,
-          $$RewardsTableCreateCompanionBuilder,
-          $$RewardsTableUpdateCompanionBuilder,
-          (Reward, $$RewardsTableReferences),
-          Reward,
-          PrefetchHooks Function({bool userId})
+          $RewardImageOperationsTable,
+          RewardImageOperation,
+          $$RewardImageOperationsTableFilterComposer,
+          $$RewardImageOperationsTableOrderingComposer,
+          $$RewardImageOperationsTableAnnotationComposer,
+          $$RewardImageOperationsTableCreateCompanionBuilder,
+          $$RewardImageOperationsTableUpdateCompanionBuilder,
+          (RewardImageOperation, $$RewardImageOperationsTableReferences),
+          RewardImageOperation,
+          PrefetchHooks Function({bool userId, bool rewardId})
         > {
-  $$RewardsTableTableManager(_$AppDatabase db, $RewardsTable table)
-    : super(
+  $$RewardImageOperationsTableTableManager(
+    _$AppDatabase db,
+    $RewardImageOperationsTable table,
+  ) : super(
         TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
-              $$RewardsTableFilterComposer($db: db, $table: table),
+              $$RewardImageOperationsTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
           createOrderingComposer: () =>
-              $$RewardsTableOrderingComposer($db: db, $table: table),
+              $$RewardImageOperationsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
           createComputedFieldComposer: () =>
-              $$RewardsTableAnnotationComposer($db: db, $table: table),
+              $$RewardImageOperationsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
           updateCompanionCallback:
               ({
                 Value<String> id = const Value.absent(),
                 Value<String> userId = const Value.absent(),
-                Value<String> name = const Value.absent(),
-                Value<int> pointsCost = const Value.absent(),
-                Value<double?> monetaryCap = const Value.absent(),
-                Value<String?> imageKey = const Value.absent(),
-                Value<int> sortOrder = const Value.absent(),
+                Value<String> rewardId = const Value.absent(),
+                Value<String> operation = const Value.absent(),
+                Value<String> objectKey = const Value.absent(),
+                Value<String?> oldObjectKey = const Value.absent(),
+                Value<Uint8List?> bytes = const Value.absent(),
+                Value<String?> mimeType = const Value.absent(),
+                Value<bool> completed = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
-                Value<DateTime?> archivedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
-              }) => RewardsCompanion(
+              }) => RewardImageOperationsCompanion(
                 id: id,
                 userId: userId,
-                name: name,
-                pointsCost: pointsCost,
-                monetaryCap: monetaryCap,
-                imageKey: imageKey,
-                sortOrder: sortOrder,
+                rewardId: rewardId,
+                operation: operation,
+                objectKey: objectKey,
+                oldObjectKey: oldObjectKey,
+                bytes: bytes,
+                mimeType: mimeType,
+                completed: completed,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
-                archivedAt: archivedAt,
                 rowid: rowid,
               ),
           createCompanionCallback:
               ({
                 Value<String> id = const Value.absent(),
                 required String userId,
-                required String name,
-                required int pointsCost,
-                Value<double?> monetaryCap = const Value.absent(),
-                Value<String?> imageKey = const Value.absent(),
-                Value<int> sortOrder = const Value.absent(),
+                required String rewardId,
+                required String operation,
+                required String objectKey,
+                Value<String?> oldObjectKey = const Value.absent(),
+                Value<Uint8List?> bytes = const Value.absent(),
+                Value<String?> mimeType = const Value.absent(),
+                Value<bool> completed = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
-                Value<DateTime?> archivedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
-              }) => RewardsCompanion.insert(
+              }) => RewardImageOperationsCompanion.insert(
                 id: id,
                 userId: userId,
-                name: name,
-                pointsCost: pointsCost,
-                monetaryCap: monetaryCap,
-                imageKey: imageKey,
-                sortOrder: sortOrder,
+                rewardId: rewardId,
+                operation: operation,
+                objectKey: objectKey,
+                oldObjectKey: oldObjectKey,
+                bytes: bytes,
+                mimeType: mimeType,
+                completed: completed,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
-                archivedAt: archivedAt,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
               .map(
                 (e) => (
-                  e.readTable<$RewardsTable, Reward>(table),
-                  $$RewardsTableReferences(db, table, e),
+                  e.readTable<
+                    $RewardImageOperationsTable,
+                    RewardImageOperation
+                  >(table),
+                  $$RewardImageOperationsTableReferences(db, table, e),
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({userId = false}) {
+          prefetchHooksCallback: ({userId = false, rewardId = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [],
@@ -14172,11 +16593,21 @@ class $$RewardsTableTableManager
                       state = state.withJoin(
                         currentTable: table,
                         currentColumn: table.userId,
-                        referencedTable: $$RewardsTableReferences._userIdTable(
-                          db,
-                        ),
-                        referencedColumn: $$RewardsTableReferences
+                        referencedTable: $$RewardImageOperationsTableReferences
+                            ._userIdTable(db),
+                        referencedColumn: $$RewardImageOperationsTableReferences
                             ._userIdTable(db)
+                            .id,
+                      ) as T;
+                    }
+                    if (rewardId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.rewardId,
+                        referencedTable: $$RewardImageOperationsTableReferences
+                            ._rewardIdTable(db),
+                        referencedColumn: $$RewardImageOperationsTableReferences
+                            ._rewardIdTable(db)
                             .id,
                       ) as T;
                     }
@@ -14192,19 +16623,502 @@ class $$RewardsTableTableManager
       );
 }
 
-typedef $$RewardsTableProcessedTableManager =
+typedef $$RewardImageOperationsTableProcessedTableManager =
     ProcessedTableManager<
       _$AppDatabase,
-      $RewardsTable,
-      Reward,
-      $$RewardsTableFilterComposer,
-      $$RewardsTableOrderingComposer,
-      $$RewardsTableAnnotationComposer,
-      $$RewardsTableCreateCompanionBuilder,
-      $$RewardsTableUpdateCompanionBuilder,
-      (Reward, $$RewardsTableReferences),
-      Reward,
-      PrefetchHooks Function({bool userId})
+      $RewardImageOperationsTable,
+      RewardImageOperation,
+      $$RewardImageOperationsTableFilterComposer,
+      $$RewardImageOperationsTableOrderingComposer,
+      $$RewardImageOperationsTableAnnotationComposer,
+      $$RewardImageOperationsTableCreateCompanionBuilder,
+      $$RewardImageOperationsTableUpdateCompanionBuilder,
+      (RewardImageOperation, $$RewardImageOperationsTableReferences),
+      RewardImageOperation,
+      PrefetchHooks Function({bool userId, bool rewardId})
+    >;
+typedef $$RewardRedemptionRequestsTableCreateCompanionBuilder =
+    RewardRedemptionRequestsCompanion Function({
+      required String id,
+      Value<String> ledgerId,
+      required String userId,
+      required String rewardId,
+      Value<String> status,
+      Value<String?> lastError,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+typedef $$RewardRedemptionRequestsTableUpdateCompanionBuilder =
+    RewardRedemptionRequestsCompanion Function({
+      Value<String> id,
+      Value<String> ledgerId,
+      Value<String> userId,
+      Value<String> rewardId,
+      Value<String> status,
+      Value<String?> lastError,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+final class $$RewardRedemptionRequestsTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $RewardRedemptionRequestsTable,
+          RewardRedemptionRequest
+        > {
+  $$RewardRedemptionRequestsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $LocalUsersTable _userIdTable(_$AppDatabase db) => db.localUsers
+      .createAlias('reward_redemption_requests__user_id__local_users__id');
+
+  $$LocalUsersTableProcessedTableManager get userId {
+    final $_column = $_itemColumn<String>('user_id')!;
+
+    final manager = $$LocalUsersTableTableManager(
+      $_db,
+      $_db.localUsers,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_userIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $RewardsTable _rewardIdTable(_$AppDatabase db) => db.rewards
+      .createAlias('reward_redemption_requests__reward_id__rewards__id');
+
+  $$RewardsTableProcessedTableManager get rewardId {
+    final $_column = $_itemColumn<String>('reward_id')!;
+
+    final manager = $$RewardsTableTableManager(
+      $_db,
+      $_db.rewards,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_rewardIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$RewardRedemptionRequestsTableFilterComposer
+    extends Composer<_$AppDatabase, $RewardRedemptionRequestsTable> {
+  $$RewardRedemptionRequestsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get ledgerId => $composableBuilder(
+    column: $table.ledgerId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get lastError => $composableBuilder(
+    column: $table.lastError,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$LocalUsersTableFilterComposer get userId {
+    final $$LocalUsersTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userId,
+      referencedTable: $db.localUsers,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalUsersTableFilterComposer(
+            $db: $db,
+            $table: $db.localUsers,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$RewardsTableFilterComposer get rewardId {
+    final $$RewardsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.rewardId,
+      referencedTable: $db.rewards,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$RewardsTableFilterComposer(
+            $db: $db,
+            $table: $db.rewards,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$RewardRedemptionRequestsTableOrderingComposer
+    extends Composer<_$AppDatabase, $RewardRedemptionRequestsTable> {
+  $$RewardRedemptionRequestsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get ledgerId => $composableBuilder(
+    column: $table.ledgerId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get lastError => $composableBuilder(
+    column: $table.lastError,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$LocalUsersTableOrderingComposer get userId {
+    final $$LocalUsersTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userId,
+      referencedTable: $db.localUsers,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalUsersTableOrderingComposer(
+            $db: $db,
+            $table: $db.localUsers,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$RewardsTableOrderingComposer get rewardId {
+    final $$RewardsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.rewardId,
+      referencedTable: $db.rewards,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$RewardsTableOrderingComposer(
+            $db: $db,
+            $table: $db.rewards,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$RewardRedemptionRequestsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $RewardRedemptionRequestsTable> {
+  $$RewardRedemptionRequestsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get ledgerId =>
+      $composableBuilder(column: $table.ledgerId, builder: (column) => column);
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<String> get lastError =>
+      $composableBuilder(column: $table.lastError, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  $$LocalUsersTableAnnotationComposer get userId {
+    final $$LocalUsersTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userId,
+      referencedTable: $db.localUsers,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LocalUsersTableAnnotationComposer(
+            $db: $db,
+            $table: $db.localUsers,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$RewardsTableAnnotationComposer get rewardId {
+    final $$RewardsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.rewardId,
+      referencedTable: $db.rewards,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$RewardsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.rewards,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$RewardRedemptionRequestsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $RewardRedemptionRequestsTable,
+          RewardRedemptionRequest,
+          $$RewardRedemptionRequestsTableFilterComposer,
+          $$RewardRedemptionRequestsTableOrderingComposer,
+          $$RewardRedemptionRequestsTableAnnotationComposer,
+          $$RewardRedemptionRequestsTableCreateCompanionBuilder,
+          $$RewardRedemptionRequestsTableUpdateCompanionBuilder,
+          (RewardRedemptionRequest, $$RewardRedemptionRequestsTableReferences),
+          RewardRedemptionRequest,
+          PrefetchHooks Function({bool userId, bool rewardId})
+        > {
+  $$RewardRedemptionRequestsTableTableManager(
+    _$AppDatabase db,
+    $RewardRedemptionRequestsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$RewardRedemptionRequestsTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$RewardRedemptionRequestsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$RewardRedemptionRequestsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> ledgerId = const Value.absent(),
+                Value<String> userId = const Value.absent(),
+                Value<String> rewardId = const Value.absent(),
+                Value<String> status = const Value.absent(),
+                Value<String?> lastError = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => RewardRedemptionRequestsCompanion(
+                id: id,
+                ledgerId: ledgerId,
+                userId: userId,
+                rewardId: rewardId,
+                status: status,
+                lastError: lastError,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                Value<String> ledgerId = const Value.absent(),
+                required String userId,
+                required String rewardId,
+                Value<String> status = const Value.absent(),
+                Value<String?> lastError = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => RewardRedemptionRequestsCompanion.insert(
+                id: id,
+                ledgerId: ledgerId,
+                userId: userId,
+                rewardId: rewardId,
+                status: status,
+                lastError: lastError,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<
+                    $RewardRedemptionRequestsTable,
+                    RewardRedemptionRequest
+                  >(table),
+                  $$RewardRedemptionRequestsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({userId = false, rewardId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (userId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.userId,
+                        referencedTable:
+                            $$RewardRedemptionRequestsTableReferences
+                                ._userIdTable(db),
+                        referencedColumn:
+                            $$RewardRedemptionRequestsTableReferences
+                                ._userIdTable(db)
+                                .id,
+                      ) as T;
+                    }
+                    if (rewardId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.rewardId,
+                        referencedTable:
+                            $$RewardRedemptionRequestsTableReferences
+                                ._rewardIdTable(db),
+                        referencedColumn:
+                            $$RewardRedemptionRequestsTableReferences
+                                ._rewardIdTable(db)
+                                .id,
+                      ) as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$RewardRedemptionRequestsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $RewardRedemptionRequestsTable,
+      RewardRedemptionRequest,
+      $$RewardRedemptionRequestsTableFilterComposer,
+      $$RewardRedemptionRequestsTableOrderingComposer,
+      $$RewardRedemptionRequestsTableAnnotationComposer,
+      $$RewardRedemptionRequestsTableCreateCompanionBuilder,
+      $$RewardRedemptionRequestsTableUpdateCompanionBuilder,
+      (RewardRedemptionRequest, $$RewardRedemptionRequestsTableReferences),
+      RewardRedemptionRequest,
+      PrefetchHooks Function({bool userId, bool rewardId})
     >;
 typedef $$HabitRemindersTableCreateCompanionBuilder =
     HabitRemindersCompanion Function({
@@ -14671,12 +17585,19 @@ class $AppDatabaseManager {
       $$PointRulesTableTableManager(_db, _db.pointRules);
   $$CheckInsTableTableManager get checkIns =>
       $$CheckInsTableTableManager(_db, _db.checkIns);
+  $$RewardsTableTableManager get rewards =>
+      $$RewardsTableTableManager(_db, _db.rewards);
   $$PointLedgerTableTableManager get pointLedger =>
       $$PointLedgerTableTableManager(_db, _db.pointLedger);
   $$HabitPausesTableTableManager get habitPauses =>
       $$HabitPausesTableTableManager(_db, _db.habitPauses);
-  $$RewardsTableTableManager get rewards =>
-      $$RewardsTableTableManager(_db, _db.rewards);
+  $$RewardImageOperationsTableTableManager get rewardImageOperations =>
+      $$RewardImageOperationsTableTableManager(_db, _db.rewardImageOperations);
+  $$RewardRedemptionRequestsTableTableManager get rewardRedemptionRequests =>
+      $$RewardRedemptionRequestsTableTableManager(
+        _db,
+        _db.rewardRedemptionRequests,
+      );
   $$HabitRemindersTableTableManager get habitReminders =>
       $$HabitRemindersTableTableManager(_db, _db.habitReminders);
 }
