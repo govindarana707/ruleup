@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ruleup/core/config/app_config.dart';
 import 'package:ruleup/core/database/database_provider.dart';
 import 'package:ruleup/core/notifications/local_notification_service.dart';
 import 'package:ruleup/core/notifications/local_notification_service_provider.dart';
@@ -38,6 +39,7 @@ final settingsOverviewProvider =
           .take(3)
           .toList(growable: false);
       return SettingsOverview(
+        backendLabel: AppConfig.activeBackendLabel,
         pendingCount: queue.length,
         failedCount: queue.where((item) => item.lastError != null).length,
         lastSuccessfulSync: cursor?.updatedAt,
@@ -125,12 +127,14 @@ final reminderRefreshActionProvider = Provider<ReminderRefreshAction>((ref) {
 
 class SettingsOverview {
   const SettingsOverview({
+    this.backendLabel = 'Unknown backend',
     required this.pendingCount,
     required this.failedCount,
     required this.lastSuccessfulSync,
     this.syncErrors = const [],
   });
 
+  final String backendLabel;
   final int pendingCount;
   final int failedCount;
   final DateTime? lastSuccessfulSync;

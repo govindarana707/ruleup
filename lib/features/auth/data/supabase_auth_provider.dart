@@ -7,11 +7,21 @@ final supabaseSessionStorageProvider = Provider<SupabaseSessionStorage>(
   (ref) => SecureSupabaseSessionStorage(),
 );
 
-final supabaseAuthDataSourceProvider = Provider<SupabaseAuthDataSource?>((ref) {
-  final client = ref.watch(supabaseClientProvider);
-  if (client == null) return null;
-  return SupabaseAuthDataSourceImpl(
-    client,
-    ref.watch(supabaseSessionStorageProvider),
-  );
-});
+final supabaseAuthDataSourceImplProvider =
+    Provider<SupabaseAuthDataSourceImpl?>((ref) {
+      final client = ref.watch(supabaseClientProvider);
+      if (client == null) return null;
+      return SupabaseAuthDataSourceImpl(
+        client,
+        ref.watch(supabaseSessionStorageProvider),
+      );
+    });
+
+final supabaseAuthDataSourceProvider = Provider<SupabaseAuthDataSource?>(
+  (ref) => ref.watch(supabaseAuthDataSourceImplProvider),
+);
+
+final supabaseProductionAuthDataSourceProvider =
+    Provider<SupabaseProductionAuthDataSource?>(
+      (ref) => ref.watch(supabaseAuthDataSourceImplProvider),
+    );

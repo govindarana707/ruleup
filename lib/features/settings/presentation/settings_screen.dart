@@ -266,6 +266,14 @@ class _SyncSection extends StatelessWidget {
       AsyncData(:final value) => Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          ListTile(
+            key: const Key('active-backend'),
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.dns_outlined),
+            title: const Text('Active backend'),
+            subtitle: Text(value.backendLabel),
+          ),
+          const Divider(),
           Wrap(
             alignment: WrapAlignment.spaceBetween,
             crossAxisAlignment: WrapCrossAlignment.center,

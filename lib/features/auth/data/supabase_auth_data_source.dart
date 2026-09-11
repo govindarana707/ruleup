@@ -12,11 +12,27 @@ abstract interface class SupabaseAuthDataSource {
   Future<void> logout();
 }
 
-class SupabaseAuthDataSourceImpl implements SupabaseAuthDataSource {
+abstract interface class SupabaseProductionAuthDataSource {
+  Future<AuthSession> signup(String username, String password);
+  Future<AuthSession> login(String username, String password);
+  Future<AuthSession?> restoreCurrentSession();
+  Future<void> logout();
+}
+
+class SupabaseAuthDataSourceImpl
+    implements SupabaseAuthDataSource, SupabaseProductionAuthDataSource {
   SupabaseAuthDataSourceImpl(this._client, this._storage);
 
   final SupabaseClient _client;
   final SupabaseSessionStorage _storage;
+
+  @override
+  Future<AuthSession> signup(String username, String password) =>
+      _authenticate('signup', username, password);
+
+  @override
+  Future<AuthSession> login(String username, String password) =>
+      _authenticate('login', username, password);
 
   @override
   Future<AuthSession> adoptTransitionSession(
@@ -53,6 +69,46 @@ class SupabaseAuthDataSourceImpl implements SupabaseAuthDataSource {
   }
 
   @override
+  Future<AuthSession?> restoreCurrentSession() async {
+    final stored = await _storage.read();
+    if (stored == null) return null;
+    try {
+      final envelope = _SessionEnvelope.fromJson(stored);
+      final response = await _client.auth.setSession(
+        envelope.refreshToken,
+        accessToken: envelope.accessToken,
+      );
+      final session = response.session;
+      if (session == null || session.user.id != envelope.userId) {
+        await _clearLocalSession();
+        return null;
+      }
+      var username = envelope.username;
+      if (username == null) {
+        final profile = await _client
+            .from('profiles')
+            .select('username')
+            .eq('id', envelope.userId)
+            .single();
+        final remoteUsername = profile['username'];
+        if (remoteUsername is! String) {
+          throw const FormatException('Supabase profile is incomplete.');
+        }
+        username = remoteUsername;
+      }
+      final mapped = SupabaseSessionMapper.map(session, username);
+      await _store(mapped);
+      return mapped;
+    } on AuthException {
+      await _clearLocalSession();
+      return null;
+    } on FormatException {
+      await _clearLocalSession();
+      return null;
+    }
+  }
+
+  @override
   Future<void> logout() async {
     await _clearLocalSession();
   }
@@ -79,14 +135,53 @@ class SupabaseAuthDataSourceImpl implements SupabaseAuthDataSource {
       throw const FormatException('Supabase returned an unexpected identity.');
     }
     final mapped = SupabaseSessionMapper.map(session, expectedUser.username);
-    await _storage.write({
-      'accessToken': mapped.accessToken,
-      'refreshToken': mapped.refreshToken,
-      'expiresAt': mapped.expiresAt.millisecondsSinceEpoch ~/ 1000,
-      'userId': mapped.user.id,
-    });
+    await _store(mapped);
     return mapped;
   }
+
+  Future<AuthSession> _authenticate(
+    String action,
+    String username,
+    String password,
+  ) async {
+    final response = await _client.functions.invoke(
+      'username-auth',
+      body: {'action': action, 'username': username, 'password': password},
+    );
+    if (response.status < 200 || response.status >= 300) {
+      throw AuthException('Supabase authentication failed.');
+    }
+    final payload = response.data;
+    if (payload is! Map) {
+      throw const FormatException('Invalid Supabase authentication response.');
+    }
+    final data = payload['data'];
+    if (data is! Map) {
+      throw const FormatException('Invalid Supabase authentication response.');
+    }
+    final rawUser = data['user'];
+    final rawSession = data['supabaseSession'];
+    if (rawUser is! Map || rawSession is! Map) {
+      throw const FormatException('Invalid Supabase authentication response.');
+    }
+    final user = AuthUser.fromJson(Map<String, dynamic>.from(rawUser));
+    final session = await adoptTransitionSession(
+      Map<String, dynamic>.from(rawSession),
+      expectedUser: user,
+    );
+    if (session.user.username != username.trim().toLowerCase()) {
+      throw const FormatException('Supabase returned an unexpected username.');
+    }
+    return session;
+  }
+
+  Future<void> _store(AuthSession session) => _storage.write({
+    'accessToken': session.accessToken,
+    'refreshToken': session.refreshToken,
+    'expiresAt': session.expiresAt.millisecondsSinceEpoch ~/ 1000,
+    'userId': session.user.id,
+    'username': session.user.username,
+  });
 }
 
 abstract final class SupabaseSessionMapper {
@@ -114,6 +209,7 @@ class _SessionEnvelope {
     required this.refreshToken,
     required this.expiresAt,
     required this.userId,
+    this.username,
   });
 
   factory _SessionEnvelope.fromJson(Map<String, dynamic> json) {
@@ -134,6 +230,7 @@ class _SessionEnvelope {
       refreshToken: refreshToken,
       expiresAt: expiresAt.toInt(),
       userId: userId,
+      username: json['username'] is String ? json['username'] as String : null,
     );
   }
 
@@ -141,4 +238,5 @@ class _SessionEnvelope {
   final String refreshToken;
   final int expiresAt;
   final String userId;
+  final String? username;
 }

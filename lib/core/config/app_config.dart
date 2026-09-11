@@ -11,11 +11,11 @@ abstract final class AppConfig {
     defaultValue: 8787,
   );
 
-  static final apiBaseUrl = _createApiBaseUrl();
+  static Uri get apiBaseUrl => _createApiBaseUrl();
   static bool get showDevelopmentConnectionErrors => !kReleaseMode;
 
-  /// Supabase is optional during the phased migration. Existing Cloudflare
-  /// code must not read these values until the Supabase data source is enabled.
+  /// Supabase is required for production-default builds. Local development
+  /// and explicit rollback builds can continue to use the legacy Worker.
   static const supabaseUrl = String.fromEnvironment('SUPABASE_URL');
   static const supabaseAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY');
   static bool get hasSupabaseConfiguration =>
@@ -23,20 +23,58 @@ abstract final class AppConfig {
   static bool get isSupabaseConfigured =>
       supabaseUrl.isNotEmpty && supabaseAnonKey.isNotEmpty;
 
-  static const _habitSyncBackend = String.fromEnvironment(
+  static const _backendOverride = String.fromEnvironment('RULEUP_BACKEND');
+  static const _legacyBackendOverride = String.fromEnvironment(
     'RULEUP_HABIT_SYNC_BACKEND',
-    defaultValue: 'cloudflare',
+  );
+
+  static RuleUpBackend get activeBackend => resolveBackend(
+    backendOverride: _backendOverride,
+    legacyOverride: _legacyBackendOverride,
+    releaseMode: kReleaseMode,
   );
 
   static HabitSyncBackend get habitSyncBackend =>
-      parseHabitSyncBackend(_habitSyncBackend);
+      activeBackend == RuleUpBackend.supabase
+      ? HabitSyncBackend.supabase
+      : HabitSyncBackend.cloudflare;
+
+  static String get activeBackendLabel => switch (activeBackend) {
+    RuleUpBackend.local => 'Local development (Cloudflare/D1)',
+    RuleUpBackend.supabase => 'Supabase production',
+    RuleUpBackend.legacy => 'Legacy Cloudflare/D1',
+  };
+
+  static RuleUpBackend resolveBackend({
+    required String backendOverride,
+    required String legacyOverride,
+    required bool releaseMode,
+  }) {
+    if (backendOverride.isNotEmpty) {
+      return parseBackend(backendOverride);
+    }
+    if (legacyOverride.isNotEmpty) {
+      return parseHabitSyncBackend(legacyOverride) == HabitSyncBackend.supabase
+          ? RuleUpBackend.supabase
+          : RuleUpBackend.legacy;
+    }
+    return releaseMode ? RuleUpBackend.supabase : RuleUpBackend.local;
+  }
+
+  static RuleUpBackend parseBackend(String value) => switch (value) {
+    'local' => RuleUpBackend.local,
+    'supabase' => RuleUpBackend.supabase,
+    'legacy' || 'cloudflare' => RuleUpBackend.legacy,
+    _ => throw StateError('RULEUP_BACKEND must be local, supabase, or legacy.'),
+  };
 
   static HabitSyncBackend parseHabitSyncBackend(String value) =>
       switch (value) {
         'cloudflare' => HabitSyncBackend.cloudflare,
+        'legacy' => HabitSyncBackend.cloudflare,
         'supabase' => HabitSyncBackend.supabase,
         _ => throw StateError(
-          'RULEUP_HABIT_SYNC_BACKEND must be cloudflare or supabase.',
+          'RULEUP_HABIT_SYNC_BACKEND must be cloudflare, legacy, or supabase.',
         ),
       };
 
@@ -56,6 +94,14 @@ abstract final class AppConfig {
     return (url: url, anonKey: supabaseAnonKey);
   }
 
+  static void validateStartupConfiguration() {
+    if (activeBackend == RuleUpBackend.supabase) {
+      requireSupabaseConfiguration();
+    } else {
+      _createApiBaseUrl();
+    }
+  }
+
   static Uri _createApiBaseUrl() {
     if (_baseUrlOverride.isNotEmpty) {
       final url = Uri.parse(_baseUrlOverride);
@@ -67,6 +113,11 @@ abstract final class AppConfig {
       }
       return url;
     }
+    if (activeBackend == RuleUpBackend.supabase) {
+      throw StateError(
+        'The legacy API URL is unavailable in Supabase production mode.',
+      );
+    }
     if (kReleaseMode) {
       throw StateError('RULEUP_API_BASE_URL is required for release builds.');
     }
@@ -75,3 +126,5 @@ abstract final class AppConfig {
 }
 
 enum HabitSyncBackend { cloudflare, supabase }
+
+enum RuleUpBackend { local, supabase, legacy }

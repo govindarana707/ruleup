@@ -15,17 +15,18 @@ import 'package:ruleup/features/auth/presentation/auth_controller.dart';
 import 'package:ruleup/features/rewards/data/reward_repository.dart';
 import 'package:ruleup/features/rewards/data/reward_repository_provider.dart';
 
-final rewardImageServiceProvider = Provider<RewardImageService>(
-  (ref) => RewardImageService(
-    ref.watch(apiClientProvider),
-    ref.watch(tokenStorageProvider),
+final rewardImageServiceProvider = Provider<RewardImageService>((ref) {
+  final useSupabase = AppConfig.habitSyncBackend == HabitSyncBackend.supabase;
+  return RewardImageService(
+    useSupabase ? null : ref.watch(apiClientProvider),
+    useSupabase ? null : ref.watch(tokenStorageProvider),
     ref.watch(rewardRepositoryProvider),
     database: ref.watch(databaseProvider),
     sync: ref.watch(syncServiceProvider),
     supabase: ref.watch(supabaseDatabaseServiceProvider),
-    useSupabase: AppConfig.habitSyncBackend == HabitSyncBackend.supabase,
-  ),
-);
+    useSupabase: useSupabase,
+  );
+});
 
 class RewardImageService {
   RewardImageService(
@@ -37,8 +38,8 @@ class RewardImageService {
     required this._supabase,
     required this._useSupabase,
   });
-  final ApiClient _api;
-  final TokenStorage _tokens;
+  final ApiClient? _api;
+  final TokenStorage? _tokens;
   final RewardRepository _rewards;
   final AppDatabase _database;
   final SyncService _sync;
@@ -67,7 +68,7 @@ class RewardImageService {
       );
       return;
     }
-    final token = await _tokens.read();
+    final token = await _tokens!.read();
     if (token == null) {
       throw const ApiException(
         statusCode: 0,
@@ -84,7 +85,7 @@ class RewardImageService {
       );
     }
     final mime = image.mimeType == 'image/webp' ? 'image/webp' : 'image/jpeg';
-    final response = await _api.postBytes(
+    final response = await _api!.postBytes(
       '/reward-images',
       bytes: bytes,
       contentType: mime,
@@ -130,7 +131,7 @@ class RewardImageService {
       });
       return;
     }
-    final token = await _tokens.read();
+    final token = await _tokens!.read();
     if (token == null) {
       throw const ApiException(
         statusCode: 0,
@@ -140,7 +141,7 @@ class RewardImageService {
     }
     await _rewards.setImageKey(userId, rewardId, null);
     try {
-      await _api.delete(
+      await _api!.delete(
         '/reward-images/${Uri.encodeComponent(key)}',
         token: token,
       );
@@ -255,10 +256,10 @@ class RewardImageService {
           .createSignedUrl(key, 300);
       return RewardImageAccess(Uri.parse(signed));
     }
-    final token = await _tokens.read();
+    final token = await _tokens!.read();
     if (token == null) return null;
     return RewardImageAccess(
-      _api.resolve('/reward-images/${Uri.encodeComponent(key)}'),
+      _api!.resolve('/reward-images/${Uri.encodeComponent(key)}'),
       headers: {'authorization': 'Bearer $token'},
     );
   }

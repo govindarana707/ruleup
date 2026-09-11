@@ -28,6 +28,7 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
+  crypto: ^3.0.6
   drift: ^2.34.4
   drift_flutter: ^0.3.1
   flutter:

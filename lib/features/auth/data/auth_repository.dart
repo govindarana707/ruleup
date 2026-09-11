@@ -2,6 +2,7 @@ import 'package:ruleup/core/network/api_client.dart';
 import 'package:ruleup/features/auth/data/local_user_store.dart';
 import 'package:ruleup/features/auth/data/token_storage.dart';
 import 'package:ruleup/features/auth/data/supabase_auth_data_source.dart';
+import 'package:ruleup/features/auth/domain/auth_session.dart';
 import 'package:ruleup/features/auth/domain/auth_user.dart';
 
 abstract interface class AuthRepository {
@@ -112,5 +113,47 @@ class ApiAuthRepository implements AuthRepository {
     } on Object {
       // Supabase state cannot override the legacy authenticated-user state.
     }
+  }
+}
+
+/// Production repository. It deliberately has no Worker/D1 dependency so a
+/// production build cannot accidentally dual-write or silently fall back.
+class SupabaseAuthRepository implements AuthRepository {
+  SupabaseAuthRepository(this._supabase, this._localUsers, this._legacyTokens);
+
+  final SupabaseProductionAuthDataSource _supabase;
+  final LocalUserStore _localUsers;
+  final TokenStorage _legacyTokens;
+
+  @override
+  Future<AuthUser> signup(String username, String password) =>
+      _authenticate(() => _supabase.signup(username, password));
+
+  @override
+  Future<AuthUser> login(String username, String password) =>
+      _authenticate(() => _supabase.login(username, password));
+
+  @override
+  Future<AuthUser?> restoreSession() async {
+    final session = await _supabase.restoreCurrentSession();
+    if (session == null) return null;
+    await _localUsers.ensureExists(session.user.id);
+    return session.user;
+  }
+
+  @override
+  Future<void> logout() async {
+    try {
+      await _supabase.logout();
+    } finally {
+      await _legacyTokens.delete();
+    }
+  }
+
+  Future<AuthUser> _authenticate(Future<AuthSession> Function() action) async {
+    final session = await action();
+    await _localUsers.ensureExists(session.user.id);
+    await _legacyTokens.delete();
+    return session.user;
   }
 }

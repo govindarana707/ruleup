@@ -149,6 +149,25 @@ void main() {
     expect(localUser.id, 'user-id');
   });
 
+  test(
+    'production Supabase auth provisions Drift and clears legacy token',
+    () async {
+      final tokens = _MemoryTokenStorage()..token = 'legacy-token';
+      final localUsers = _TrackingLocalUserStore();
+      final repository = SupabaseAuthRepository(
+        _FakeProductionSupabaseAuth(),
+        localUsers,
+        tokens,
+      );
+
+      final user = await repository.login('tester', 'long-enough-password');
+
+      expect(user.id, 'user-id');
+      expect(localUsers.userId, 'user-id');
+      expect(tokens.token, isNull);
+    },
+  );
+
   test('logout calls backend and clears secure session', () async {
     final tokens = _MemoryTokenStorage()..token = 'secure-session-token';
     var called = false;
@@ -267,6 +286,31 @@ class _MemoryTokenStorage implements TokenStorage {
 class _MemoryLocalUserStore implements LocalUserStore {
   @override
   Future<void> ensureExists(String userId) async {}
+}
+
+class _TrackingLocalUserStore implements LocalUserStore {
+  String? userId;
+  @override
+  Future<void> ensureExists(String userId) async => this.userId = userId;
+}
+
+class _FakeProductionSupabaseAuth implements SupabaseProductionAuthDataSource {
+  AuthSession get _session => AuthSession(
+    user: const AuthUser(id: 'user-id', username: 'tester'),
+    accessToken: 'access-token',
+    refreshToken: 'refresh-token',
+    expiresAt: DateTime.utc(2030),
+  );
+
+  @override
+  Future<AuthSession> login(String username, String password) async => _session;
+  @override
+  Future<AuthSession> signup(String username, String password) async =>
+      _session;
+  @override
+  Future<AuthSession?> restoreCurrentSession() async => _session;
+  @override
+  Future<void> logout() async {}
 }
 
 class _FakeSupabaseAuthDataSource implements SupabaseAuthDataSource {

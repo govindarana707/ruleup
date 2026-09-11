@@ -21,17 +21,41 @@ final apiClientProvider = Provider<ApiClient>((ref) {
     ref.watch(httpClientProvider),
   );
 });
-final backendHealthProvider = FutureProvider<void>((ref) {
-  return ref.watch(apiClientProvider).checkHealth();
+final backendHealthProvider = FutureProvider<void>((ref) async {
+  if (AppConfig.activeBackend != RuleUpBackend.supabase) {
+    return ref.watch(apiClientProvider).checkHealth();
+  }
+  final configuration = AppConfig.requireSupabaseConfiguration();
+  final response = await ref
+      .watch(httpClientProvider)
+      .get(
+        configuration.url.resolve('/auth/v1/health'),
+        headers: {'apikey': configuration.anonKey},
+      );
+  if (response.statusCode < 200 || response.statusCode >= 300) {
+    throw StateError('Supabase health check failed (${response.statusCode}).');
+  }
 });
 final tokenStorageProvider = Provider<TokenStorage>(
   (ref) => SecureTokenStorage(),
 );
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
+  final localUsers = DriftLocalUserStore(ref.watch(databaseProvider));
+  if (AppConfig.activeBackend == RuleUpBackend.supabase) {
+    final source = ref.watch(supabaseProductionAuthDataSourceProvider);
+    if (source == null) {
+      throw StateError('Supabase production authentication is not configured.');
+    }
+    return SupabaseAuthRepository(
+      source,
+      localUsers,
+      ref.watch(tokenStorageProvider),
+    );
+  }
   return ApiAuthRepository(
     ref.watch(apiClientProvider),
     ref.watch(tokenStorageProvider),
-    DriftLocalUserStore(ref.watch(databaseProvider)),
+    localUsers,
     supabaseAuth: ref.watch(supabaseAuthDataSourceProvider),
   );
 });

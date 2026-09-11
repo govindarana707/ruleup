@@ -14,6 +14,8 @@ void main() {
     await _pumpSettings(tester, logout: () async => logoutCalls++);
 
     expect(find.text('tester'), findsOneWidget);
+    expect(find.byKey(const Key('active-backend')), findsOneWidget);
+    expect(find.text('Unknown backend'), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('settings-logout')));
     await tester.pumpAndSettle();

@@ -1,0 +1,5 @@
+[functions.username-auth]
+verify_jwt = false
+
+[functions.cleanup-reward-images]
+verify_jwt = true

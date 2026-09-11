@@ -1,6 +1,7 @@
 # RuleUp
 
-RuleUp contains the Flutter application and a Cloudflare Worker/D1 backend.
+RuleUp contains the Flutter application, its production Supabase backend, and
+the retained Cloudflare Worker/D1 rollback backend.
 
 ## Full local run
 
@@ -30,25 +31,19 @@ Replace `192.168.1.50` with the development computer's LAN IPv4 address. Allow
 TCP port `8787` through the computer firewall and keep the Worker bound to
 `0.0.0.0`. `RULEUP_API_PORT` can override the development port.
 
-For a non-local environment, provide the complete URL:
+Debug builds default to the local Worker/D1 backend. Production builds default
+to Supabase and require both values:
 
 ```powershell
-flutter run --dart-define=RULEUP_API_BASE_URL=https://api.example.com
+flutter build apk --release --dart-define=SUPABASE_URL=https://PROJECT.supabase.co --dart-define=SUPABASE_ANON_KEY=PUBLIC_KEY
 ```
 
-Release builds require an explicit HTTPS `RULEUP_API_BASE_URL`; RuleUp has no
-hardcoded production endpoint. Cleartext HTTP is enabled only in the Android
-debug manifest. The app checks `/health` on startup and shows a retry screen in
-development when the Worker cannot be reached. Configuration remains centralized
-in `lib/core/config/app_config.dart`. Keep `.dev.vars`, API tokens, passwords,
-and other secrets out of source control.
+The explicit rollback build uses
+`--dart-define=RULEUP_BACKEND=legacy --dart-define=RULEUP_API_BASE_URL=https://api.example.com`.
+There is no dual-write mode. Cleartext HTTP is enabled only in the Android debug
+manifest. Configuration remains centralized in `lib/core/config/app_config.dart`.
+Keep service-role keys, `.dev.vars`, API tokens, and passwords out of source
+control. See `docs/supabase_phase7_cutover.md` before a release or rollback.
 
-## Phase 3 Supabase habit sync
-
-Cloudflare/D1 remains the default and rollback path. A development build can
-route the non-financial habit-definition domain to Supabase by supplying its URL,
-anon/publishable key, and
-`--dart-define=RULEUP_HABIT_SYNC_BACKEND=supabase`. This opt-in does not dual
-write. Check-ins, ledger entries, wallet data, and rewards are outside Phase 3
-and remain queued locally while this scoped mode is active. See
-`docs/supabase_phase3_habit_sync_audit.md` for details.
+The older `RULEUP_HABIT_SYNC_BACKEND` switch remains accepted for rollback
+compatibility, but `RULEUP_BACKEND=local|supabase|legacy` is canonical.

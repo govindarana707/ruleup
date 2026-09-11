@@ -16,4 +16,26 @@ void main() {
       throwsStateError,
     );
   });
+
+  test('production defaults to Supabase without dual writes', () {
+    expect(
+      AppConfig.resolveBackend(
+        backendOverride: '',
+        legacyOverride: '',
+        releaseMode: true,
+      ),
+      RuleUpBackend.supabase,
+    );
+    expect(
+      AppConfig.resolveBackend(
+        backendOverride: '',
+        legacyOverride: '',
+        releaseMode: false,
+      ),
+      RuleUpBackend.local,
+    );
+    expect(AppConfig.parseBackend('legacy'), RuleUpBackend.legacy);
+    expect(AppConfig.parseBackend('cloudflare'), RuleUpBackend.legacy);
+    expect(() => AppConfig.parseBackend('dual-write'), throwsStateError);
+  });
 }

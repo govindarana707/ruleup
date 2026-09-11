@@ -3,9 +3,8 @@ import 'package:ruleup/core/config/app_config.dart';
 import 'package:ruleup/core/supabase/supabase_database_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-/// Null until SUPABASE_URL and SUPABASE_ANON_KEY are supplied with
-/// --dart-define. Keeping this optional ensures Phase 1 cannot alter the live
-/// Cloudflare/D1 path merely by adding the Supabase dependency.
+/// Null only for local/legacy builds without Supabase configuration. Production
+/// startup validation requires both values before this provider can be read.
 final supabaseClientProvider = Provider<SupabaseClient?>((ref) {
   if (!AppConfig.hasSupabaseConfiguration) return null;
   final configuration = AppConfig.requireSupabaseConfiguration();
