@@ -1,6 +1,6 @@
 # RuleUp Supabase foundation
 
-These migrations define the staged Supabase target through Phase 5. They have
+These migrations define the staged Supabase target through Phase 6. They have
 been applied to an authorized disposable hosted project, but they do not replace
 the Worker, D1 migrations, R2 binding, Drift repositories, or default sync
 transport.
@@ -28,7 +28,7 @@ flutter run \
 
 The anon key is build configuration, not a service-role secret. Never place a
 service-role key in Flutter. Cloudflare remains the default habit transport. To
-exercise the Phase 5 transport, opt in:
+exercise the phased Supabase transport, opt in:
 
 ```sh
 flutter run \
@@ -44,6 +44,19 @@ financial tables are directly read-only to authenticated clients; wallet totals
 remain derived from ledger rows. Reward images use durable offline operations
 and private five-minute signed URLs. There are no dual writes. Omit the backend
 flag (or set it to `cloudflare`) to use the complete legacy Worker/D1 sync path.
+
+Phase 6 keeps reminder time/enabled metadata owner-scoped while notification
+permission and OS delivery state stay device-only. It also adds 30-day local
+retention for safely converged reward operations and the authenticated
+`cleanup-reward-images` Edge Function. The function derives its owner from the
+session JWT and deletes through the Storage API; invoke it before Auth deletion
+in any future account-deletion orchestration.
+
+Deploy the cleanup primitive separately from database migrations:
+
+```sh
+npx supabase functions deploy cleanup-reward-images
+```
 
 See the phase audit documents under `docs/` for schema, authentication, and
 habit-sync decisions.

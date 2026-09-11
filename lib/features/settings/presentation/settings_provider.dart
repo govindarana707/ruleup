@@ -5,6 +5,7 @@ import 'package:ruleup/core/notifications/local_notification_service.dart';
 import 'package:ruleup/core/notifications/local_notification_service_provider.dart';
 import 'package:ruleup/core/sync/remote_change_merger.dart';
 import 'package:ruleup/core/sync/sync_provider.dart';
+import 'package:ruleup/core/sync/sync_transport.dart';
 import 'package:ruleup/features/auth/presentation/auth_controller.dart';
 import 'package:ruleup/features/reminders/data/habit_reminder_repository_provider.dart';
 import 'package:ruleup/features/reminders/data/habit_reminder_scheduler_provider.dart';
@@ -14,6 +15,10 @@ final settingsOverviewProvider =
     FutureProvider.family<SettingsOverview, String>((ref, userId) async {
       ref.watch(syncControllerProvider.select((state) => state.status));
       final database = ref.watch(databaseProvider);
+      final transport = ref.watch(syncTransportProvider);
+      final cursorKey = transport is CursorScopedPullSyncTransport
+          ? transport.cursorMetadataKey
+          : RemoteChangeMerger.cursorMetadataKey;
       final queue =
           await (database.select(database.syncQueue)
                 ..where((row) => row.userId.equals(userId))
@@ -21,9 +26,7 @@ final settingsOverviewProvider =
               .get();
       final cursor =
           await (database.select(database.syncMetadata)..where(
-                (row) =>
-                    row.userId.equals(userId) &
-                    row.key.equals(RemoteChangeMerger.cursorMetadataKey),
+                (row) => row.userId.equals(userId) & row.key.equals(cursorKey),
               ))
               .getSingleOrNull();
       final errors = queue

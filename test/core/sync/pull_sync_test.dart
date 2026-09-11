@@ -280,6 +280,73 @@ void main() {
     expect(refreshed, {habitId});
   });
 
+  test(
+    'canonical reminder pull waits for pending local UUID then reschedules',
+    () async {
+      const habitId = '30000000-0000-4000-8000-000000000001';
+      const localReminderId = '40000000-0000-4000-8000-000000000001';
+      const remoteReminderId = '40000000-0000-4000-8000-000000000002';
+      await _insertCategory(database, userId, categoryId, 'Health');
+      await _insertHabit(database, userId, habitId, categoryId);
+      await database
+          .into(database.habitReminders)
+          .insert(
+            HabitRemindersCompanion.insert(
+              id: const Value(localReminderId),
+              userId: userId,
+              habitId: habitId,
+              enabled: const Value(false),
+              timeOfDay: '08:00',
+            ),
+          );
+      await service.enqueue(
+        userId: userId,
+        entityType: 'habit_reminder',
+        entityId: localReminderId,
+        operation: 'create',
+      );
+      final remoteChange = _change('1', 'habit_reminder', {
+        'id': remoteReminderId,
+        'habitId': habitId,
+        'enabled': true,
+        'timeOfDay': '09:30',
+        ..._remoteTimestamps(1),
+      });
+
+      final blocked = await merger.apply(
+        userId,
+        '0',
+        PullBatch(changes: [remoteChange], nextCursor: '1', hasMore: false),
+      );
+      expect(blocked.blockedByPendingLocalChange, isTrue);
+      expect(
+        (await database.select(database.habitReminders).getSingle()).id,
+        localReminderId,
+      );
+
+      await database.delete(database.syncQueue).go();
+      final refreshed = <String>{};
+      service = SyncService(
+        database,
+        transport,
+        merger: merger,
+        onReminderChanges: (_, habitIds) async => refreshed.addAll(habitIds),
+      );
+      transport.batches['0'] = PullBatch(
+        changes: [remoteChange],
+        nextCursor: '1',
+        hasMore: false,
+      );
+      expect((await service.synchronize(userId)).pulled, 1);
+
+      final canonical = await database.select(database.habitReminders).get();
+      expect(canonical, hasLength(1));
+      expect(canonical.single.id, remoteReminderId);
+      expect(canonical.single.timeOfDay, '09:30');
+      expect(refreshed, {habitId});
+    },
+  );
+
   test('pull merging remains isolated between local users', () async {
     const otherCategoryId = '20000000-0000-4000-8000-000000000002';
     await _insertCategory(database, otherUserId, otherCategoryId, 'Other user');

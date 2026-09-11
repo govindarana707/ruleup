@@ -17,6 +17,7 @@ import 'package:ruleup/features/check_ins/data/check_in_repository.dart';
 import 'package:ruleup/features/points/data/point_ledger_repository.dart';
 import 'package:ruleup/features/points/domain/point_ledger_source_type.dart';
 import 'package:ruleup/features/points/domain/point_rule_operator.dart';
+import 'package:ruleup/features/reminders/data/habit_reminder_repository.dart';
 
 void main() {
   late AppDatabase database;
@@ -289,6 +290,76 @@ void main() {
       final retried = await service.retryFailed(userId);
       expect(retried.succeeded, 1);
       expect(persistentRemote.pushed.single.id, category.id);
+      expect(
+        await persistentDatabase.select(persistentDatabase.syncQueue).get(),
+        isEmpty,
+      );
+      await persistentDatabase.close();
+    } finally {
+      if (directory.existsSync()) directory.deleteSync(recursive: true);
+    }
+  });
+
+  test('offline reminder and dependency survive restart then retry', () async {
+    await database.close();
+    final directory = await Directory.systemTemp.createTemp('ruleup-phase6-');
+    final file = File(
+      '${directory.path}${Platform.pathSeparator}ruleup.sqlite',
+    );
+    try {
+      var persistentDatabase = AppDatabase(NativeDatabase(file));
+      await persistentDatabase
+          .into(persistentDatabase.localUsers)
+          .insert(LocalUsersCompanion.insert(id: const Value(userId)));
+      await persistentDatabase
+          .into(persistentDatabase.habits)
+          .insert(
+            HabitsCompanion.insert(
+              id: const Value(habitId),
+              userId: userId,
+              name: 'Remember me',
+              measurementType: MeasurementType.yesNo,
+            ),
+          );
+      var persistentRemote = _FakeRemote(userId)..failPush = true;
+      var service = SyncService(
+        persistentDatabase,
+        SupabaseHabitSyncTransport(persistentDatabase, persistentRemote),
+      );
+      await service.enqueue(
+        userId: userId,
+        entityType: 'habit',
+        entityId: habitId,
+        operation: 'create',
+      );
+      final reminder =
+          await HabitReminderRepository(persistentDatabase, service).create(
+            userId: userId,
+            habitId: habitId,
+            enabled: true,
+            timeOfDay: '07:45',
+          );
+      expect((await service.syncPending(userId)).failed, 2);
+      await persistentDatabase.close();
+
+      persistentDatabase = AppDatabase(NativeDatabase(file));
+      persistentRemote = _FakeRemote(userId);
+      service = SyncService(
+        persistentDatabase,
+        SupabaseHabitSyncTransport(persistentDatabase, persistentRemote),
+      );
+      expect(
+        (await persistentDatabase
+                .select(persistentDatabase.habitReminders)
+                .getSingle())
+            .id,
+        reminder.id,
+      );
+      expect((await service.retryFailed(userId)).succeeded, 2);
+      expect(
+        persistentRemote.pushed.map((mutation) => mutation.type).toList(),
+        [HabitSyncEntityType.habit, HabitSyncEntityType.habitReminder],
+      );
       expect(
         await persistentDatabase.select(persistentDatabase.syncQueue).get(),
         isEmpty,

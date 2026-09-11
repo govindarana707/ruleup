@@ -67,6 +67,28 @@ class RemoteChangeMerger {
     String userId,
     RemoteChange change,
   ) async {
+    if (change.entityType == 'habit_reminder' && change.operation != 'delete') {
+      final habitId = change.data['habitId'];
+      if (habitId is String) {
+        final localReminder =
+            await (_database.select(_database.habitReminders)..where(
+                  (row) =>
+                      row.userId.equals(userId) & row.habitId.equals(habitId),
+                ))
+                .getSingleOrNull();
+        if (localReminder != null) {
+          final pendingCanonicalization =
+              await (_database.select(_database.syncQueue)..where(
+                    (row) =>
+                        row.userId.equals(userId) &
+                        row.entityType.equals('habit_reminder') &
+                        row.entityId.equals(localReminder.id),
+                  ))
+                  .getSingleOrNull();
+          if (pendingCanonicalization != null) return true;
+        }
+      }
+    }
     final pending =
         await (_database.select(_database.syncQueue)..where(
               (row) =>
@@ -234,11 +256,19 @@ class RemoteChangeMerger {
           ),
         );
       case 'habit_reminder':
+        final habitId = _required<String>(data, 'habitId');
+        await (_database.delete(_database.habitReminders)..where(
+              (row) =>
+                  row.userId.equals(userId) &
+                  row.habitId.equals(habitId) &
+                  row.id.isNotValue(_id(data)),
+            ))
+            .go();
         await _database.habitReminders.insertOnConflictUpdate(
           HabitRemindersCompanion.insert(
             id: Value(_id(data)),
             userId: userId,
-            habitId: _required<String>(data, 'habitId'),
+            habitId: habitId,
             enabled: Value(_required<bool>(data, 'enabled')),
             timeOfDay: _required<String>(data, 'timeOfDay'),
             createdAt: Value(_date(data, 'createdAt')),

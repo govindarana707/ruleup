@@ -39,6 +39,11 @@ class SupabaseHabitSyncDataSourceImpl
         await _pushLedger(mutation, ownerId);
         return;
       }
+      if (mutation.type == HabitSyncEntityType.habitReminder &&
+          mutation.operation != 'delete') {
+        await _pushReminder(mutation, ownerId);
+        return;
+      }
       if (mutation.operation == 'delete') {
         await _database
             .from(mutation.type.tableName)
@@ -296,6 +301,67 @@ class SupabaseHabitSyncDataSourceImpl
         'p_ledger_id': ledgerId,
       },
     );
+  }
+
+  Future<void> _pushReminder(HabitSyncMutation mutation, String ownerId) async {
+    final row = mutation.row;
+    final habitId = row?['habit_id'];
+    if (row == null || row['user_id'] != ownerId || habitId is! String) {
+      throw const HabitSyncException(
+        HabitSyncErrorKind.integrity,
+        'The outgoing reminder owner or habit is invalid.',
+      );
+    }
+    final table = _database.from(HabitSyncEntityType.habitReminder.tableName);
+    var existing = await table
+        .select()
+        .eq('user_id', ownerId)
+        .eq('habit_id', habitId)
+        .maybeSingle();
+    if (existing == null) {
+      try {
+        await table.upsert(row, onConflict: 'id');
+        return;
+      } on PostgrestException catch (error) {
+        if (error.code != '23505') rethrow;
+        existing = await table
+            .select()
+            .eq('user_id', ownerId)
+            .eq('habit_id', habitId)
+            .maybeSingle();
+        if (existing == null) rethrow;
+      }
+    }
+
+    if (existing['user_id'] != ownerId) {
+      throw const HabitSyncException(
+        HabitSyncErrorKind.ownership,
+        'The Supabase reminder belongs to another user.',
+      );
+    }
+    final remoteUpdatedAt = DateTime.parse(existing['updated_at'] as String)
+        .toUtc();
+    final localUpdatedAt = DateTime.parse(row['updated_at']! as String).toUtc();
+    final canonicalId = existing['id']! as String;
+    if (!localUpdatedAt.isAfter(remoteUpdatedAt)) {
+      if (canonicalId != mutation.id) {
+        // Emit a fresh canonical change so a client whose cursor already
+        // passed the original insert can replace its superseded local UUID.
+        await table
+            .update({'updated_at': existing['updated_at']})
+            .eq('id', canonicalId)
+            .eq('user_id', ownerId);
+      }
+      return;
+    }
+    await table
+        .update({
+          'enabled': row['enabled'],
+          'time_of_day': row['time_of_day'],
+          'updated_at': row['updated_at'],
+        })
+        .eq('id', canonicalId)
+        .eq('user_id', ownerId);
   }
 
   @override

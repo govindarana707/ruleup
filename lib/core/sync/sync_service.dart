@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:ruleup/core/database/app_database.dart';
 import 'package:ruleup/core/sync/remote_change_merger.dart';
+import 'package:ruleup/core/sync/sync_retention_pruner.dart';
 import 'package:ruleup/core/sync/sync_transport.dart';
 
 class SyncService {
@@ -8,12 +9,15 @@ class SyncService {
     this._database,
     this._transport, {
     RemoteChangeMerger? merger,
+    SyncRetentionPruner? retentionPruner,
     this.onReminderChanges,
-  }) : _merger = merger ?? RemoteChangeMerger(_database);
+  }) : _merger = merger ?? RemoteChangeMerger(_database),
+       _retentionPruner = retentionPruner ?? SyncRetentionPruner(_database);
 
   final AppDatabase _database;
   final SyncTransport _transport;
   final RemoteChangeMerger _merger;
+  final SyncRetentionPruner _retentionPruner;
   final Future<void> Function(String userId, Set<String> habitIds)?
   onReminderChanges;
   final Set<String> _runningUsers = {};
@@ -46,7 +50,14 @@ class SyncService {
         if (retryFailures) {
           result = result + await _push(userId, retryFailures: true);
         }
-        return result + await _pull(userId);
+        result = result + await _pull(userId);
+        try {
+          await _retentionPruner.prune(userId);
+        } on Object {
+          // Retention is best-effort and must not turn completed sync into a
+          // data failure. Eligible rows remain safe to retry next time.
+        }
+        return result;
       });
 
   Future<SyncResult> _withUserLock(
