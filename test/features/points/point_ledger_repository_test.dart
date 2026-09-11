@@ -144,6 +144,61 @@ void main() {
   });
 
   test(
+    'positive-to-negative edit replaces rather than stacks points',
+    () async {
+      final habitId = await _createHabit(
+        database,
+        userId,
+        MeasurementType.count,
+      );
+      await database
+          .into(database.pointRules)
+          .insert(
+            PointRulesCompanion.insert(
+              userId: userId,
+              habitId: habitId,
+              operator: PointRuleOperator.eq,
+              valueMin: const Value(1),
+              points: 10,
+            ),
+          );
+      await _createRule(
+        database,
+        userId: userId,
+        habitId: habitId,
+        operator: PointRuleOperator.gte,
+        valueMin: 2,
+        points: -5,
+      );
+      final checkIn = await checkIns.create(
+        userId: userId,
+        habitId: habitId,
+        habitDate: DateTime(2026, 1, 1),
+        measuredValue: 1,
+      );
+      final original = await ledger.getForCheckIn(userId, checkIn.id);
+      expect(original?.points, 10);
+
+      await checkIns.update(
+        userId: userId,
+        id: checkIn.id,
+        optionId: null,
+        measuredValue: 2,
+        note: null,
+      );
+      final reconciled = await ledger.getForCheckIn(userId, checkIn.id);
+      final wallet = await ledger.getWallet(userId);
+
+      expect(reconciled?.id, original?.id);
+      expect(reconciled?.points, -5);
+      expect(await database.select(database.pointLedger).get(), hasLength(1));
+      expect(wallet.availablePoints, -5);
+      expect(wallet.lifetimeEarned, 0);
+      expect(wallet.spentPoints, 0);
+    },
+  );
+
+  test(
     'wallet derives totals and does not treat penalties as spending',
     () async {
       final earningHabit = await _createHabit(

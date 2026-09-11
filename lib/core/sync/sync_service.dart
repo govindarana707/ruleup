@@ -76,9 +76,15 @@ class SyncService {
     final items = await query.get();
 
     final transport = _transport;
-    final eligibleItems = transport is ScopedSyncTransport
-        ? items.where((item) => transport.supports(item.entityType)).toList()
-        : items;
+    final eligibleItems = <SyncQueueData>[];
+    for (final item in items) {
+      if (transport is ItemScopedSyncTransport) {
+        if (await transport.supportsItem(item)) eligibleItems.add(item);
+      } else if (transport is! ScopedSyncTransport ||
+          transport.supports(item.entityType)) {
+        eligibleItems.add(item);
+      }
+    }
     eligibleItems.sort((left, right) {
       final dependency = _dependencyOrder(left.entityType)
           .compareTo(_dependencyOrder(right.entityType));
@@ -168,6 +174,8 @@ class SyncService {
     'point_rule' => 4,
     'habit_pause' => 5,
     'habit_reminder' => 6,
+    'check_in' => 7,
+    'point_ledger' => 8,
     _ => 100,
   };
 }

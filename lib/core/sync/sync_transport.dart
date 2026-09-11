@@ -22,6 +22,13 @@ abstract interface class ScopedSyncTransport implements SyncTransport {
   bool supports(String entityType);
 }
 
+/// Lets a staged transport defer an in-scope entity whose business subtype is
+/// owned by a later migration phase.
+abstract interface class ItemScopedSyncTransport
+    implements ScopedSyncTransport {
+  Future<bool> supportsItem(SyncQueueData item);
+}
+
 /// Gives independent remotes independent durable pull cursors.
 abstract interface class CursorScopedPullSyncTransport
     implements PullSyncTransport {

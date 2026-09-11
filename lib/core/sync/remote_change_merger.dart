@@ -255,6 +255,21 @@ class RemoteChangeMerger {
   Future<void> _delete(String userId, RemoteChange change) async {
     final id = _id(change.data);
     switch (change.entityType) {
+      case 'check_in':
+        await (_database.delete(_database.pointLedger)..where(
+              (row) =>
+                  row.userId.equals(userId) &
+                  row.sourceType.equals('check_in') &
+                  row.sourceId.equals(id),
+            ))
+            .go();
+        await (_database.delete(
+          _database.checkIns,
+        )..where((row) => row.id.equals(id) & row.userId.equals(userId))).go();
+      case 'point_ledger':
+        await (_database.delete(
+          _database.pointLedger,
+        )..where((row) => row.id.equals(id) & row.userId.equals(userId))).go();
       case 'habit_schedule':
         await (_database.delete(
           _database.habitSchedules,

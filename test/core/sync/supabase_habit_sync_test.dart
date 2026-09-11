@@ -13,6 +13,10 @@ import 'package:ruleup/core/sync/supabase_habit_sync_transport.dart';
 import 'package:ruleup/core/sync/sync_service.dart';
 import 'package:ruleup/core/sync/sync_transport.dart';
 import 'package:ruleup/features/categories/data/category_repository.dart';
+import 'package:ruleup/features/check_ins/data/check_in_repository.dart';
+import 'package:ruleup/features/points/data/point_ledger_repository.dart';
+import 'package:ruleup/features/points/domain/point_ledger_source_type.dart';
+import 'package:ruleup/features/points/domain/point_rule_operator.dart';
 
 void main() {
   late AppDatabase database;
@@ -294,6 +298,213 @@ void main() {
       if (directory.existsSync()) directory.deleteSync(recursive: true);
     }
   });
+
+  test(
+    'check-in and ledger queue replay through one atomic RPC shape',
+    () async {
+      await database
+          .into(database.habits)
+          .insert(
+            HabitsCompanion.insert(
+              id: const Value(habitId),
+              userId: userId,
+              name: 'Walk',
+              measurementType: MeasurementType.yesNo,
+            ),
+          );
+      const ruleId = '40000000-0000-4000-8000-000000000001';
+      await database
+          .into(database.pointRules)
+          .insert(
+            PointRulesCompanion.insert(
+              id: const Value(ruleId),
+              userId: userId,
+              habitId: habitId,
+              operator: PointRuleOperator.completed,
+              points: 10,
+            ),
+          );
+      final service = SyncService(database, transport);
+      final checkIn =
+          await CheckInRepository(
+            database,
+            service,
+            now: () => DateTime.utc(2026, 9, 11, 8),
+          ).create(
+            userId: userId,
+            habitId: habitId,
+            habitDate: DateTime.utc(2026, 9, 11),
+          );
+      final ledger = await PointLedgerRepository(
+        database,
+        service,
+      ).getForCheckIn(userId, checkIn.id);
+
+      expect(await database.select(database.syncQueue).get(), hasLength(2));
+      final result = await service.syncPending(userId);
+
+      expect(result.succeeded, 2);
+      expect(await database.select(database.syncQueue).get(), isEmpty);
+      expect(remote.pushed, hasLength(2));
+      expect(
+        remote.pushed.every(
+          (mutation) => mutation.type == HabitSyncEntityType.checkIn,
+        ),
+        isTrue,
+      );
+      expect(remote.pushed.map((mutation) => mutation.id).toSet(), {
+        checkIn.id,
+      });
+      expect(
+        remote.pushed.map((mutation) => mutation.row?['_ledger_id']).toSet(),
+        {ledger!.id},
+      );
+    },
+  );
+
+  test(
+    'offline financial transaction and outbox survive process restart',
+    () async {
+      await database.close();
+      final directory = await Directory.systemTemp.createTemp('ruleup-phase4-');
+      final file = File(
+        '${directory.path}${Platform.pathSeparator}ruleup.sqlite',
+      );
+      try {
+        var persistentDatabase = AppDatabase(NativeDatabase(file));
+        await persistentDatabase
+            .into(persistentDatabase.localUsers)
+            .insert(LocalUsersCompanion.insert(id: const Value(userId)));
+        await persistentDatabase
+            .into(persistentDatabase.habits)
+            .insert(
+              HabitsCompanion.insert(
+                id: const Value(habitId),
+                userId: userId,
+                name: 'Offline walk',
+                measurementType: MeasurementType.yesNo,
+              ),
+            );
+        await persistentDatabase
+            .into(persistentDatabase.pointRules)
+            .insert(
+              PointRulesCompanion.insert(
+                userId: userId,
+                habitId: habitId,
+                operator: PointRuleOperator.completed,
+                points: 10,
+              ),
+            );
+        var persistentRemote = _FakeRemote(userId)..failPush = true;
+        var service = SyncService(
+          persistentDatabase,
+          SupabaseHabitSyncTransport(persistentDatabase, persistentRemote),
+        );
+        final checkIn =
+            await CheckInRepository(
+              persistentDatabase,
+              service,
+              now: () => DateTime.utc(2026, 9, 11, 8),
+            ).create(
+              userId: userId,
+              habitId: habitId,
+              habitDate: DateTime.utc(2026, 9, 11),
+            );
+        final wallet = await PointLedgerRepository(
+          persistentDatabase,
+          service,
+        ).getWallet(userId);
+        expect(wallet.availablePoints, 10);
+        expect((await service.syncPending(userId)).failed, 2);
+        await persistentDatabase.close();
+
+        persistentDatabase = AppDatabase(NativeDatabase(file));
+        persistentRemote = _FakeRemote(userId);
+        service = SyncService(
+          persistentDatabase,
+          SupabaseHabitSyncTransport(persistentDatabase, persistentRemote),
+        );
+        expect(
+          (await persistentDatabase
+                  .select(persistentDatabase.checkIns)
+                  .getSingle())
+              .id,
+          checkIn.id,
+        );
+        expect(
+          await persistentDatabase.select(persistentDatabase.syncQueue).get(),
+          hasLength(2),
+        );
+        expect((await service.retryFailed(userId)).succeeded, 2);
+        expect(
+          persistentRemote.pushed.every(
+            (mutation) =>
+                mutation.type == HabitSyncEntityType.checkIn &&
+                mutation.id == checkIn.id,
+          ),
+          isTrue,
+        );
+        expect(
+          await persistentDatabase.select(persistentDatabase.syncQueue).get(),
+          isEmpty,
+        );
+        await persistentDatabase.close();
+      } finally {
+        if (directory.existsSync()) directory.deleteSync(recursive: true);
+      }
+    },
+  );
+
+  test(
+    'missed penalty is supported while Phase 5 redemption stays queued',
+    () async {
+      await database
+          .into(database.habits)
+          .insert(
+            HabitsCompanion.insert(
+              id: const Value(habitId),
+              userId: userId,
+              name: 'Walk',
+              measurementType: MeasurementType.yesNo,
+            ),
+          );
+      final service = SyncService(database, transport);
+      final ledger = PointLedgerRepository(database, service);
+      final missed = await ledger.createMissedCheckInPenalty(
+        userId: userId,
+        habitId: habitId,
+        habitDate: DateTime.utc(2026, 9, 10),
+        points: -5,
+      );
+      const redemptionId = '50000000-0000-4000-8000-000000000001';
+      await database
+          .into(database.pointLedger)
+          .insert(
+            PointLedgerCompanion.insert(
+              id: const Value(redemptionId),
+              userId: userId,
+              sourceType: PointLedgerSourceType.rewardRedemption,
+              sourceId: '60000000-0000-4000-8000-000000000001',
+              points: -10,
+            ),
+          );
+      await service.enqueue(
+        userId: userId,
+        entityType: 'point_ledger',
+        entityId: redemptionId,
+        operation: 'create',
+      );
+
+      final result = await service.syncPending(userId);
+
+      expect(result.succeeded, 1);
+      expect(remote.pushed.single.id, missed.id);
+      expect(remote.pushed.single.row?['source_type'], 'missed_check_in');
+      final remaining = await database.select(database.syncQueue).getSingle();
+      expect(remaining.entityId, redemptionId);
+      expect(remaining.attempts, 0);
+    },
+  );
 }
 
 SyncQueueData queueItem(

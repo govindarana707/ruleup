@@ -4,6 +4,7 @@ import 'package:drift/drift.dart';
 import 'package:ruleup/core/database/app_database.dart';
 import 'package:ruleup/core/database/tables/habit_schedules.dart';
 import 'package:ruleup/core/database/tables/habits.dart';
+import 'package:ruleup/core/database/tables/point_ledger.dart';
 import 'package:ruleup/core/database/tables/point_rules.dart';
 import 'package:ruleup/core/sync/sync_transport.dart';
 import 'package:ruleup/core/utils/habit_date.dart';
@@ -18,12 +19,20 @@ const phase3HabitEntityTypes = <String>{
   'habit_reminder',
 };
 
+const phase4FinancialEntityTypes = <String>{'check_in', 'point_ledger'};
+const supabaseSyncEntityTypes = <String>{
+  ...phase3HabitEntityTypes,
+  ...phase4FinancialEntityTypes,
+};
+
 enum HabitSyncEntityType {
   category('category', 'categories'),
   habit('habit', 'habits'),
   habitOption('habit_option', 'habit_options'),
   habitSchedule('habit_schedule', 'habit_schedules'),
   pointRule('point_rule', 'point_rules'),
+  checkIn('check_in', 'check_ins'),
+  pointLedger('point_ledger', 'point_ledger'),
   habitPause('habit_pause', 'habit_pauses'),
   habitReminder('habit_reminder', 'habit_reminders');
 
@@ -157,6 +166,25 @@ abstract final class HabitSyncMapper {
         'sortOrder': _integer(row, 'sort_order'),
         'archivedAt': _nullableTimestamp(row, 'archived_at'),
       },
+      HabitSyncEntityType.checkIn => {
+        ...common,
+        'habitId': _string(row, 'habit_id'),
+        'habitDate': _dateOnly(row, 'habit_date'),
+        'optionId': _nullableString(row, 'option_id'),
+        'measuredValue': _nullableNumber(row, 'measured_value'),
+        'note': _nullableString(row, 'note'),
+        'awardedPoints': _integer(row, 'awarded_points'),
+        'matchedRuleId': _nullableString(row, 'matched_rule_id'),
+        'checkedInAt': _timestamp(row, 'checked_in_at'),
+        'editableUntil': _timestamp(row, 'editable_until'),
+      },
+      HabitSyncEntityType.pointLedger => {
+        ...common,
+        'sourceType': _string(row, 'source_type'),
+        'sourceId': _string(row, 'source_id'),
+        'points': _integer(row, 'points'),
+        'reason': _nullableString(row, 'reason'),
+      },
       HabitSyncEntityType.habitPause => {
         ...common,
         'habitId': _string(row, 'habit_id'),
@@ -183,6 +211,8 @@ abstract final class HabitSyncMapper {
       HabitSyncEntityType.habitOption => _option(database, item),
       HabitSyncEntityType.habitSchedule => _schedule(database, item),
       HabitSyncEntityType.pointRule => _rule(database, item),
+      HabitSyncEntityType.checkIn => _checkIn(database, item),
+      HabitSyncEntityType.pointLedger => _ledger(database, item),
       HabitSyncEntityType.habitPause => _pause(database, item),
       HabitSyncEntityType.habitReminder => _reminder(database, item),
     };
@@ -316,6 +346,69 @@ abstract final class HabitSyncMapper {
           };
   }
 
+  static Future<Map<String, Object?>?> _checkIn(
+    AppDatabase db,
+    SyncQueueData item,
+  ) async {
+    final row =
+        await (db.select(db.checkIns)..where(
+              (r) => r.id.equals(item.entityId) & r.userId.equals(item.userId),
+            ))
+            .getSingleOrNull();
+    if (row == null) return null;
+    final ledger =
+        await (db.select(db.pointLedger)..where(
+              (entry) =>
+                  entry.userId.equals(item.userId) &
+                  entry.sourceType.equals('check_in') &
+                  entry.sourceId.equals(row.id),
+            ))
+            .getSingleOrNull();
+    if (ledger == null) {
+      throw const SyncIntegrityException(
+        'A queued check-in must have its local ledger effect.',
+      );
+    }
+    return {
+      ..._common(row.id, row.userId, row.createdAt, row.updatedAt),
+      'habit_id': row.habitId,
+      'habit_date': habitDateKey(row.habitDate),
+      'option_id': row.optionId,
+      'measured_value': row.measuredValue,
+      'note': row.note,
+      'awarded_points': row.awardedPoints,
+      'matched_rule_id': row.matchedRuleId,
+      'checked_in_at': _date(row.checkedInAt),
+      'editable_until': _date(row.editableUntil),
+      '_ledger_id': ledger.id,
+    };
+  }
+
+  static Future<Map<String, Object?>?> _ledger(
+    AppDatabase db,
+    SyncQueueData item,
+  ) async {
+    final row =
+        await (db.select(db.pointLedger)..where(
+              (r) => r.id.equals(item.entityId) & r.userId.equals(item.userId),
+            ))
+            .getSingleOrNull();
+    return row == null
+        ? null
+        : {
+            'id': row.id,
+            'user_id': row.userId,
+            'source_type': const PointLedgerSourceTypeConverter().toSql(
+              row.sourceType,
+            ),
+            'source_id': row.sourceId,
+            'points': row.points,
+            'reason': row.reason,
+            'created_at': _date(row.createdAt),
+            'updated_at': _date(row.createdAt),
+          };
+  }
+
   static Future<Map<String, Object?>?> _reminder(
     AppDatabase db,
     SyncQueueData item,
@@ -429,9 +522,12 @@ abstract final class HabitSyncMapper {
   }
 }
 
-class SyncIntegrityException implements Exception {
+class SyncIntegrityException implements ClassifiedSyncFailure {
   const SyncIntegrityException(this.message);
   final String message;
+
+  @override
+  bool get retryable => false;
 
   @override
   String toString() => message;

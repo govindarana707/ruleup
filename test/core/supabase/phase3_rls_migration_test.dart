@@ -44,4 +44,16 @@ void main() {
     );
     expect(schema, contains('foreign key (category_id, user_id)'));
   });
+
+  test('account cleanup does not emit orphaned sync changes', () {
+    final cleanup = File(
+      'supabase/migrations/20260911000600_auth_cleanup_sync_change.sql',
+    ).readAsStringSync();
+    expect(
+      cleanup,
+      contains('select 1 from auth.users where id = old.user_id'),
+    );
+    expect(cleanup, contains('return old'));
+    expect(cleanup, contains("old.id, 'delete', old.updated_at"));
+  });
 }

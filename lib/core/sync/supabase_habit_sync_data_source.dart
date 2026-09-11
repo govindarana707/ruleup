@@ -23,6 +23,14 @@ class SupabaseHabitSyncDataSourceImpl implements SupabaseHabitSyncDataSource {
   Future<void> push(HabitSyncMutation mutation) async {
     final ownerId = _requireOwner(mutation.userId);
     try {
+      if (mutation.type == HabitSyncEntityType.checkIn) {
+        await _pushCheckIn(mutation, ownerId);
+        return;
+      }
+      if (mutation.type == HabitSyncEntityType.pointLedger) {
+        await _pushLedger(mutation, ownerId);
+        return;
+      }
       if (mutation.operation == 'delete') {
         await _database
             .from(mutation.type.tableName)
@@ -89,7 +97,7 @@ class SupabaseHabitSyncDataSourceImpl implements SupabaseHabitSyncDataSource {
           .from('sync_changes')
           .select('sequence,entity_type,entity_id,operation,updated_at,user_id')
           .gt('sequence', sequence)
-          .inFilter('entity_type', phase3HabitEntityTypes.toList())
+          .inFilter('entity_type', supabaseSyncEntityTypes.toList())
           .order('sequence')
           .limit(_pageSize);
       final changes = <RemoteChange>[];
@@ -185,6 +193,81 @@ class SupabaseHabitSyncDataSourceImpl implements SupabaseHabitSyncDataSource {
     }
   }
 
+  Future<void> _pushCheckIn(HabitSyncMutation mutation, String ownerId) async {
+    if (mutation.operation == 'delete') {
+      throw const HabitSyncException(
+        HabitSyncErrorKind.validation,
+        'RuleUp does not support deleting check-ins.',
+      );
+    }
+    final row = mutation.row;
+    if (row == null || row['user_id'] != ownerId) {
+      throw const HabitSyncException(
+        HabitSyncErrorKind.integrity,
+        'The outgoing check-in owner is invalid.',
+      );
+    }
+    final ledgerId = row['_ledger_id'];
+    if (ledgerId is! String) {
+      throw const HabitSyncException(
+        HabitSyncErrorKind.integrity,
+        'The check-in has no stable ledger identity.',
+      );
+    }
+    final checkIn = Map<String, Object?>.from(row)..remove('_ledger_id');
+    await _database.rpc(
+      'upsert_check_in_with_ledger',
+      params: {'p_check_in': checkIn, 'p_ledger_id': ledgerId},
+    );
+  }
+
+  Future<void> _pushLedger(HabitSyncMutation mutation, String ownerId) async {
+    if (mutation.operation == 'delete') {
+      throw const HabitSyncException(
+        HabitSyncErrorKind.validation,
+        'Financial ledger deletion is not supported.',
+      );
+    }
+    final row = mutation.row;
+    if (row == null || row['user_id'] != ownerId) {
+      throw const HabitSyncException(
+        HabitSyncErrorKind.integrity,
+        'The outgoing ledger owner is invalid.',
+      );
+    }
+    if (row['source_type'] != 'missed_check_in') {
+      throw const HabitSyncException(
+        HabitSyncErrorKind.validation,
+        'Only missed penalties have an independent Phase 4 ledger RPC.',
+      );
+    }
+    final sourceId = row['source_id'];
+    final ledgerId = row['id'];
+    final points = row['points'];
+    if (sourceId is! String || ledgerId is! String || points is! int) {
+      throw const HabitSyncException(
+        HabitSyncErrorKind.malformedPayload,
+        'The missed-penalty ledger payload is invalid.',
+      );
+    }
+    final separator = sourceId.lastIndexOf(':');
+    if (separator <= 0 || separator == sourceId.length - 1) {
+      throw const HabitSyncException(
+        HabitSyncErrorKind.malformedPayload,
+        'The missed-penalty source identity is invalid.',
+      );
+    }
+    await _database.rpc(
+      'record_missed_check_in_penalty',
+      params: {
+        'p_habit_id': sourceId.substring(0, separator),
+        'p_habit_date': sourceId.substring(separator + 1),
+        'p_points': points,
+        'p_ledger_id': ledgerId,
+      },
+    );
+  }
+
   String _requireOwner(String expectedUserId) {
     final current = authenticatedUserId;
     if (current == null) {
@@ -207,7 +290,11 @@ class SupabaseHabitSyncDataSourceImpl implements SupabaseHabitSyncDataSource {
       '42501' => HabitSyncErrorKind.ownership,
       'PGRST301' => HabitSyncErrorKind.authentication,
       '23503' => HabitSyncErrorKind.foreignKeyDependency,
-      '23505' || '23514' || '23P01' => HabitSyncErrorKind.validation,
+      '22003' ||
+      '22023' ||
+      '23505' ||
+      '23514' ||
+      '23P01' => HabitSyncErrorKind.validation,
       '22P02' || 'PGRST204' => HabitSyncErrorKind.schemaMismatch,
       _ => HabitSyncErrorKind.server,
     };

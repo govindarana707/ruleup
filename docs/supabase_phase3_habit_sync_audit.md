@@ -144,16 +144,26 @@ IDs or infer a different owner.
 
 Hosted migration validation: **PASS**. Supabase CLI 2.117.0 was linked to an
 authorized disposable hosted project. `npx supabase db push --dry-run` passed,
-`npx supabase db push` applied all five Phase 1-3 migrations, and
-`npx supabase migration list` confirmed that the five local versions exactly
+`npx supabase db push` applied the Phase 1-3 migrations, and
+`npx supabase migration list` confirmed that all local versions exactly
 match the hosted migration history.
 
-Full Auth/JWT/RLS/Storage integration validation: **PENDING**. The hosted
-migration result does not yet prove explicit UUID-preserving Auth Admin creation,
-the `auth.users.id == profiles.id` trigger, synthetic `.invalid` email login,
-real authenticated JWT CRUD, two-user cross-user RLS denial, authenticated
-`sync_changes` runtime behavior, or Storage ownership/RLS behavior.
+Full Auth/JWT/RLS/Storage integration validation: **PASS** on the authorized
+disposable project. Two explicitly assigned UUIDv4 Auth identities were created
+and authenticated through synthetic `.invalid` emails. Profile identity and
+uniqueness, real-JWT CRUD, two-user isolation, owner-spoof rejection, composite
+child ownership, trigger-generated monotonic changes and tombstones, direct
+change-feed mutation denial, and private Storage ownership/MIME/size behavior
+all passed. Disposable objects, data, and Auth identities were removed.
 
 Mocked/local tests validate mapping, identity, scope, ordering, durable offline
 queue behavior, independent cursors, pull merge/replay, and legacy transport
 compatibility.
+
+Hosted runtime validation subsequently identified an account-cleanup edge case:
+row-delete triggers attempted to append tombstones after the owning Auth user
+was no longer FK-visible. The additive
+`20260911000600_auth_cleanup_sync_change.sql` migration suppresses tombstones
+only for whole-account cascades; ordinary authenticated deletes still emit them.
+The migration was applied to the disposable project, all six migration versions
+match remotely, and the complete validation and cleanup passed on a fresh rerun.
