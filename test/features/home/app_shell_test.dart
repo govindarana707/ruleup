@@ -106,6 +106,19 @@ void main() {
     expect(find.text('Syncing'), findsOneWidget);
   });
 
+  testWidgets('home dashboard never displays a raw sync exception', (
+    tester,
+  ) async {
+    await _pumpShell(
+      tester,
+      dashboard: _emptyDashboard,
+      syncFailureMessage: 'SqliteException(787): FOREIGN KEY constraint failed',
+    );
+
+    expect(find.text("Sync couldn't finish. Tap Retry."), findsOneWidget);
+    expect(find.textContaining('SqliteException'), findsNothing);
+  });
+
   testWidgets('shell remains usable on a small phone with larger text', (
     tester,
   ) async {
@@ -185,6 +198,7 @@ Future<void> _pumpShell(
   Object? dashboardError,
   bool settle = true,
   bool syncing = false,
+  String? syncFailureMessage,
 }) async {
   await tester.pumpWidget(
     ProviderScope(
@@ -193,6 +207,10 @@ Future<void> _pumpShell(
         backendHealthProvider.overrideWith((ref) async {}),
         if (syncing)
           syncControllerProvider.overrideWith(_SyncingController.new),
+        if (syncFailureMessage != null)
+          syncControllerProvider.overrideWith(
+            () => _FailedSyncController(syncFailureMessage),
+          ),
         homeNowProvider.overrideWithValue(DateTime(2026, 1, 5, 9)),
         habitCatalogProvider.overrideWith(
           (ref, _) async => const HabitCatalog(habits: [], categories: []),
@@ -247,6 +265,15 @@ Future<void> _pumpShell(
 class _SyncingController extends SyncController {
   @override
   SyncState build() => const SyncState(status: SyncStatus.syncing);
+}
+
+class _FailedSyncController extends SyncController {
+  _FailedSyncController(this.message);
+
+  final String message;
+
+  @override
+  SyncState build() => SyncState(status: SyncStatus.failed, message: message);
 }
 
 const _emptyDashboard = HomeDashboardData(

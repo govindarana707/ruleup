@@ -180,6 +180,138 @@ void main() {
     expect(refreshed, {habitId});
   });
 
+  test('merges a check-in that arrives before its habit', () async {
+    const habitId = '30000000-0000-4000-8000-000000000011';
+    const checkInId = '70000000-0000-4000-8000-000000000011';
+    transport.batches['0'] = PullBatch(
+      changes: [
+        _checkInChange('1', checkInId, habitId: habitId),
+        _habitChange('2', habitId, categoryId),
+        _categoryChange('3', categoryId, 'Health'),
+      ],
+      nextCursor: '3',
+      hasMore: false,
+    );
+
+    final result = await service.synchronize(userId);
+
+    expect(result.dependencyDeferred, isFalse);
+    expect(result.pulled, 3);
+    expect(await database.select(database.checkIns).get(), hasLength(1));
+    expect(await merger.readCursor(userId), '3');
+  });
+
+  test(
+    'merges a check-in that arrives before its matched point rule',
+    () async {
+      const habitId = '30000000-0000-4000-8000-000000000012';
+      const ruleId = '60000000-0000-4000-8000-000000000012';
+      const checkInId = '70000000-0000-4000-8000-000000000012';
+      transport.batches['0'] = PullBatch(
+        changes: [
+          _categoryChange('1', categoryId, 'Health'),
+          _habitChange('2', habitId, categoryId),
+          _checkInChange(
+            '3',
+            checkInId,
+            habitId: habitId,
+            matchedRuleId: ruleId,
+          ),
+          _pointRuleChange('4', ruleId, habitId),
+        ],
+        nextCursor: '4',
+        hasMore: false,
+      );
+
+      final result = await service.synchronize(userId);
+
+      expect(result.dependencyDeferred, isFalse);
+      expect(result.pulled, 4);
+      expect(
+        (await database.select(database.checkIns).getSingle()).matchedRuleId,
+        ruleId,
+      );
+      expect(await merger.readCursor(userId), '4');
+    },
+  );
+
+  test('merges a check-in that arrives before its selected option', () async {
+    const habitId = '30000000-0000-4000-8000-000000000013';
+    const optionId = '40000000-0000-4000-8000-000000000013';
+    const checkInId = '70000000-0000-4000-8000-000000000013';
+    transport.batches['0'] = PullBatch(
+      changes: [
+        _categoryChange('1', categoryId, 'Health'),
+        _habitChange('2', habitId, categoryId),
+        _checkInChange('3', checkInId, habitId: habitId, optionId: optionId),
+        _habitOptionChange('4', optionId, habitId),
+      ],
+      nextCursor: '4',
+      hasMore: false,
+    );
+
+    final result = await service.synchronize(userId);
+
+    expect(result.dependencyDeferred, isFalse);
+    expect(result.pulled, 4);
+    expect(
+      (await database.select(database.checkIns).getSingle()).optionId,
+      optionId,
+    );
+    expect(await merger.readCursor(userId), '4');
+  });
+
+  test(
+    'fresh reinstall pull reads ahead for a parent on a later page',
+    () async {
+      const habitId = '30000000-0000-4000-8000-000000000014';
+      const checkInId = '70000000-0000-4000-8000-000000000014';
+      transport.batches['0'] = PullBatch(
+        changes: [_checkInChange('1', checkInId, habitId: habitId)],
+        nextCursor: '1',
+        hasMore: true,
+      );
+      transport.batches['1'] = PullBatch(
+        changes: [
+          _categoryChange('2', categoryId, 'Health'),
+          _habitChange('3', habitId, categoryId),
+        ],
+        nextCursor: '3',
+        hasMore: false,
+      );
+
+      final result = await service.synchronize(userId);
+
+      expect(result.dependencyDeferred, isFalse);
+      expect(result.pulled, 3);
+      expect(await database.select(database.checkIns).get(), hasLength(1));
+      expect(await merger.readCursor(userId), '3');
+      expect(transport.pullCursors, ['0', '1']);
+    },
+  );
+
+  test('dependency-safe pull is replay-idempotent', () async {
+    const habitId = '30000000-0000-4000-8000-000000000015';
+    const checkInId = '70000000-0000-4000-8000-000000000015';
+    transport.batches['0'] = PullBatch(
+      changes: [
+        _checkInChange('1', checkInId, habitId: habitId),
+        _categoryChange('2', categoryId, 'Health'),
+        _habitChange('3', habitId, categoryId),
+      ],
+      nextCursor: '3',
+      hasMore: false,
+    );
+
+    expect((await service.synchronize(userId)).pulled, 3);
+    final replay = await service.synchronize(userId);
+
+    expect(replay.pulled, 0);
+    expect(await database.select(database.checkIns).get(), hasLength(1));
+    expect(await database.select(database.habits).get(), hasLength(1));
+    expect(await merger.readCursor(userId), '3');
+  });
+
   test(
     'server wins without pending work and pending edits are protected',
     () async {
@@ -464,6 +596,50 @@ RemoteChange _habitChange(
     },
   );
 }
+
+RemoteChange _checkInChange(
+  String cursor,
+  String id, {
+  required String habitId,
+  String? optionId,
+  String? matchedRuleId,
+}) => _change(cursor, 'check_in', {
+  'id': id,
+  'habitId': habitId,
+  'habitDate': '2026-01-06',
+  'optionId': optionId,
+  'measuredValue': optionId == null ? null : 10.0,
+  'note': null,
+  'awardedPoints': 5,
+  'matchedRuleId': matchedRuleId,
+  'checkedInAt': '2026-01-06T08:00:00.000Z',
+  'editableUntil': '2026-01-07T12:00:00.000Z',
+  ..._remoteTimestamps(int.parse(cursor)),
+});
+
+RemoteChange _habitOptionChange(String cursor, String id, String habitId) =>
+    _change(cursor, 'habit_option', {
+      'id': id,
+      'habitId': habitId,
+      'label': 'Ten',
+      'numericValue': 10.0,
+      'sortOrder': 0,
+      ..._remoteTimestamps(int.parse(cursor)),
+      'archivedAt': null,
+    });
+
+RemoteChange _pointRuleChange(String cursor, String id, String habitId) =>
+    _change(cursor, 'point_rule', {
+      'id': id,
+      'habitId': habitId,
+      'operator': 'gte',
+      'valueMin': 10.0,
+      'valueMax': null,
+      'points': 5,
+      'sortOrder': 0,
+      ..._remoteTimestamps(int.parse(cursor)),
+      'archivedAt': null,
+    });
 
 Future<void> _insertCategory(
   AppDatabase database,

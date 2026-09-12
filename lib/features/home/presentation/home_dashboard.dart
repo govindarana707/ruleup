@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ruleup/core/presentation/point_coins_icon.dart';
 import 'package:ruleup/core/sync/sync_provider.dart';
 import 'package:ruleup/features/auth/presentation/auth_controller.dart';
 import 'package:ruleup/features/home/presentation/dashboard_card.dart';
@@ -120,11 +121,11 @@ class HomeDashboard extends ConsumerWidget {
         icon: Icons.sync,
         tone: _StatusTone.neutral,
       ),
-      SyncStatus.failed => _ConnectionStatus(
+      SyncStatus.failed => const _ConnectionStatus(
         label: 'Sync issue',
         icon: Icons.sync_problem_outlined,
         tone: _StatusTone.warning,
-        detail: sync.message,
+        detail: "Sync couldn't finish. Tap Retry.",
       ),
       SyncStatus.succeeded => const _ConnectionStatus(
         label: 'Up to date',
@@ -380,7 +381,10 @@ class _CombinedMetricsCard extends StatelessWidget {
           children: [
             Expanded(
               child: _Metric(
-                icon: Icons.toll_rounded,
+                icon: const PointCoinsIcon(
+                  size: 24,
+                  color: HomeDashboardTheme.mint,
+                ),
                 label: 'Available points',
                 value: '${data.availablePoints}',
                 supporting: 'Ready to use on rewards',
@@ -391,7 +395,7 @@ class _CombinedMetricsCard extends StatelessWidget {
             const VerticalDivider(width: 28),
             Expanded(
               child: _Metric(
-                icon: Icons.local_fire_department_outlined,
+                icon: const Icon(Icons.local_fire_department_outlined),
                 label: 'Current streak',
                 value: '${data.currentStreak} days',
                 supporting: 'Keep going!',
@@ -415,7 +419,7 @@ class _Metric extends StatelessWidget {
     required this.iconColor,
     required this.iconBackground,
   });
-  final IconData icon;
+  final Widget icon;
   final String label;
   final String value;
   final String supporting;
@@ -439,7 +443,10 @@ class _Metric extends StatelessWidget {
                 color: iconBackground,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(icon, size: 24, color: iconColor),
+              child: IconTheme(
+                data: IconThemeData(size: 24, color: iconColor),
+                child: icon,
+              ),
             ),
             const SizedBox(width: 10),
             Expanded(

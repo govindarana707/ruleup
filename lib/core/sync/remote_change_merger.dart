@@ -33,35 +33,150 @@ class RemoteChangeMerger {
   }) => _database.transaction(() async {
     var cursor = currentCursor;
     var merged = 0;
-    var blocked = false;
+    var blockedByPendingLocalChange = false;
     final reminderHabitIds = <String>{};
+    final appliedChanges = <RemoteChange>{};
+    var deferred = List<RemoteChange>.of(batch.changes);
 
-    for (final change in batch.changes) {
-      if (await _hasPendingLocalChange(userId, change)) {
-        blocked = true;
-        break;
+    // sync_changes is an event stream, not a relational restore order. A
+    // historical check-in can therefore arrive before its habit, option, or
+    // matched point rule. Apply parents first and retry deferred children.
+    while (deferred.isNotEmpty) {
+      var madeProgress = false;
+      final retry = <RemoteChange>[];
+      for (final change in _dependencyOrdered(deferred)) {
+        if (await _hasPendingLocalChange(userId, change)) {
+          blockedByPendingLocalChange = true;
+          retry.add(change);
+          continue;
+        }
+        if (await _hasMissingDependencies(userId, change)) {
+          retry.add(change);
+          continue;
+        }
+        final affectedHabitId = await _reminderHabitId(userId, change);
+        if (change.operation == 'delete') {
+          await _delete(userId, change);
+        } else {
+          await _ensureEntityScope(userId, change);
+          await _upsert(userId, change);
+        }
+        if (affectedHabitId != null) reminderHabitIds.add(affectedHabitId);
+        appliedChanges.add(change);
+        merged++;
+        madeProgress = true;
       }
-      final affectedHabitId = await _reminderHabitId(userId, change);
-      if (change.operation == 'delete') {
-        await _delete(userId, change);
-      } else {
-        await _ensureEntityScope(userId, change);
-        await _upsert(userId, change);
-      }
-      if (affectedHabitId != null) reminderHabitIds.add(affectedHabitId);
-      cursor = change.cursor;
-      merged++;
+      deferred = retry;
+      if (!madeProgress) break;
     }
 
-    if (!blocked && batch.changes.isEmpty) cursor = batch.nextCursor;
+    // Keep the cursor behind the first unapplied source event. Later parent
+    // records may be replayed safely, but no valid child can be skipped.
+    for (final change in batch.changes) {
+      if (!appliedChanges.contains(change)) break;
+      cursor = change.cursor;
+    }
+    if (deferred.isEmpty) cursor = batch.nextCursor;
     await _writeCursor(userId, cursor, cursorKey);
     return RemoteMergeResult(
       cursor: cursor,
       merged: merged,
-      blockedByPendingLocalChange: blocked,
+      blockedByPendingLocalChange: blockedByPendingLocalChange,
+      blockedByDependencies:
+          deferred.isNotEmpty && !blockedByPendingLocalChange,
       reminderHabitIds: reminderHabitIds,
+      appliedChanges: appliedChanges,
     );
   });
+
+  Iterable<RemoteChange> _dependencyOrdered(List<RemoteChange> changes) {
+    final ordered = List<RemoteChange>.of(changes);
+    ordered.sort((left, right) {
+      final dependency = _dependencyRank(left)
+          .compareTo(_dependencyRank(right));
+      if (dependency != 0) return dependency;
+      return int.parse(left.cursor).compareTo(int.parse(right.cursor));
+    });
+    return ordered;
+  }
+
+  int _dependencyRank(RemoteChange change) {
+    final rank = switch (change.entityType) {
+      'category' => 0,
+      'habit' => 1,
+      'habit_option' => 2,
+      'habit_schedule' => 3,
+      'point_rule' => 4,
+      'habit_pause' => 5,
+      'habit_reminder' => 6,
+      'check_in' => 7,
+      'reward' => 8,
+      'point_ledger' => 9,
+      _ => throw FormatException(
+        'Unsupported remote entity type',
+        change.entityType,
+      ),
+    };
+    // Tombstones run children first so related remote deletes remain safe.
+    return change.operation == 'delete' ? 100 - rank : rank;
+  }
+
+  Future<bool> _hasMissingDependencies(
+    String userId,
+    RemoteChange change,
+  ) async {
+    if (change.operation == 'delete') return false;
+    final data = change.data;
+    return switch (change.entityType) {
+      'category' || 'reward' => false,
+      'habit' => await _missing(
+        'categories',
+        userId,
+        _nullable<String>(data, 'categoryId'),
+      ),
+      'habit_option' ||
+      'habit_schedule' ||
+      'point_rule' ||
+      'habit_pause' ||
+      'habit_reminder' => await _missing(
+        'habits',
+        userId,
+        _required<String>(data, 'habitId'),
+      ),
+      'check_in' =>
+        await _missing('habits', userId, _required<String>(data, 'habitId')) ||
+            await _missing(
+              'habit_options',
+              userId,
+              _nullable<String>(data, 'optionId'),
+            ) ||
+            await _missing(
+              'point_rules',
+              userId,
+              _nullable<String>(data, 'matchedRuleId'),
+            ),
+      'point_ledger' => await _missing(
+        'rewards',
+        userId,
+        _nullable<String>(data, 'rewardId'),
+      ),
+      _ => throw FormatException(
+        'Unsupported remote entity type',
+        change.entityType,
+      ),
+    };
+  }
+
+  Future<bool> _missing(String table, String userId, String? id) async {
+    if (id == null) return false;
+    final row = await _database
+        .customSelect(
+          'SELECT 1 FROM $table WHERE id = ? AND user_id = ? LIMIT 1',
+          variables: [Variable(id), Variable(userId)],
+        )
+        .getSingleOrNull();
+    return row == null;
+  }
 
   Future<bool> _hasPendingLocalChange(
     String userId,
@@ -435,11 +550,15 @@ class RemoteMergeResult {
     required this.cursor,
     required this.merged,
     required this.blockedByPendingLocalChange,
+    required this.blockedByDependencies,
     required this.reminderHabitIds,
+    required this.appliedChanges,
   });
 
   final String cursor;
   final int merged;
   final bool blockedByPendingLocalChange;
+  final bool blockedByDependencies;
   final Set<String> reminderHabitIds;
+  final Set<RemoteChange> appliedChanges;
 }

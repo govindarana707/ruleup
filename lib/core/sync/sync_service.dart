@@ -142,25 +142,52 @@ class SyncService {
     var cursor = await _merger.readCursor(userId, key: cursorKey);
     var pulled = 0;
     var pendingProtected = false;
+    var requestCursor = cursor;
+    final lookaheadChanges = <RemoteChange>[];
+    final countedChanges = <RemoteChange>{};
     for (var page = 0; page < 20; page++) {
       final batch = transport is UserScopedPullSyncTransport
-          ? await transport.pullForUser(userId, cursor)
-          : await transport.pull(cursor);
+          ? await transport.pullForUser(userId, requestCursor)
+          : await transport.pull(requestCursor);
+      lookaheadChanges.addAll(batch.changes);
       final merged = await _merger.apply(
         userId,
         cursor,
-        batch,
+        PullBatch(
+          changes: lookaheadChanges,
+          nextCursor: batch.nextCursor,
+          hasMore: batch.hasMore,
+        ),
         cursorKey: cursorKey,
       );
       cursor = merged.cursor;
-      pulled += merged.merged;
+      for (final change in merged.appliedChanges) {
+        if (countedChanges.add(change)) pulled++;
+      }
       pendingProtected = merged.blockedByPendingLocalChange;
       await _refreshReminders(userId, merged.reminderHabitIds);
-      if (pendingProtected || !batch.hasMore) {
-        return SyncResult(pulled: pulled, pendingProtected: pendingProtected);
+      if (pendingProtected) {
+        return SyncResult(pulled: pulled, pendingProtected: true);
+      }
+      if (merged.blockedByDependencies) {
+        if (!batch.hasMore) {
+          return SyncResult(pulled: pulled, dependencyDeferred: true);
+        }
+        // Read ahead without moving the durable cursor. This lets a parent in
+        // a later sync_changes page unblock an earlier child on fresh restore.
+        requestCursor = batch.nextCursor;
+        continue;
+      }
+      lookaheadChanges.clear();
+      requestCursor = cursor;
+      if (!batch.hasMore) {
+        return SyncResult(pulled: pulled);
       }
     }
-    throw StateError('Pull sync exceeded the 20-page safety limit.');
+    // Never claim a successful pull after exhausting the bounded look-ahead.
+    // The stored cursor remains at the last fully applied event and a later
+    // retry continues from there.
+    return SyncResult(pulled: pulled, dependencyDeferred: true);
   }
 
   Future<void> _refreshReminders(String userId, Set<String> habitIds) async {
@@ -200,12 +227,14 @@ class SyncResult {
     this.failed = 0,
     this.pulled = 0,
     this.pendingProtected = false,
+    this.dependencyDeferred = false,
   });
 
   final int succeeded;
   final int failed;
   final int pulled;
   final bool pendingProtected;
+  final bool dependencyDeferred;
   int get processed => succeeded + failed + pulled;
 
   SyncResult operator +(SyncResult other) => SyncResult(
@@ -213,5 +242,6 @@ class SyncResult {
     failed: failed + other.failed,
     pulled: pulled + other.pulled,
     pendingProtected: pendingProtected || other.pendingProtected,
+    dependencyDeferred: dependencyDeferred || other.dependencyDeferred,
   );
 }

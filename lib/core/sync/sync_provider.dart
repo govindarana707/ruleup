@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ruleup/core/database/database_provider.dart';
 import 'package:ruleup/core/config/app_config.dart';
@@ -71,26 +72,31 @@ class SyncController extends Notifier<SyncState> {
     try {
       final result = await action();
       state = SyncState(
-        status: result.failed == 0 && !result.pendingProtected
+        status:
+            result.failed == 0 &&
+                !result.pendingProtected &&
+                !result.dependencyDeferred
             ? SyncStatus.succeeded
             : SyncStatus.failed,
         processed: result.processed,
         failed: result.failed,
         pulled: result.pulled,
         pendingProtected: result.pendingProtected,
-        message: result.pendingProtected
-            ? 'Remote changes are waiting for pending local edits.'
+        message: result.pendingProtected || result.dependencyDeferred
+            ? _safeSyncFailureMessage
             : null,
       );
     } on Object catch (error) {
-      final message = error.toString();
+      if (kDebugMode) debugPrint('RuleUp sync failed: $error');
       state = SyncState(
         status: SyncStatus.failed,
-        message: message.length <= 1000 ? message : message.substring(0, 1000),
+        message: _safeSyncFailureMessage,
       );
     }
   }
 }
+
+const _safeSyncFailureMessage = "Sync couldn't finish. Tap Retry.";
 
 enum SyncStatus { idle, syncing, succeeded, failed }
 
