@@ -17,6 +17,7 @@ import 'package:ruleup/features/habits/data/habit_repository_provider.dart';
 import 'package:ruleup/features/habits/data/habit_schedule_repository.dart';
 import 'package:ruleup/features/habits/data/habit_schedule_repository_provider.dart';
 import 'package:ruleup/features/habits/domain/schedule_applicability.dart';
+import 'package:ruleup/features/habits/domain/measurement_type.dart';
 import 'package:ruleup/features/habits/domain/schedule_type.dart';
 import 'package:ruleup/features/habits/domain/streak_calculator.dart';
 import 'package:ruleup/features/points/data/point_ledger_repository.dart';
@@ -119,8 +120,14 @@ class HistoryCoordinator {
           )
           .toList(growable: false);
       final history = await checkIns.listForHabit(userId, habit.id);
+      final completedHistory = habit.measurementType == MeasurementType.yesNo
+          ? history.where((row) => row.measuredValue != 0)
+          : history;
       final checkedToday = history.any(
-        (checkIn) => habitDateKey(checkIn.habitDate) == habitDateKey(today),
+        (checkIn) =>
+            habitDateKey(checkIn.habitDate) == habitDateKey(today) &&
+            (habit.measurementType != MeasurementType.yesNo ||
+                checkIn.measuredValue != 0),
       );
       final throughDate = checkedToday
           ? today
@@ -134,7 +141,7 @@ class HistoryCoordinator {
           startDate: createdDate,
           throughDate: streakThroughDate,
           schedules: definitions,
-          checkInDates: history.map((checkIn) => checkIn.habitDate),
+          checkInDates: completedHistory.map((checkIn) => checkIn.habitDate),
           pauses: pausePeriods,
         );
         if (habit.archivedAt == null && streak.current > bestCurrent) {
@@ -152,7 +159,11 @@ class HistoryCoordinator {
         habitDate: date,
         schedules: definitions,
       );
-      final status = checkIn != null
+      final completed =
+          checkIn != null &&
+          (habit.measurementType != MeasurementType.yesNo ||
+              checkIn.measuredValue != 0);
+      final status = completed
           ? HistoryEntryStatus.completed
           : paused
           ? HistoryEntryStatus.paused
@@ -164,13 +175,13 @@ class HistoryCoordinator {
       final penalty = status == HistoryEntryStatus.missed
           ? await ledger.getForMissedCheckIn(userId, habit.id, date)
           : null;
-      String? optionLabel;
-      if (checkIn?.optionId != null) {
-        optionLabel = (await options.getById(
-          userId,
-          checkIn!.optionId!,
-        ))?.label;
-      }
+      final optionRows = await options.listForHabit(userId, habit.id);
+      final optionLabel = checkIn?.optionId == null
+          ? null
+          : optionRows
+                .where((option) => option.id == checkIn!.optionId)
+                .firstOrNull
+                ?.label;
       entries.add(
         HistoryEntry(
           habitId: habit.id,
@@ -182,11 +193,26 @@ class HistoryCoordinator {
               ? 'Daily'
               : _scheduleSummary(scheduleRows.first),
           status: status,
+          measurementType: habit.measurementType,
+          options: optionRows
+              .map(
+                (option) => HistoryCheckInOption(
+                  id: option.id,
+                  label: option.label,
+                  numericValue: option.numericValue,
+                ),
+              )
+              .toList(growable: false),
+          checkInId: checkIn?.id,
+          optionId: checkIn?.optionId,
           selectedOption: optionLabel,
           measuredValue: checkIn?.measuredValue,
           points: checkIn?.awardedPoints ?? penalty?.points ?? 0,
           note: checkIn?.note,
           checkedInAt: checkIn?.checkedInAt,
+          editableUntil: checkIn?.editableUntil,
+          locked: checkIn != null && now.toUtc().isAfter(checkIn.editableUntil),
+          completed: completed,
         ),
       );
     }
@@ -236,11 +262,18 @@ class HistoryEntry {
     required this.scheduleSummary,
     required this.status,
     required this.points,
+    this.measurementType = MeasurementType.yesNo,
+    this.options = const [],
+    this.checkInId,
+    this.optionId,
     this.categoryName,
     this.selectedOption,
     this.measuredValue,
     this.note,
     this.checkedInAt,
+    this.editableUntil,
+    this.locked = false,
+    this.completed = false,
   });
 
   final String habitId;
@@ -248,11 +281,30 @@ class HistoryEntry {
   final String? categoryName;
   final String scheduleSummary;
   final HistoryEntryStatus status;
+  final MeasurementType measurementType;
+  final List<HistoryCheckInOption> options;
+  final String? checkInId;
+  final String? optionId;
   final String? selectedOption;
   final double? measuredValue;
   final int points;
   final String? note;
   final DateTime? checkedInAt;
+  final DateTime? editableUntil;
+  final bool locked;
+  final bool completed;
+}
+
+class HistoryCheckInOption {
+  const HistoryCheckInOption({
+    required this.id,
+    required this.label,
+    this.numericValue,
+  });
+
+  final String id;
+  final String label;
+  final double? numericValue;
 }
 
 String _scheduleSummary(HabitSchedule schedule) {

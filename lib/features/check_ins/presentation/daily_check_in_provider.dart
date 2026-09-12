@@ -121,7 +121,14 @@ class DailyCheckInCoordinator {
 
       final checkIn = checkInByHabit[habit.id];
       final history = await checkIns.listForHabit(userId, habit.id);
-      final throughDate = checkIn == null
+      final completedCheckIn =
+          checkIn != null &&
+          (habit.measurementType != MeasurementType.yesNo ||
+              checkIn.measuredValue != 0);
+      final completedHistory = habit.measurementType == MeasurementType.yesNo
+          ? history.where((row) => row.measuredValue != 0)
+          : history;
+      final throughDate = !completedCheckIn
           ? today.subtract(const Duration(days: 1))
           : today;
       var streak = 0;
@@ -132,7 +139,7 @@ class DailyCheckInCoordinator {
               startDate: startDate,
               throughDate: throughDate,
               schedules: definitions,
-              checkInDates: history.map((row) => row.habitDate),
+              checkInDates: completedHistory.map((row) => row.habitDate),
               pauses: pausePeriods,
             )
             .current;
@@ -171,6 +178,9 @@ class DailyCheckInCoordinator {
                   awardedPoints: checkIn.awardedPoints,
                   editableUntil: checkIn.editableUntil,
                   locked: now.toUtc().isAfter(checkIn.editableUntil),
+                  completed:
+                      habit.measurementType != MeasurementType.yesNo ||
+                      checkIn.measuredValue != 0,
                 ),
         ),
       );
@@ -191,6 +201,7 @@ class DailyCheckInCoordinator {
         optionId: submission.optionId,
         measuredValue: submission.measuredValue,
         note: submission.note,
+        completed: submission.completed,
       );
     } else {
       checkIn =
@@ -200,6 +211,7 @@ class DailyCheckInCoordinator {
             optionId: submission.optionId,
             measuredValue: submission.measuredValue,
             note: submission.note,
+            completed: submission.completed,
           ) ??
           (throw StateError('Check-in not found'));
     }
@@ -242,7 +254,7 @@ class DailyHabitEntry {
   final List<CheckInOption> options;
   final ExistingCheckIn? checkIn;
 
-  bool get isCompleted => checkIn != null;
+  bool get isCompleted => checkIn?.completed == true;
 }
 
 class CheckInOption {
@@ -263,6 +275,7 @@ class ExistingCheckIn {
     required this.awardedPoints,
     required this.editableUntil,
     required this.locked,
+    this.completed = true,
     this.optionId,
     this.measuredValue,
     this.note,
@@ -275,6 +288,7 @@ class ExistingCheckIn {
   final int awardedPoints;
   final DateTime editableUntil;
   final bool locked;
+  final bool completed;
 }
 
 class CheckInSubmission {
@@ -285,6 +299,7 @@ class CheckInSubmission {
     this.optionId,
     this.measuredValue,
     this.note,
+    this.completed = true,
   });
 
   final String habitId;
@@ -293,6 +308,7 @@ class CheckInSubmission {
   final String? optionId;
   final double? measuredValue;
   final String? note;
+  final bool completed;
 }
 
 class CheckInSubmitResult {

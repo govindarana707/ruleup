@@ -134,6 +134,32 @@ void main() {
     expect(find.text('Check-in updated · +8 points total'), findsOneWidget);
   });
 
+  testWidgets('yes/no edit pre-fills and submits both No and Yes states', (
+    tester,
+  ) async {
+    CheckInSubmission? submitted;
+    await _pumpScreen(
+      tester,
+      data: _data([_editableYesNoHabit]),
+      submit: (_, submission) async {
+        submitted = submission;
+        return const CheckInSubmitResult(points: 0, updated: true);
+      },
+    );
+
+    await tester.tap(find.text('All'));
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('edit-check-in-editable-yes-no')));
+    await tester.pumpAndSettle();
+    expect(find.text('Edit check-in'), findsOneWidget);
+    await tester.tap(find.text('No'));
+    await tester.tap(find.byKey(const Key('submit-check-in-button')));
+    await tester.pumpAndSettle();
+
+    expect(submitted?.checkInId, 'check-in-yes-no');
+    expect(submitted?.completed, isFalse);
+  });
+
   testWidgets('locked check-in is clearly displayed and cannot edit', (
     tester,
   ) async {
@@ -279,6 +305,21 @@ final _lockedHabit = DailyHabitEntry(
     awardedPoints: 10,
     editableUntil: DateTime(2026, 1, 5, 1),
     locked: true,
+  ),
+);
+
+final _editableYesNoHabit = DailyHabitEntry(
+  id: 'editable-yes-no',
+  name: 'Read',
+  measurementType: MeasurementType.yesNo,
+  scheduleSummary: 'Daily',
+  currentStreak: 1,
+  checkIn: ExistingCheckIn(
+    id: 'check-in-yes-no',
+    measuredValue: 1,
+    awardedPoints: 5,
+    editableUntil: DateTime(2026, 1, 6, 12),
+    locked: false,
   ),
 );
 

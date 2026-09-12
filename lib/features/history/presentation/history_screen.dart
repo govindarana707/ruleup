@@ -4,7 +4,10 @@ import 'package:ruleup/core/presentation/sync_status_banner.dart';
 import 'package:ruleup/core/sync/sync_provider.dart';
 import 'package:ruleup/core/utils/habit_date.dart';
 import 'package:ruleup/features/auth/presentation/auth_controller.dart';
+import 'package:ruleup/features/check_ins/presentation/check_in_form_sheet.dart';
+import 'package:ruleup/features/check_ins/presentation/daily_check_in_provider.dart';
 import 'package:ruleup/features/history/presentation/history_provider.dart';
+import 'package:ruleup/features/home/presentation/home_dashboard_provider.dart';
 import 'package:ruleup/features/home/presentation/home_dashboard_theme.dart';
 
 class HistoryScreen extends ConsumerStatefulWidget {
@@ -191,6 +194,9 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
           return _HistoryEntryCard(
             entry: entry,
             onTap: () => _showDetails(entry),
+            onEdit: entry.checkInId == null || entry.locked
+                ? null
+                : () => _openEditor(entry),
           );
         },
       ),
@@ -206,8 +212,70 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (_) => _HistoryDetails(entry: entry, date: _selectedDate),
+      builder: (_) => _HistoryDetails(
+        entry: entry,
+        date: _selectedDate,
+        onEdit: entry.checkInId == null || entry.locked
+            ? null
+            : () {
+                Navigator.of(context).pop();
+                _openEditor(entry);
+              },
+      ),
     );
+  }
+
+  Future<void> _openEditor(HistoryEntry entry) async {
+    final checkInId = entry.checkInId;
+    final editableUntil = entry.editableUntil;
+    if (checkInId == null || editableUntil == null || entry.locked) return;
+    final habit = DailyHabitEntry(
+      id: entry.habitId,
+      name: entry.habitName,
+      categoryName: entry.categoryName,
+      measurementType: entry.measurementType,
+      scheduleSummary: entry.scheduleSummary,
+      currentStreak: 0,
+      options: entry.options
+          .map(
+            (option) => CheckInOption(
+              id: option.id,
+              label: option.label,
+              numericValue: option.numericValue,
+            ),
+          )
+          .toList(growable: false),
+      checkIn: ExistingCheckIn(
+        id: checkInId,
+        optionId: entry.optionId,
+        measuredValue: entry.measuredValue,
+        note: entry.note,
+        awardedPoints: entry.points,
+        editableUntil: editableUntil,
+        locked: false,
+        completed: entry.completed,
+      ),
+    );
+    final result = await showModalBottomSheet<CheckInSubmitResult>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: HomeDashboardTheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (_) => CheckInFormSheet(
+        habit: habit,
+        habitDate: _selectedDate,
+        onSubmit: (submission) =>
+            ref.read(checkInSubmitActionProvider)(widget.userId, submission),
+      ),
+    );
+    if (result != null && mounted) {
+      ref.invalidate(historyDayProvider(_query));
+      ref.invalidate(dailyCheckInProvider(widget.userId));
+      ref.invalidate(homeDashboardProvider(widget.userId));
+    }
   }
 }
 
@@ -314,10 +382,15 @@ class _StreakCard extends StatelessWidget {
 }
 
 class _HistoryEntryCard extends StatelessWidget {
-  const _HistoryEntryCard({required this.entry, required this.onTap});
+  const _HistoryEntryCard({
+    required this.entry,
+    required this.onTap,
+    this.onEdit,
+  });
 
   final HistoryEntry entry;
   final VoidCallback onTap;
+  final VoidCallback? onEdit;
 
   @override
   Widget build(BuildContext context) {
@@ -382,7 +455,20 @@ class _HistoryEntryCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 4),
-              const Icon(Icons.chevron_right),
+              if (entry.checkInId != null)
+                entry.locked
+                    ? const Tooltip(
+                        message: 'Editing closed',
+                        child: Icon(Icons.lock_outline),
+                      )
+                    : IconButton(
+                        key: Key('edit-history-check-in-${entry.habitId}'),
+                        tooltip: 'Edit check-in',
+                        onPressed: onEdit,
+                        icon: const Icon(Icons.edit_outlined),
+                      )
+              else
+                const Icon(Icons.chevron_right),
             ],
           ),
         ),
@@ -413,10 +499,11 @@ class _StatusPill extends StatelessWidget {
 }
 
 class _HistoryDetails extends StatelessWidget {
-  const _HistoryDetails({required this.entry, required this.date});
+  const _HistoryDetails({required this.entry, required this.date, this.onEdit});
 
   final HistoryEntry entry;
   final DateTime date;
+  final VoidCallback? onEdit;
 
   @override
   Widget build(BuildContext context) {
@@ -470,6 +557,27 @@ class _HistoryDetails extends StatelessWidget {
             _DetailRow(label: 'Points', value: _pointsLabel(entry.points)),
             if (entry.note != null)
               _DetailRow(label: 'Note', value: entry.note!),
+            if (entry.checkInId != null) ...[
+              const SizedBox(height: 6),
+              if (entry.locked)
+                const Row(
+                  children: [
+                    Icon(Icons.lock_outline, size: 18),
+                    SizedBox(width: 7),
+                    Text('Locked'),
+                  ],
+                )
+              else
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: FilledButton.icon(
+                    key: Key('edit-history-detail-${entry.habitId}'),
+                    onPressed: onEdit,
+                    icon: const Icon(Icons.edit_outlined),
+                    label: const Text('Edit'),
+                  ),
+                ),
+            ],
           ],
         ),
       ),

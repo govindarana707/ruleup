@@ -6,6 +6,7 @@ import 'package:ruleup/features/check_ins/data/check_in_repository_provider.dart
 import 'package:ruleup/features/habits/data/habit_pause_repository_provider.dart';
 import 'package:ruleup/features/habits/data/habit_repository_provider.dart';
 import 'package:ruleup/features/habits/data/habit_schedule_repository_provider.dart';
+import 'package:ruleup/features/habits/domain/measurement_type.dart';
 import 'package:ruleup/features/habits/domain/schedule_applicability.dart';
 import 'package:ruleup/features/habits/domain/streak_calculator.dart';
 import 'package:ruleup/features/points/data/point_ledger_repository_provider.dart';
@@ -34,9 +35,6 @@ final homeDashboardProvider = FutureProvider.family<HomeDashboardData, String>((
   final reminders = await ref
       .watch(habitReminderRepositoryProvider)
       .list(userId);
-  final completedHabitIds = todayCheckIns
-      .map((checkIn) => checkIn.habitId)
-      .toSet();
   final checkInByHabitId = {
     for (final checkIn in todayCheckIns) checkIn.habitId: checkIn,
   };
@@ -76,19 +74,28 @@ final homeDashboardProvider = FutureProvider.family<HomeDashboardData, String>((
     if (appliesToday) {
       applicableToday++;
       final checkIn = checkInByHabitId[habit.id];
-      if (checkIn != null) completedToday++;
+      final completed =
+          checkIn != null &&
+          (habit.measurementType != MeasurementType.yesNo ||
+              checkIn.measuredValue != 0);
+      if (completed) completedToday++;
       todayHabits.add(
         TodayHabitSummary(
           habitId: habit.id,
           habitName: habit.name,
-          isCompleted: checkIn != null,
+          isCompleted: completed,
           awardedPoints: checkIn?.awardedPoints,
         ),
       );
     }
 
     final history = await checkIns.listForHabit(userId, habit.id);
-    final checkedToday = completedHabitIds.contains(habit.id);
+    final completedHistory = habit.measurementType == MeasurementType.yesNo
+        ? history.where((row) => row.measuredValue != 0)
+        : history;
+    final checkedToday = completedHistory.any(
+      (checkIn) => habitDateKey(checkIn.habitDate) == habitDateKey(today),
+    );
     final throughDate = checkedToday
         ? today
         : today.subtract(const Duration(days: 1));
@@ -100,7 +107,7 @@ final homeDashboardProvider = FutureProvider.family<HomeDashboardData, String>((
             startDate: startDate,
             throughDate: throughDate,
             schedules: definitions,
-            checkInDates: history.map((checkIn) => checkIn.habitDate),
+            checkInDates: completedHistory.map((checkIn) => checkIn.habitDate),
             pauses: habitPauses,
           )
           .current;

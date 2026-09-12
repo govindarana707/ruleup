@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ruleup/core/sync/sync_provider.dart';
 import 'package:ruleup/features/auth/presentation/auth_controller.dart';
+import 'package:ruleup/features/check_ins/presentation/daily_check_in_provider.dart';
 import 'package:ruleup/features/history/presentation/history_provider.dart';
 import 'package:ruleup/features/history/presentation/history_screen.dart';
 
@@ -65,6 +66,56 @@ void main() {
     expect(find.text('+10 points'), findsWidgets);
   });
 
+  testWidgets('history list and detail expose an editable check-in', (
+    tester,
+  ) async {
+    CheckInSubmission? submitted;
+    await _pumpScreen(
+      tester,
+      data: _editableHistory,
+      submit: (_, value) async {
+        submitted = value;
+        return const CheckInSubmitResult(points: 3, updated: true);
+      },
+    );
+    await _scrollToEntries(tester);
+
+    await tester.tap(find.byKey(const Key('edit-history-check-in-study')));
+    await tester.pumpAndSettle();
+    expect(find.text('Edit check-in'), findsOneWidget);
+    await tester.tap(find.text('No'));
+    await tester.tap(find.byKey(const Key('submit-check-in-button')));
+    await tester.pumpAndSettle();
+    expect(submitted?.checkInId, 'history-check-in');
+    expect(submitted?.completed, isFalse);
+  });
+
+  testWidgets('history detail opens the same editable check-in', (
+    tester,
+  ) async {
+    CheckInSubmission? submitted;
+    await _pumpScreen(
+      tester,
+      data: _editableHistory,
+      submit: (_, value) async {
+        submitted = value;
+        return const CheckInSubmitResult(points: 3, updated: true);
+      },
+    );
+    await _scrollToEntries(tester);
+
+    await tester.tap(find.byKey(const Key('history-entry-study')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('edit-history-detail-study')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('No'));
+    await tester.tap(find.byKey(const Key('submit-check-in-button')));
+    await tester.pumpAndSettle();
+
+    expect(submitted?.checkInId, 'history-check-in');
+    expect(submitted?.completed, isFalse);
+  });
+
   testWidgets('renders loading, empty, error, offline, and syncing states', (
     tester,
   ) async {
@@ -102,6 +153,7 @@ Future<void> _pumpScreen(
   Object? error,
   bool offline = false,
   bool syncing = false,
+  CheckInSubmitAction? submit,
   bool settle = true,
 }) async {
   await tester.pumpWidget(
@@ -119,6 +171,8 @@ Future<void> _pumpScreen(
           if (future != null) return future;
           return data!;
         }),
+        if (submit != null)
+          checkInSubmitActionProvider.overrideWithValue(submit),
       ],
       child: const MaterialApp(home: HistoryScreen(userId: 'user-1')),
     ),
@@ -183,6 +237,25 @@ final _emptyHistory = HistoryDayData(
   longestStreak: 0,
   habits: const [],
   entries: const [],
+);
+
+final _editableHistory = HistoryDayData(
+  date: DateTime(2026, 1, 5),
+  currentStreak: 1,
+  longestStreak: 1,
+  habits: const [HistoryHabitFilter(id: 'study', name: 'Study')],
+  entries: [
+    HistoryEntry(
+      habitId: 'study',
+      habitName: 'Study',
+      scheduleSummary: 'Daily',
+      status: HistoryEntryStatus.completed,
+      points: 3,
+      checkInId: 'history-check-in',
+      editableUntil: DateTime(2026, 1, 6, 12),
+      completed: true,
+    ),
+  ],
 );
 
 class _SyncingController extends SyncController {

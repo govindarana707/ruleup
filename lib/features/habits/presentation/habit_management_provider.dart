@@ -115,6 +115,9 @@ class HabitManagementCoordinator {
       final pauseRows = await pauses.listForHabit(userId, habit.id);
       final reminder = await reminders.getForHabit(userId, habit.id);
       final history = await checkIns.listForHabit(userId, habit.id);
+      final completedHistory = habit.measurementType == MeasurementType.yesNo
+          ? history.where((row) => row.measuredValue != 0)
+          : history;
       final definitions = scheduleRows
           .map(
             (row) => HabitScheduleDefinition.fromConfig(
@@ -145,7 +148,7 @@ class HabitManagementCoordinator {
               startDate: startDate,
               throughDate: throughDate,
               schedules: definitions,
-              checkInDates: history.map((row) => row.habitDate),
+              checkInDates: completedHistory.map((row) => row.habitDate),
               pauses: pausePeriods,
             )
             .current;

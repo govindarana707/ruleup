@@ -167,6 +167,60 @@ void main() {
     expect((await checkIns.getById(userId, created.id))?.note, 'Original');
   });
 
+  test(
+    'yes/no corrections retain the check-in and reconcile one ledger row',
+    () async {
+      final habitId = await _createHabit(
+        database,
+        userId,
+        MeasurementType.yesNo,
+      );
+      await _createRule(
+        database,
+        userId: userId,
+        habitId: habitId,
+        operator: PointRuleOperator.completed,
+        points: 7,
+      );
+      final created = await checkIns.create(
+        userId: userId,
+        habitId: habitId,
+        habitDate: DateTime(2026, 1, 1),
+        note: 'Yes',
+      );
+
+      currentTime = DateTime.utc(2026, 1, 2, 11);
+      final no = await checkIns.update(
+        userId: userId,
+        id: created.id,
+        optionId: null,
+        measuredValue: null,
+        note: 'No',
+        completed: false,
+      );
+      final noLedger = await database.select(database.pointLedger).getSingle();
+      expect(no?.id, created.id);
+      expect(no?.measuredValue, 0);
+      expect(no?.awardedPoints, 0);
+      expect(noLedger.points, 0);
+
+      final yes = await checkIns.update(
+        userId: userId,
+        id: created.id,
+        optionId: null,
+        measuredValue: null,
+        note: 'Yes again',
+        completed: true,
+      );
+      final ledger = await database.select(database.pointLedger).getSingle();
+      expect(yes?.id, created.id);
+      expect(yes?.awardedPoints, 7);
+      expect(ledger.id, noLedger.id);
+      expect(ledger.points, 7);
+      expect(await database.select(database.pointLedger).get(), hasLength(1));
+    },
+  );
+
   test('rejects a duplicate check-in for the same habit day', () async {
     final habitId = await _createHabit(database, userId, MeasurementType.yesNo);
     await checkIns.create(

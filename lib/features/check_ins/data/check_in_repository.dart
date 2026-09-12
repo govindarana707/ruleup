@@ -5,6 +5,7 @@ import 'package:ruleup/core/sync/sync_service.dart';
 import 'package:ruleup/core/utils/habit_date.dart';
 import 'package:ruleup/features/points/data/point_ledger_repository.dart';
 import 'package:ruleup/features/habits/domain/schedule_applicability.dart';
+import 'package:ruleup/features/habits/domain/measurement_type.dart';
 import 'package:ruleup/features/points/domain/point_rule_evaluator.dart';
 
 class CheckInRepository {
@@ -32,6 +33,7 @@ class CheckInRepository {
     String? optionId,
     double? measuredValue,
     String? note,
+    bool completed = true,
   }) => _database.transaction(() async {
     _validateMeasuredValue(measuredValue);
     final normalizedDate = normalizeHabitDate(habitDate);
@@ -46,6 +48,7 @@ class CheckInRepository {
       habit: habit,
       habitDate: normalizedDate,
       measuredValue: measuredValue ?? option?.numericValue,
+      completed: completed,
     );
     final checkedInAt = _now().toUtc();
     final checkIn = await _database
@@ -56,7 +59,11 @@ class CheckInRepository {
             habitId: habitId,
             habitDate: normalizedDate,
             optionId: Value(optionId),
-            measuredValue: Value(measuredValue),
+            measuredValue: Value(
+              habit.measurementType == MeasurementType.yesNo
+                  ? (completed ? 1 : 0)
+                  : measuredValue,
+            ),
             note: Value(_normalizeNote(note)),
             awardedPoints: evaluation.points,
             matchedRuleId: Value(evaluation.matchedRule?.id),
@@ -126,6 +133,7 @@ class CheckInRepository {
     required String? optionId,
     required double? measuredValue,
     required String? note,
+    bool completed = true,
   }) => _database.transaction(() async {
     _validateMeasuredValue(measuredValue);
     final existing = await getById(userId, id);
@@ -142,13 +150,18 @@ class CheckInRepository {
       habit: habit,
       habitDate: existing.habitDate,
       measuredValue: measuredValue ?? option?.numericValue,
+      completed: completed,
     );
     await (_database.update(
       _database.checkIns,
     )..where((row) => row.id.equals(id) & row.userId.equals(userId))).write(
       CheckInsCompanion(
         optionId: Value(optionId),
-        measuredValue: Value(measuredValue),
+        measuredValue: Value(
+          habit.measurementType == MeasurementType.yesNo
+              ? (completed ? 1 : 0)
+              : measuredValue,
+        ),
         note: Value(_normalizeNote(note)),
         awardedPoints: Value(evaluation.points),
         matchedRuleId: Value(evaluation.matchedRule?.id),
@@ -193,6 +206,7 @@ class CheckInRepository {
     required String userId,
     required Habit habit,
     required double? measuredValue,
+    required bool completed,
   }) async {
     final storedRules =
         await (_database.select(_database.pointRules)..where(
@@ -202,7 +216,7 @@ class CheckInRepository {
     return _evaluator.evaluate(
       measurementType: habit.measurementType,
       measuredValue: measuredValue,
-      completed: true,
+      completed: completed,
       rules: storedRules.map(
         (rule) => PointRuleDefinition(
           id: rule.id,
@@ -222,6 +236,7 @@ class CheckInRepository {
     required Habit habit,
     required DateTime habitDate,
     required double? measuredValue,
+    required bool completed,
   }) async {
     final dateValue = const HabitDateConverter().toSql(habitDate);
     final pause =
@@ -258,6 +273,7 @@ class CheckInRepository {
       userId: userId,
       habit: habit,
       measuredValue: measuredValue,
+      completed: completed,
     );
   }
 

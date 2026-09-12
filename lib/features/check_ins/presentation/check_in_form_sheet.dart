@@ -25,6 +25,7 @@ class _CheckInFormSheetState extends State<CheckInFormSheet> {
   late final TextEditingController _valueController;
   late final TextEditingController _noteController;
   String? _selectedOptionId;
+  late bool _completed;
   String? _error;
   var _saving = false;
 
@@ -33,6 +34,7 @@ class _CheckInFormSheetState extends State<CheckInFormSheet> {
     super.initState();
     final existing = widget.habit.checkIn;
     _selectedOptionId = existing?.optionId;
+    _completed = existing?.completed ?? true;
     _valueController = TextEditingController(
       text: existing?.measuredValue?.toString() ?? '',
     );
@@ -86,6 +88,19 @@ class _CheckInFormSheetState extends State<CheckInFormSheet> {
                       letterSpacing: 0.8,
                     ),
                   ),
+                  if (isYesNo) ...[
+                    const SizedBox(height: 18),
+                    SegmentedButton<bool>(
+                      key: const Key('check-in-completion-toggle'),
+                      segments: const [
+                        ButtonSegment(value: true, label: Text('Yes')),
+                        ButtonSegment(value: false, label: Text('No')),
+                      ],
+                      selected: {_completed},
+                      onSelectionChanged: (values) =>
+                          setState(() => _completed = values.single),
+                    ),
+                  ],
                   const SizedBox(height: 4),
                   Text(widget.habit.name, style: theme.textTheme.headlineSmall),
                   const SizedBox(height: 6),
@@ -245,6 +260,7 @@ class _CheckInFormSheetState extends State<CheckInFormSheet> {
               ? null
               : double.parse(rawValue),
           note: _noteController.text,
+          completed: _completed,
         ),
       );
       if (mounted) Navigator.pop(context, result);

@@ -394,25 +394,35 @@ class _CheckInCard extends StatelessWidget {
               ),
               const SizedBox(height: 14),
               if (checkIn == null)
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton.icon(
-                    key: Key('check-in-action-${habit.id}'),
-                    onPressed: submitting ? null : onQuickComplete ?? onOpen,
-                    icon: submitting
-                        ? const SizedBox.square(
-                            dimension: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : Icon(
-                            onQuickComplete == null
-                                ? Icons.edit_outlined
-                                : Icons.check_rounded,
-                          ),
-                    label: Text(
-                      onQuickComplete == null ? 'Check in' : 'Complete',
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    FilledButton.icon(
+                      key: Key('check-in-action-${habit.id}'),
+                      onPressed: submitting ? null : onQuickComplete ?? onOpen,
+                      icon: submitting
+                          ? const SizedBox.square(
+                              dimension: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : Icon(
+                              onQuickComplete == null
+                                  ? Icons.edit_outlined
+                                  : Icons.check_rounded,
+                            ),
+                      label: Text(
+                        onQuickComplete == null ? 'Check in' : 'Complete',
+                      ),
                     ),
-                  ),
+                    if (onQuickComplete != null) ...[
+                      const SizedBox(height: 6),
+                      TextButton(
+                        key: Key('choose-check-in-response-${habit.id}'),
+                        onPressed: submitting ? null : onOpen,
+                        child: const Text('Choose Yes or No'),
+                      ),
+                    ],
+                  ],
                 )
               else
                 _CompletedState(
@@ -466,7 +476,9 @@ class _CompletedState extends StatelessWidget {
     children: [
       Expanded(
         child: Text(
-          checkIn.awardedPoints == 0
+          !checkIn.completed
+              ? 'Not completed today'
+              : checkIn.awardedPoints == 0
               ? 'Completed today'
               : '${_pointsLabel(checkIn.awardedPoints)} awarded',
           style: Theme.of(context).textTheme.labelLarge
