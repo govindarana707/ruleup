@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ruleup/core/presentation/point_coins_icon.dart';
 import 'package:ruleup/core/presentation/point_currency_theme.dart';
 import 'package:ruleup/core/sync/sync_provider.dart';
 import 'package:ruleup/features/auth/presentation/auth_controller.dart';
@@ -15,6 +14,10 @@ void main() {
   testWidgets('wallet totals and affordability are displayed', (tester) async {
     await _pumpScreen(tester, data: _wallet);
 
+    expect(find.byKey(const Key('reward-wallet-outer-card')), findsOneWidget);
+    expect(find.byKey(const Key('available-points-card')), findsOneWidget);
+    expect(find.byKey(const Key('lifetime-earned-card')), findsOneWidget);
+    expect(find.byKey(const Key('spent-points-card')), findsOneWidget);
     expect(find.text('Available points'), findsOneWidget);
     expect(find.text('80'), findsOneWidget);
     expect(find.text('Lifetime earned'), findsOneWidget);
@@ -25,8 +28,28 @@ void main() {
     expect(find.text('50 points'), findsOneWidget);
     expect(find.text('Monetary cap 20'), findsOneWidget);
     expect(find.text('Ready to redeem'), findsOneWidget);
+    expect(find.text('Active (2)'), findsOneWidget);
+    expect(find.text('Archived (0)'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('reward-wallet-outer-card')),
+        matching: find.byKey(const Key('flat-point-coins-icon')),
+      ),
+      findsNWidgets(3),
+    );
+    expect(find.byKey(const Key('reward-image-fallback')), findsWidgets);
+    expect(
+      tester.getSize(find.byKey(const Key('reward-image-movie'))),
+      const Size.square(64),
+    );
+
+    await _reveal(tester, find.text('40 points to go'));
     expect(find.text('40 points to go'), findsOneWidget);
-    expect(find.byType(PointCoinsIcon), findsNWidgets(5));
+    await _reveal(
+      tester,
+      find.byKey(const Key('redeem-reward-movie')),
+      reverse: true,
+    );
     final redeemStyle = tester
         .widget<FilledButton>(find.byKey(const Key('redeem-reward-movie')))
         .style!;
@@ -34,6 +57,9 @@ void main() {
       redeemStyle.backgroundColor!.resolve(<WidgetState>{}),
       PointCurrencyTheme.gold,
     );
+    expect(find.text('Redeem reward'), findsOneWidget);
+    await _reveal(tester, find.byKey(const Key('redeem-reward-expensive')));
+    expect(find.text('Not enough points'), findsOneWidget);
     expect(
       tester
           .widget<FilledButton>(
@@ -57,6 +83,7 @@ void main() {
       },
     );
 
+    await _reveal(tester, find.byKey(const Key('create-reward-button')));
     await tester.tap(find.byKey(const Key('create-reward-button')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('save-reward-button')));
@@ -76,6 +103,11 @@ void main() {
     expect(saved.last.pointsCost, '200');
     expect(saved.last.monetaryCap, '75.5');
 
+    await _reveal(
+      tester,
+      find.byKey(const Key('reward-card-movie')),
+      reverse: true,
+    );
     await tester.tap(find.byKey(const Key('reward-card-movie')));
     await tester.pumpAndSettle();
     expect(find.text('Edit reward'), findsOneWidget);
@@ -114,7 +146,7 @@ void main() {
       data: _archivedWallet,
       restore: (userId, rewardId) async => restored = '$userId/$rewardId',
     );
-    await tester.tap(find.text('Archived'));
+    await tester.tap(find.text('Archived (1)'));
     await tester.pump();
     await tester.tap(find.byTooltip('Reward actions'));
     await tester.pumpAndSettle();
@@ -142,6 +174,7 @@ void main() {
       },
     );
 
+    await _reveal(tester, find.byKey(const Key('redeem-reward-movie')));
     await tester.tap(find.byKey(const Key('redeem-reward-movie')));
     await tester.pumpAndSettle();
     expect(find.text('Redeem reward?'), findsOneWidget);
@@ -157,6 +190,11 @@ void main() {
     await tester.pumpAndSettle();
     expect(redemptions, 0);
 
+    await _reveal(
+      tester,
+      find.byKey(const Key('redeem-reward-movie')),
+      reverse: true,
+    );
     await tester.tap(find.byKey(const Key('redeem-reward-movie')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('confirm-redeem-button')));
@@ -190,6 +228,7 @@ void main() {
       redeem: (userId, rewardId) async => called = true,
     );
 
+    await _reveal(tester, find.text('20 points to go'));
     expect(find.text('20 points to go'), findsOneWidget);
     await tester.tap(find.byKey(const Key('redeem-reward-too-expensive')));
     await tester.pump();
@@ -230,14 +269,43 @@ void main() {
 
     expect(find.text('Available points'), findsOneWidget);
     expect(find.text('Lifetime earned'), findsOneWidget);
-    await tester.drag(
-      find.byKey(const Key('rewards-wallet-scroll')),
-      const Offset(0, -420),
-    );
-    await tester.pumpAndSettle();
+    await _reveal(tester, find.byKey(const Key('redeem-reward-movie')));
     expect(find.byKey(const Key('redeem-reward-movie')), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('wallet explanation defines each authoritative total', (
+    tester,
+  ) async {
+    await _pumpScreen(tester, data: _wallet);
+
+    await tester.tap(find.byKey(const Key('wallet-how-it-works')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('wallet-explanation')), findsOneWidget);
+    expect(
+      find.text('Points you can spend on rewards right now.'),
+      findsOneWidget,
+    );
+    expect(
+      find.text('Every point you have earned from your habits.'),
+      findsOneWidget,
+    );
+    expect(find.text('Points already used to redeem rewards.'), findsOneWidget);
+  });
+}
+
+Future<void> _reveal(
+  WidgetTester tester,
+  Finder finder, {
+  bool reverse = false,
+}) async {
+  await tester.dragUntilVisible(
+    finder,
+    find.byKey(const Key('rewards-wallet-scroll')),
+    Offset(0, reverse ? 300 : -300),
+  );
+  await tester.pumpAndSettle();
 }
 
 Future<void> _pumpScreen(

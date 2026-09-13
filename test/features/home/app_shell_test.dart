@@ -39,15 +39,16 @@ void main() {
     final rewardsNavigationTheme = tester.widget<NavigationBarTheme>(
       find.byType(NavigationBarTheme),
     );
-    expect(
-      rewardsNavigationTheme.data.indicatorColor,
-      PointCurrencyTheme.goldSurface,
-    );
+    expect(rewardsNavigationTheme.data.indicatorColor, Colors.transparent);
     expect(
       rewardsNavigationTheme.data.iconTheme!.resolve(<WidgetState>{
         WidgetState.selected,
       })!.color,
       PointCurrencyTheme.gold,
+    );
+    expect(
+      find.byKey(const Key('rewards-navigation-indicator')),
+      findsOneWidget,
     );
 
     await tester.tap(find.text('History').last);

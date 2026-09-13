@@ -42,7 +42,7 @@ class _AppShellState extends ConsumerState<AppShell> {
     ),
     NavigationDestination(
       icon: Icon(Icons.card_giftcard_outlined),
-      selectedIcon: Icon(Icons.card_giftcard_rounded),
+      selectedIcon: _RewardSelectedIcon(),
       label: 'Rewards',
     ),
     NavigationDestination(
@@ -163,9 +163,7 @@ class _BottomNavigation extends StatelessWidget {
         ? PointCurrencyTheme.gold
         : HomeDashboardTheme.mint;
     final navigationTheme = Theme.of(context).navigationBarTheme.copyWith(
-      indicatorColor: rewardSelected
-          ? PointCurrencyTheme.goldSurface
-          : Colors.transparent,
+      indicatorColor: Colors.transparent,
       iconTheme: WidgetStateProperty.resolveWith(
         (states) => IconThemeData(
           color: states.contains(WidgetState.selected)
@@ -200,6 +198,28 @@ class _BottomNavigation extends StatelessWidget {
       ),
     );
   }
+}
+
+class _RewardSelectedIcon extends StatelessWidget {
+  const _RewardSelectedIcon();
+
+  @override
+  Widget build(BuildContext context) => Column(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      const Icon(Icons.card_giftcard_rounded),
+      const SizedBox(height: 3),
+      Container(
+        key: const Key('rewards-navigation-indicator'),
+        width: 22,
+        height: 3,
+        decoration: BoxDecoration(
+          color: PointCurrencyTheme.gold,
+          borderRadius: BorderRadius.circular(99),
+        ),
+      ),
+    ],
+  );
 }
 
 class _HomeSelectedIcon extends StatelessWidget {
