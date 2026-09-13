@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ruleup/core/presentation/point_coins_icon.dart';
+import 'package:ruleup/core/presentation/point_currency_theme.dart';
 import 'package:ruleup/core/presentation/sync_status_banner.dart';
 import 'package:ruleup/core/sync/sync_provider.dart';
 import 'package:ruleup/features/auth/presentation/auth_controller.dart';
@@ -10,6 +12,13 @@ import 'package:ruleup/features/rewards/presentation/reward_image_thumbnail.dart
 import 'package:ruleup/features/rewards/data/reward_image_service.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:ruleup/features/rewards/presentation/rewards_wallet_provider.dart';
+
+final _redeemButtonStyle = FilledButton.styleFrom(
+  backgroundColor: PointCurrencyTheme.gold,
+  foregroundColor: PointCurrencyTheme.onGold,
+  disabledBackgroundColor: HomeDashboardTheme.surfaceRaised,
+  disabledForegroundColor: HomeDashboardTheme.mutedText,
+);
 
 class RewardsWalletScreen extends ConsumerStatefulWidget {
   const RewardsWalletScreen({super.key, required this.userId});
@@ -217,6 +226,7 @@ class _RewardsWalletScreenState extends ConsumerState<RewardsWalletScreen> {
       '${reward.name} costs ${reward.pointsCost} points. You’ll have ${wallet.availablePoints - reward.pointsCost} points remaining.',
       'Redeem',
       const Key('confirm-redeem-button'),
+      rewardAction: true,
     );
     if (ok && mounted) {
       await _mutate(
@@ -232,8 +242,9 @@ class _RewardsWalletScreenState extends ConsumerState<RewardsWalletScreen> {
     String title,
     String content,
     String action,
-    Key key,
-  ) async =>
+    Key key, {
+    bool rewardAction = false,
+  }) async =>
       await showDialog<bool>(
         context: context,
         builder: (context) => Theme(
@@ -249,6 +260,7 @@ class _RewardsWalletScreenState extends ConsumerState<RewardsWalletScreen> {
               FilledButton(
                 key: key,
                 onPressed: () => Navigator.pop(context, true),
+                style: rewardAction ? _redeemButtonStyle : null,
                 child: Text(action),
               ),
             ],
@@ -309,24 +321,27 @@ class _WalletSummary extends StatelessWidget {
               context,
               'Available points',
               wallet?.availablePoints.toString() ?? '—',
-              Icons.account_balance_wallet_outlined,
-              HomeDashboardTheme.mint,
+              const PointCoinsIcon(size: 20, color: PointCurrencyTheme.gold),
+              PointCurrencyTheme.gold,
               wide ? (c.maxWidth - 28) / 3 : (c.maxWidth - 14) / 2,
             ),
             _metric(
               context,
               'Lifetime earned',
               wallet?.lifetimeEarned.toString() ?? '—',
-              Icons.trending_up_rounded,
-              HomeDashboardTheme.text,
+              const PointCoinsIcon(size: 20, color: PointCurrencyTheme.gold),
+              PointCurrencyTheme.gold,
               wide ? (c.maxWidth - 28) / 3 : (c.maxWidth - 14) / 2,
             ),
             _metric(
               context,
               'Spent points',
               wallet?.spentPoints.toString() ?? '—',
-              Icons.redeem_outlined,
-              HomeDashboardTheme.mutedText,
+              const PointCoinsIcon(
+                size: 20,
+                color: PointCurrencyTheme.goldMuted,
+              ),
+              PointCurrencyTheme.goldMuted,
               wide ? (c.maxWidth - 28) / 3 : (c.maxWidth - 14) / 2,
             ),
           ],
@@ -338,7 +353,7 @@ class _WalletSummary extends StatelessWidget {
     BuildContext context,
     String label,
     String value,
-    IconData icon,
+    Widget icon,
     Color color,
     double width,
   ) => SizedBox(
@@ -346,7 +361,10 @@ class _WalletSummary extends StatelessWidget {
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 20, color: color),
+        IconTheme(
+          data: IconThemeData(size: 20, color: color),
+          child: icon,
+        ),
         const SizedBox(height: 8),
         Text(
           value,
@@ -383,7 +401,7 @@ class _RewardSwitch extends StatelessWidget {
     final selected = archived == value;
     return Expanded(
       child: Material(
-        color: selected ? const Color(0xFF193C32) : Colors.transparent,
+        color: selected ? PointCurrencyTheme.goldSurface : Colors.transparent,
         borderRadius: BorderRadius.circular(10),
         child: InkWell(
           borderRadius: BorderRadius.circular(10),
@@ -395,7 +413,7 @@ class _RewardSwitch extends StatelessWidget {
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.labelLarge?.copyWith(
                 color: selected
-                    ? HomeDashboardTheme.mint
+                    ? PointCurrencyTheme.gold
                     : HomeDashboardTheme.mutedText,
               ),
             ),
@@ -449,10 +467,20 @@ class _RewardCard extends StatelessWidget {
                             ?.copyWith(fontSize: 19),
                       ),
                       const SizedBox(height: 5),
-                      Text(
-                        '${reward.pointsCost} points',
-                        style: Theme.of(context).textTheme.titleSmall
-                            ?.copyWith(color: HomeDashboardTheme.mint),
+                      Wrap(
+                        spacing: 5,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          const PointCoinsIcon(
+                            size: 18,
+                            color: PointCurrencyTheme.gold,
+                          ),
+                          Text(
+                            '${reward.pointsCost} points',
+                            style: Theme.of(context).textTheme.titleSmall
+                                ?.copyWith(color: PointCurrencyTheme.gold),
+                          ),
+                        ],
                       ),
                       if (reward.monetaryCap != null)
                         Padding(
@@ -470,7 +498,7 @@ class _RewardCard extends StatelessWidget {
                         style: Theme.of(context).textTheme.labelMedium
                             ?.copyWith(
                               color: affordable
-                                  ? HomeDashboardTheme.mint
+                                  ? PointCurrencyTheme.gold
                                   : HomeDashboardTheme.mutedText,
                             ),
                       ),
@@ -495,6 +523,7 @@ class _RewardCard extends StatelessWidget {
                 child: FilledButton(
                   key: Key('redeem-reward-${reward.id}'),
                   onPressed: busy ? null : onRedeem,
+                  style: _redeemButtonStyle,
                   child: busy
                       ? const SizedBox.square(
                           dimension: 16,

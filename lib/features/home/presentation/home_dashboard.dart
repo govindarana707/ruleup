@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ruleup/core/presentation/point_coins_icon.dart';
+import 'package:ruleup/core/presentation/point_currency_theme.dart';
 import 'package:ruleup/core/sync/sync_provider.dart';
 import 'package:ruleup/core/utils/streak_label.dart';
 import 'package:ruleup/features/auth/presentation/auth_controller.dart';
@@ -428,12 +430,16 @@ class _CombinedMetricsCard extends StatelessWidget {
             Expanded(
               child: _Metric(
                 key: const Key('home-available-points-metric'),
-                icon: const Icon(Icons.toll_rounded),
+                icon: const PointCoinsIcon(
+                  size: 24,
+                  color: PointCurrencyTheme.gold,
+                ),
                 label: 'Available points',
                 value: '${data.availablePoints}',
                 supporting: 'Ready to use on rewards',
-                iconColor: HomeDashboardTheme.mint,
-                iconBackground: const Color(0xFF12392F),
+                iconColor: PointCurrencyTheme.gold,
+                iconBackground: PointCurrencyTheme.goldSurface,
+                valueColor: PointCurrencyTheme.gold,
                 semanticLabel: 'Open rewards',
                 onTap: onOpenRewards,
               ),
@@ -470,6 +476,7 @@ class _Metric extends StatelessWidget {
     required this.iconBackground,
     required this.semanticLabel,
     required this.onTap,
+    this.valueColor,
   });
   final Widget icon;
   final String label;
@@ -479,6 +486,7 @@ class _Metric extends StatelessWidget {
   final Color iconBackground;
   final String semanticLabel;
   final VoidCallback onTap;
+  final Color? valueColor;
 
   @override
   Widget build(BuildContext context) {
@@ -527,7 +535,9 @@ class _Metric extends StatelessWidget {
                         alignment: Alignment.centerLeft,
                         child: Text(
                           value,
-                          style: theme.textTheme.headlineSmall,
+                          style: theme.textTheme.headlineSmall?.copyWith(
+                            color: valueColor,
+                          ),
                         ),
                       ),
                     ],

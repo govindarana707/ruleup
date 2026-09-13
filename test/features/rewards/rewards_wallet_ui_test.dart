@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ruleup/core/presentation/point_coins_icon.dart';
+import 'package:ruleup/core/presentation/point_currency_theme.dart';
 import 'package:ruleup/core/sync/sync_provider.dart';
 import 'package:ruleup/features/auth/presentation/auth_controller.dart';
 import 'package:ruleup/features/home/presentation/home_dashboard_provider.dart';
@@ -24,6 +26,14 @@ void main() {
     expect(find.text('Monetary cap 20'), findsOneWidget);
     expect(find.text('Ready to redeem'), findsOneWidget);
     expect(find.text('40 points to go'), findsOneWidget);
+    expect(find.byType(PointCoinsIcon), findsNWidgets(5));
+    final redeemStyle = tester
+        .widget<FilledButton>(find.byKey(const Key('redeem-reward-movie')))
+        .style!;
+    expect(
+      redeemStyle.backgroundColor!.resolve(<WidgetState>{}),
+      PointCurrencyTheme.gold,
+    );
     expect(
       tester
           .widget<FilledButton>(
@@ -136,6 +146,13 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Redeem reward?'), findsOneWidget);
     expect(find.textContaining('30 points remaining'), findsOneWidget);
+    final confirmationStyle = tester
+        .widget<FilledButton>(find.byKey(const Key('confirm-redeem-button')))
+        .style!;
+    expect(
+      confirmationStyle.backgroundColor!.resolve(<WidgetState>{}),
+      PointCurrencyTheme.gold,
+    );
     await tester.tap(find.text('Cancel'));
     await tester.pumpAndSettle();
     expect(redemptions, 0);
@@ -198,6 +215,28 @@ void main() {
 
     await _pumpScreen(tester, data: _emptyWallet, syncing: true);
     expect(find.text('Syncing rewards and wallet…'), findsOneWidget);
+  });
+
+  testWidgets('wallet remains usable on a narrow screen with larger text', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(320, 568);
+    tester.view.devicePixelRatio = 1;
+    tester.platformDispatcher.textScaleFactorTestValue = 1.5;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+
+    await _pumpScreen(tester, data: _wallet);
+
+    expect(find.text('Available points'), findsOneWidget);
+    expect(find.text('Lifetime earned'), findsOneWidget);
+    await tester.drag(
+      find.byKey(const Key('rewards-wallet-scroll')),
+      const Offset(0, -420),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('redeem-reward-movie')), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 }
 

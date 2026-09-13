@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ruleup/app/theme/app_theme.dart';
+import 'package:ruleup/core/presentation/point_coins_icon.dart';
+import 'package:ruleup/core/presentation/point_currency_theme.dart';
 import 'package:ruleup/features/auth/presentation/auth_controller.dart';
 import 'package:ruleup/core/sync/sync_provider.dart';
 import 'package:ruleup/features/habits/presentation/habit_management_provider.dart';
@@ -34,6 +36,19 @@ void main() {
     await tester.tap(find.text('Rewards').last);
     await tester.pump();
     expect(find.byKey(const Key('rewards-wallet-screen')), findsOneWidget);
+    final rewardsNavigationTheme = tester.widget<NavigationBarTheme>(
+      find.byType(NavigationBarTheme),
+    );
+    expect(
+      rewardsNavigationTheme.data.indicatorColor,
+      PointCurrencyTheme.goldSurface,
+    );
+    expect(
+      rewardsNavigationTheme.data.iconTheme!.resolve(<WidgetState>{
+        WidgetState.selected,
+      })!.color,
+      PointCurrencyTheme.gold,
+    );
 
     await tester.tap(find.text('History').last);
     await tester.pump();
@@ -123,6 +138,13 @@ void main() {
     expect(find.text('Tester'), findsOneWidget);
     expect(find.byKey(const Key('ruleup-brand-mark')), findsOneWidget);
     expect(find.text('Available points'), findsOneWidget);
+    final pointsIcon = tester.widget<PointCoinsIcon>(
+      find.descendant(
+        of: find.byKey(const Key('home-available-points-metric')),
+        matching: find.byType(PointCoinsIcon),
+      ),
+    );
+    expect(pointsIcon.color, PointCurrencyTheme.gold);
     expect(find.text('120'), findsOneWidget);
     expect(find.text('Current streak'), findsOneWidget);
     expect(find.text('4 days'), findsOneWidget);

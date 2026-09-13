@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ruleup/core/presentation/point_currency_theme.dart';
 import 'package:ruleup/features/check_ins/presentation/daily_check_in_screen.dart';
 import 'package:ruleup/features/check_ins/presentation/daily_check_in_provider.dart';
 import 'package:ruleup/features/habits/presentation/habit_list_screen.dart';
@@ -99,17 +100,10 @@ class _AppShellState extends ConsumerState<AppShell> {
                 .toList(growable: false),
           ),
         ),
-        bottomNavigationBar: DecoratedBox(
-          decoration: const BoxDecoration(
-            border: Border(top: BorderSide(color: HomeDashboardTheme.outline)),
-          ),
-          child: NavigationBar(
-            key: const Key('app-bottom-navigation'),
-            labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-            selectedIndex: _selectedIndex,
-            onDestinationSelected: _select,
-            destinations: _destinations,
-          ),
+        bottomNavigationBar: _BottomNavigation(
+          selectedIndex: _selectedIndex,
+          onDestinationSelected: _select,
+          destinations: _destinations,
         ),
       ),
     );
@@ -149,6 +143,63 @@ class _AppShellState extends ConsumerState<AppShell> {
           SettingsScreen(userId: widget.userId, username: widget.username),
     ),
   );
+}
+
+class _BottomNavigation extends StatelessWidget {
+  const _BottomNavigation({
+    required this.selectedIndex,
+    required this.onDestinationSelected,
+    required this.destinations,
+  });
+
+  final int selectedIndex;
+  final ValueChanged<int> onDestinationSelected;
+  final List<NavigationDestination> destinations;
+
+  @override
+  Widget build(BuildContext context) {
+    final rewardSelected = selectedIndex == 3;
+    final selectedColor = rewardSelected
+        ? PointCurrencyTheme.gold
+        : HomeDashboardTheme.mint;
+    final navigationTheme = Theme.of(context).navigationBarTheme.copyWith(
+      indicatorColor: rewardSelected
+          ? PointCurrencyTheme.goldSurface
+          : Colors.transparent,
+      iconTheme: WidgetStateProperty.resolveWith(
+        (states) => IconThemeData(
+          color: states.contains(WidgetState.selected)
+              ? selectedColor
+              : HomeDashboardTheme.mutedText,
+          size: 24,
+        ),
+      ),
+      labelTextStyle: WidgetStateProperty.resolveWith(
+        (states) => TextStyle(
+          color: states.contains(WidgetState.selected)
+              ? selectedColor
+              : HomeDashboardTheme.mutedText,
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+    return DecoratedBox(
+      decoration: const BoxDecoration(
+        border: Border(top: BorderSide(color: HomeDashboardTheme.outline)),
+      ),
+      child: NavigationBarTheme(
+        data: navigationTheme,
+        child: NavigationBar(
+          key: const Key('app-bottom-navigation'),
+          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+          selectedIndex: selectedIndex,
+          onDestinationSelected: onDestinationSelected,
+          destinations: destinations,
+        ),
+      ),
+    );
+  }
 }
 
 class _HomeSelectedIcon extends StatelessWidget {

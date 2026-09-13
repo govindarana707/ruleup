@@ -41,26 +41,14 @@ class _PointCoinsPainter extends CustomPainter {
   }
 
   void _coin(Canvas canvas, Offset center, double width) {
-    final top = Rect.fromCenter(center: center, width: width, height: 4.8);
-    final side = Rect.fromLTWH(center.dx - width / 2, center.dy, width, 3.1);
-    final sidePaint = Paint()..color = color.withValues(alpha: .55);
-    canvas.drawRect(side, sidePaint);
+    final bounds = Rect.fromCenter(center: center, width: width, height: 5);
+    canvas.drawOval(bounds, Paint()..color = color);
     canvas.drawOval(
-      Rect.fromCenter(
-        center: Offset(center.dx, center.dy + side.height),
-        width: width,
-        height: 4.8,
-      ),
-      sidePaint,
-    );
-    canvas.drawOval(top, Paint()..color = color);
-    canvas.drawOval(
-      Rect.fromCenter(
-        center: Offset(center.dx - width * .12, center.dy - .35),
-        width: width * .55,
-        height: 1.35,
-      ),
-      Paint()..color = Colors.white.withValues(alpha: .38),
+      bounds.deflate(.85),
+      Paint()
+        ..color = color.withValues(alpha: .7)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.1,
     );
   }
 
