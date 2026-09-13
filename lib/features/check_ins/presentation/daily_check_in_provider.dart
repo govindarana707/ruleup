@@ -25,6 +25,18 @@ import 'package:ruleup/features/reminders/data/habit_reminder_repository_provide
 
 final checkInNowProvider = Provider<DateTime>((ref) => DateTime.now());
 
+/// A one-shot request from Home to open an existing Check-in flow in its tab.
+final homeCheckInRequestProvider =
+    NotifierProvider<HomeCheckInRequest, String?>(HomeCheckInRequest.new);
+
+class HomeCheckInRequest extends Notifier<String?> {
+  @override
+  String? build() => null;
+
+  void request(String habitId) => state = habitId;
+  void clear() => state = null;
+}
+
 final dailyCheckInCoordinatorProvider = Provider<DailyCheckInCoordinator>(
   (ref) => DailyCheckInCoordinator(
     categories: ref.watch(categoryRepositoryProvider),

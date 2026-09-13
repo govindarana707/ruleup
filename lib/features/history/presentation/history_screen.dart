@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ruleup/core/presentation/sync_status_banner.dart';
 import 'package:ruleup/core/sync/sync_provider.dart';
 import 'package:ruleup/core/utils/habit_date.dart';
+import 'package:ruleup/core/utils/streak_label.dart';
 import 'package:ruleup/features/auth/presentation/auth_controller.dart';
 import 'package:ruleup/features/check_ins/presentation/check_in_form_sheet.dart';
 import 'package:ruleup/features/check_ins/presentation/daily_check_in_provider.dart';
@@ -369,7 +370,7 @@ class _StreakCard extends StatelessWidget {
               children: [
                 Text(label, style: Theme.of(context).textTheme.labelMedium),
                 Text(
-                  value == null ? '—' : '$value days',
+                  value == null ? '—' : streakDayLabel(value!),
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
               ],

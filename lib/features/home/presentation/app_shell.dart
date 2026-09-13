@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ruleup/features/check_ins/presentation/daily_check_in_screen.dart';
+import 'package:ruleup/features/check_ins/presentation/daily_check_in_provider.dart';
 import 'package:ruleup/features/habits/presentation/habit_list_screen.dart';
 import 'package:ruleup/features/home/presentation/home_dashboard.dart';
 import 'package:ruleup/features/home/presentation/home_dashboard_theme.dart';
@@ -119,6 +120,8 @@ class _AppShellState extends ConsumerState<AppShell> {
       userId: widget.userId,
       username: widget.username,
       onQuickCheckIn: () => _select(2),
+      onOpenHabitCheckIn: _openHabitCheckIn,
+      onOpenHabits: () => _select(1),
       onOpenRewards: () => _select(3),
       onOpenHistory: () => _select(4),
       onOpenSettings: _openSettings,
@@ -134,6 +137,11 @@ class _AppShellState extends ConsumerState<AppShell> {
     _pages[index] ??= _buildPage(index);
     _selectedIndex = index;
   });
+
+  void _openHabitCheckIn(String habitId) {
+    ref.read(homeCheckInRequestProvider.notifier).request(habitId);
+    _select(2);
+  }
 
   void _openSettings() => Navigator.of(context).push(
     MaterialPageRoute<void>(
@@ -184,7 +192,9 @@ class _CheckInNavIcon extends StatelessWidget {
         border: Border.all(color: HomeDashboardTheme.outline),
       ),
       child: Icon(
-        Icons.add_rounded,
+        selected
+            ? Icons.check_circle_rounded
+            : Icons.check_circle_outline_rounded,
         color: selected ? const Color(0xFF052019) : HomeDashboardTheme.text,
       ),
     );

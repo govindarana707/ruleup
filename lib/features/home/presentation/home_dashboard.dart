@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ruleup/core/presentation/point_coins_icon.dart';
 import 'package:ruleup/core/sync/sync_provider.dart';
+import 'package:ruleup/core/utils/streak_label.dart';
 import 'package:ruleup/features/auth/presentation/auth_controller.dart';
 import 'package:ruleup/features/home/presentation/dashboard_card.dart';
 import 'package:ruleup/features/home/presentation/home_dashboard_provider.dart';
@@ -13,6 +13,8 @@ class HomeDashboard extends ConsumerWidget {
     required this.userId,
     required this.username,
     required this.onQuickCheckIn,
+    required this.onOpenHabitCheckIn,
+    required this.onOpenHabits,
     required this.onOpenRewards,
     required this.onOpenHistory,
     required this.onOpenSettings,
@@ -21,6 +23,8 @@ class HomeDashboard extends ConsumerWidget {
   final String userId;
   final String username;
   final VoidCallback onQuickCheckIn;
+  final ValueChanged<String> onOpenHabitCheckIn;
+  final VoidCallback onOpenHabits;
   final VoidCallback onOpenRewards;
   final VoidCallback onOpenHistory;
   final VoidCallback onOpenSettings;
@@ -81,6 +85,8 @@ class HomeDashboard extends ConsumerWidget {
                                 data: data,
                                 now: now,
                                 onQuickCheckIn: onQuickCheckIn,
+                                onOpenHabitCheckIn: onOpenHabitCheckIn,
+                                onOpenHabits: onOpenHabits,
                                 onOpenRewards: onOpenRewards,
                                 onOpenHistory: onOpenHistory,
                                 onOpenSettings: onOpenSettings,
@@ -202,7 +208,7 @@ class _DashboardHeader extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 26),
+        const SizedBox(height: 18),
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -212,7 +218,13 @@ class _DashboardHeader extends StatelessWidget {
                 children: [
                   Text('$greeting,', style: theme.textTheme.bodyLarge),
                   const SizedBox(height: 2),
-                  Text(username, style: theme.textTheme.headlineMedium),
+                  Text(
+                    username,
+                    style: theme.textTheme.headlineMedium?.copyWith(
+                      fontSize: 27,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -311,6 +323,8 @@ class _DashboardContent extends StatelessWidget {
     required this.data,
     required this.now,
     required this.onQuickCheckIn,
+    required this.onOpenHabitCheckIn,
+    required this.onOpenHabits,
     required this.onOpenRewards,
     required this.onOpenHistory,
     required this.onOpenSettings,
@@ -318,6 +332,8 @@ class _DashboardContent extends StatelessWidget {
   final HomeDashboardData data;
   final DateTime now;
   final VoidCallback onQuickCheckIn;
+  final ValueChanged<String> onOpenHabitCheckIn;
+  final VoidCallback onOpenHabits;
   final VoidCallback onOpenRewards;
   final VoidCallback onOpenHistory;
   final VoidCallback onOpenSettings;
@@ -334,10 +350,16 @@ class _DashboardContent extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         _ProgressCard(data: data),
-        const SizedBox(height: 16),
+        const SizedBox(height: 14),
         FilledButton(
           key: const Key('quick-check-in-button'),
           onPressed: onQuickCheckIn,
+          style: FilledButton.styleFrom(
+            minimumSize: const Size(64, 56),
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+            textStyle: Theme.of(context).textTheme.titleSmall
+                ?.copyWith(fontWeight: FontWeight.w700),
+          ),
           child: const Row(
             children: [
               _CheckInActionIcon(),
@@ -347,8 +369,12 @@ class _DashboardContent extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(height: 16),
-        _TodayHabits(data: data, onViewAll: onQuickCheckIn),
+        const SizedBox(height: 14),
+        _TodayHabits(
+          data: data,
+          onViewAll: onOpenHabits,
+          onOpenHabitCheckIn: onOpenHabitCheckIn,
+        ),
         const SizedBox(height: 16),
         _UpcomingReminders(
           reminders: data.upcomingReminders,
@@ -366,15 +392,15 @@ class _CheckInActionIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 42,
-      height: 42,
+      width: 38,
+      height: 38,
       decoration: const BoxDecoration(
         color: HomeDashboardTheme.background,
         shape: BoxShape.circle,
       ),
       child: const Icon(
-        Icons.add_rounded,
-        size: 28,
+        Icons.check_rounded,
+        size: 25,
         color: HomeDashboardTheme.mint,
       ),
     );
@@ -402,10 +428,7 @@ class _CombinedMetricsCard extends StatelessWidget {
             Expanded(
               child: _Metric(
                 key: const Key('home-available-points-metric'),
-                icon: const PointCoinsIcon(
-                  size: 24,
-                  color: HomeDashboardTheme.mint,
-                ),
+                icon: const Icon(Icons.toll_rounded),
                 label: 'Available points',
                 value: '${data.availablePoints}',
                 supporting: 'Ready to use on rewards',
@@ -421,7 +444,7 @@ class _CombinedMetricsCard extends StatelessWidget {
                 key: const Key('home-current-streak-metric'),
                 icon: const Icon(Icons.local_fire_department_outlined),
                 label: 'Current streak',
-                value: '${data.currentStreak} days',
+                value: streakDayLabel(data.currentStreak),
                 supporting: 'Keep going!',
                 iconColor: const Color(0xFFFFB83E),
                 iconBackground: const Color(0xFF3A3020),
@@ -492,7 +515,7 @@ class _Metric extends StatelessWidget {
                     children: [
                       Text(
                         label,
-                        maxLines: 2,
+                        maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: theme.textTheme.labelMedium?.copyWith(
                           color: HomeDashboardTheme.mutedText,
@@ -551,7 +574,7 @@ class _ProgressCard extends StatelessWidget {
         : 'Keep going—each check-in moves the day forward.';
     return DashboardCard(
       key: const Key('today-progress-card'),
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 17),
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -575,7 +598,7 @@ class _ProgressCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 10),
           Row(
             children: [
               Expanded(
@@ -584,7 +607,7 @@ class _ProgressCard extends StatelessWidget {
                       '${data.completedToday} of ${data.applicableToday} habits complete',
                   child: LinearProgressIndicator(
                     value: data.progress,
-                    minHeight: 10,
+                    minHeight: 8,
                     borderRadius: BorderRadius.circular(99),
                   ),
                 ),
@@ -599,7 +622,7 @@ class _ProgressCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           Text(
             supporting,
             maxLines: 2,
@@ -613,9 +636,14 @@ class _ProgressCard extends StatelessWidget {
 }
 
 class _TodayHabits extends StatelessWidget {
-  const _TodayHabits({required this.data, required this.onViewAll});
+  const _TodayHabits({
+    required this.data,
+    required this.onViewAll,
+    required this.onOpenHabitCheckIn,
+  });
   final HomeDashboardData data;
   final VoidCallback onViewAll;
+  final ValueChanged<String> onOpenHabitCheckIn;
 
   @override
   Widget build(BuildContext context) {
@@ -628,14 +656,22 @@ class _TodayHabits extends StatelessWidget {
           ? 'Create a habit to start building momentum.'
           : 'Nothing is scheduled for today.',
       onViewAll: onViewAll,
-      children: [for (final habit in habits) _HabitRow(habit: habit)],
+      viewAllKey: const Key('view-all-today-habits'),
+      children: [
+        for (final habit in habits)
+          _HabitRow(
+            habit: habit,
+            onTap: () => onOpenHabitCheckIn(habit.habitId),
+          ),
+      ],
     );
   }
 }
 
 class _HabitRow extends StatelessWidget {
-  const _HabitRow({required this.habit});
+  const _HabitRow({required this.habit, required this.onTap});
   final TodayHabitSummary habit;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -645,13 +681,23 @@ class _HabitRow extends StatelessWidget {
       iconColor: HomeDashboardTheme.mint,
       iconBackground: const Color(0xFF12392F),
       title: habit.habitName,
-      subtitle: habit.isCompleted ? 'Completed • Today' : 'Today • Pending',
-      trailing: habit.isCompleted
+      subtitle: 'Today',
+      trailing: habit.isLocked
+          ? 'Locked'
+          : habit.isCompleted
           ? points == null
                 ? 'Done'
                 : '${points >= 0 ? '+' : ''}$points pts'
           : 'Pending',
       completed: habit.isCompleted,
+      onTap: onTap,
+      semanticLabel:
+          '${habit.habitName}, Today, '
+          '${habit.isLocked
+              ? 'locked'
+              : habit.isCompleted
+              ? 'completed'
+              : 'pending'}',
     );
   }
 }
@@ -672,7 +718,11 @@ class _UpcomingReminders extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _SectionHeader(title: 'Upcoming reminders', onViewAll: onViewAll),
+        _SectionHeader(
+          title: 'Upcoming reminders',
+          onViewAll: onViewAll,
+          viewAllKey: const Key('view-all-upcoming-reminders'),
+        ),
         const SizedBox(height: 8),
         DashboardCard(
           padding: reminders.isEmpty
@@ -720,12 +770,14 @@ class _CompactSection extends StatelessWidget {
     required this.emptyText,
     required this.children,
     required this.onViewAll,
+    this.viewAllKey,
   });
   final String title;
   final IconData emptyIcon;
   final String emptyText;
   final List<Widget> children;
   final VoidCallback onViewAll;
+  final Key? viewAllKey;
 
   @override
   Widget build(BuildContext context) {
@@ -733,7 +785,11 @@ class _CompactSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _SectionHeader(title: title, onViewAll: onViewAll),
+        _SectionHeader(
+          title: title,
+          onViewAll: onViewAll,
+          viewAllKey: viewAllKey,
+        ),
         const SizedBox(height: 8),
         DashboardCard(
           padding: children.isEmpty
@@ -768,10 +824,15 @@ class _CompactSection extends StatelessWidget {
 }
 
 class _SectionHeader extends StatelessWidget {
-  const _SectionHeader({required this.title, required this.onViewAll});
+  const _SectionHeader({
+    required this.title,
+    required this.onViewAll,
+    this.viewAllKey,
+  });
 
   final String title;
   final VoidCallback onViewAll;
+  final Key? viewAllKey;
 
   @override
   Widget build(BuildContext context) {
@@ -781,6 +842,7 @@ class _SectionHeader extends StatelessWidget {
           child: Text(title, style: Theme.of(context).textTheme.titleLarge),
         ),
         TextButton.icon(
+          key: viewAllKey,
           onPressed: onViewAll,
           label: const Text('View all'),
           iconAlignment: IconAlignment.end,
@@ -836,6 +898,8 @@ class _CompactRow extends StatelessWidget {
     this.subtitle,
     this.trailingStyle,
     this.completed = false,
+    this.onTap,
+    this.semanticLabel,
   });
   final IconData icon;
   final Color iconColor;
@@ -845,11 +909,13 @@ class _CompactRow extends StatelessWidget {
   final String trailing;
   final TextStyle? trailingStyle;
   final bool completed;
+  final VoidCallback? onTap;
+  final String? semanticLabel;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Padding(
+    final content = Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
@@ -899,6 +965,18 @@ class _CompactRow extends StatelessWidget {
             ),
           ],
         ],
+      ),
+    );
+    if (onTap == null) return content;
+    return Semantics(
+      button: true,
+      label: semanticLabel,
+      child: InkWell(
+        onTap: onTap,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 56),
+          child: content,
+        ),
       ),
     );
   }

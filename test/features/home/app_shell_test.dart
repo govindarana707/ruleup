@@ -8,6 +8,7 @@ import 'package:ruleup/features/auth/presentation/auth_controller.dart';
 import 'package:ruleup/core/sync/sync_provider.dart';
 import 'package:ruleup/features/habits/presentation/habit_management_provider.dart';
 import 'package:ruleup/features/check_ins/presentation/daily_check_in_provider.dart';
+import 'package:ruleup/features/habits/domain/measurement_type.dart';
 import 'package:ruleup/features/home/presentation/app_shell.dart';
 import 'package:ruleup/features/home/presentation/home_dashboard_provider.dart';
 import 'package:ruleup/features/history/presentation/history_provider.dart';
@@ -24,6 +25,7 @@ void main() {
     for (final label in ['Home', 'Habits', 'Check-in', 'Rewards', 'History']) {
       expect(find.text(label), findsWidgets);
     }
+    expect(find.byIcon(Icons.check_circle_outline_rounded), findsOneWidget);
 
     await tester.tap(find.text('Habits').last);
     await tester.pump();
@@ -56,6 +58,20 @@ void main() {
     await tester.pump();
 
     expect(find.byKey(const Key('daily-check-in-screen')), findsOneWidget);
+  });
+
+  testWidgets('streak metrics use singular and plural day grammar', (
+    tester,
+  ) async {
+    await _pumpShell(tester, dashboard: _emptyDashboard);
+    expect(find.text('0 days'), findsOneWidget);
+
+    await _pumpShell(tester, dashboard: _dashboardWithStreak(1));
+    expect(find.text('1 day'), findsOneWidget);
+    expect(find.text('1 days'), findsNothing);
+
+    await _pumpShell(tester, dashboard: _dashboardWithStreak(2));
+    expect(find.text('2 days'), findsOneWidget);
   });
 
   testWidgets(
@@ -120,12 +136,88 @@ void main() {
     expect(find.text("Today's habits"), findsOneWidget);
     expect(find.text('Read 20 minutes'), findsOneWidget);
     expect(find.text('+10 pts'), findsOneWidget);
-    expect(find.text('Completed • Today'), findsOneWidget);
+    expect(find.text('Today • Pending'), findsNothing);
+    expect(find.text('Today'), findsWidgets);
     expect(find.text('Drink water'), findsOneWidget);
     expect(find.text('Pending'), findsOneWidget);
     expect(find.text('Upcoming reminders'), findsOneWidget);
     expect(find.text('View all'), findsNWidgets(2));
     expect(find.text('Evening walk'), findsOneWidget);
+  });
+
+  testWidgets('Home View all controls use their existing destinations', (
+    tester,
+  ) async {
+    await _pumpShell(tester, dashboard: _dashboard);
+    final navigation = find.byKey(const Key('app-bottom-navigation'));
+
+    await tester.tap(find.byKey(const Key('view-all-today-habits')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('habit-list-screen')), findsOneWidget);
+    expect(tester.widget<NavigationBar>(navigation).selectedIndex, 1);
+
+    await tester.tap(find.byType(NavigationDestination).at(0));
+    await tester.pumpAndSettle();
+    await _reveal(tester, find.byKey(const Key('view-all-upcoming-reminders')));
+    await tester.tap(find.byKey(const Key('view-all-upcoming-reminders')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('settings-screen')), findsOneWidget);
+  });
+
+  testWidgets(
+    'pending and editable Home rows open the existing check-in form',
+    (tester) async {
+      await _pumpShell(tester, dashboard: _dashboard, dailyData: _dailyHabits);
+
+      await _reveal(tester, find.text('Drink water'));
+      await tester.tap(find.text('Drink water'));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('daily-check-in-screen')), findsOneWidget);
+      expect(find.byKey(const Key('check-in-form-sheet')), findsOneWidget);
+
+      await Navigator.of(
+        tester.element(find.byKey(const Key('check-in-form-sheet'))),
+      ).maybePop();
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(NavigationDestination).at(0));
+      await tester.pumpAndSettle();
+      await _reveal(tester, find.text('Read 20 minutes'));
+      await tester.tap(find.text('Read 20 minutes'));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('check-in-form-sheet')), findsOneWidget);
+      expect(find.text('Edit check-in'), findsOneWidget);
+    },
+  );
+
+  testWidgets('locked Home rows open the existing locked check-in state', (
+    tester,
+  ) async {
+    await _pumpShell(
+      tester,
+      dashboard: _lockedDashboard,
+      dailyData: _lockedDailyHabits,
+    );
+
+    await _reveal(tester, find.text('Read 20 minutes'));
+    await tester.tap(find.text('Read 20 minutes'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('daily-check-in-screen')), findsOneWidget);
+    expect(find.text('This check-in is locked.'), findsOneWidget);
+    expect(find.byKey(const Key('check-in-form-sheet')), findsNothing);
+  });
+
+  testWidgets('Home exposes meaningful metric and habit-row tap semantics', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    await _pumpShell(tester, dashboard: _dashboard);
+
+    expect(find.bySemanticsLabel(RegExp('Open rewards')), findsOneWidget);
+    expect(
+      find.bySemanticsLabel(RegExp('Drink water, Today, pending')),
+      findsOneWidget,
+    );
+    semantics.dispose();
   });
 
   testWidgets('home dashboard renders loading and error states', (
@@ -231,6 +323,14 @@ void main() {
   });
 }
 
+Future<void> _reveal(WidgetTester tester, Finder finder) async {
+  await tester.drag(
+    find.byKey(const Key('home-dashboard-scroll')),
+    const Offset(0, -260),
+  );
+  await tester.pumpAndSettle();
+}
+
 Future<void> _pumpShell(
   WidgetTester tester, {
   HomeDashboardData? dashboard,
@@ -239,6 +339,7 @@ Future<void> _pumpShell(
   bool settle = true,
   bool syncing = false,
   String? syncFailureMessage,
+  DailyCheckInData? dailyData,
 }) async {
   await tester.pumpWidget(
     ProviderScope(
@@ -257,6 +358,7 @@ Future<void> _pumpShell(
         ),
         dailyCheckInProvider.overrideWith(
           (ref, _) async =>
+              dailyData ??
               DailyCheckInData(date: DateTime(2026, 1, 5), habits: const []),
         ),
         rewardsWalletProvider.overrideWith(
@@ -349,6 +451,78 @@ final _dashboard = HomeDashboardData(
       habitId: 'habit-id',
       habitName: 'Evening walk',
       scheduledAt: DateTime(2026, 1, 5, 18, 30),
+    ),
+  ],
+);
+
+HomeDashboardData _dashboardWithStreak(int value) => HomeDashboardData(
+  availablePoints: 0,
+  currentStreak: value,
+  completedToday: 0,
+  applicableToday: 0,
+  activeHabitCount: 0,
+);
+
+final _lockedDashboard = HomeDashboardData(
+  availablePoints: 120,
+  currentStreak: 4,
+  completedToday: 1,
+  applicableToday: 1,
+  activeHabitCount: 1,
+  todayHabits: const [
+    TodayHabitSummary(
+      habitId: 'reading-id',
+      habitName: 'Read 20 minutes',
+      isCompleted: true,
+      isLocked: true,
+      awardedPoints: 10,
+    ),
+  ],
+);
+
+final _dailyHabits = DailyCheckInData(
+  date: DateTime(2026, 1, 5),
+  habits: [
+    DailyHabitEntry(
+      id: 'reading-id',
+      name: 'Read 20 minutes',
+      measurementType: MeasurementType.duration,
+      scheduleSummary: 'Daily',
+      currentStreak: 4,
+      checkIn: ExistingCheckIn(
+        id: 'reading-check-in',
+        measuredValue: 20,
+        awardedPoints: 10,
+        editableUntil: DateTime(2026, 1, 6),
+        locked: false,
+      ),
+    ),
+    const DailyHabitEntry(
+      id: 'water-id',
+      name: 'Drink water',
+      measurementType: MeasurementType.count,
+      scheduleSummary: 'Daily',
+      currentStreak: 0,
+    ),
+  ],
+);
+
+final _lockedDailyHabits = DailyCheckInData(
+  date: DateTime(2026, 1, 5),
+  habits: [
+    DailyHabitEntry(
+      id: 'reading-id',
+      name: 'Read 20 minutes',
+      measurementType: MeasurementType.duration,
+      scheduleSummary: 'Daily',
+      currentStreak: 4,
+      checkIn: ExistingCheckIn(
+        id: 'locked-reading-check-in',
+        measuredValue: 20,
+        awardedPoints: 10,
+        editableUntil: DateTime(2026, 1, 5),
+        locked: true,
+      ),
     ),
   ],
 );

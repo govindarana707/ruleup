@@ -23,10 +23,12 @@ class DailyCheckInScreen extends ConsumerStatefulWidget {
 class _DailyCheckInScreenState extends ConsumerState<DailyCheckInScreen> {
   var _filter = TodayHabitFilter.pending;
   final _submitting = <String>{};
+  var _openingHomeRequest = false;
 
   @override
   Widget build(BuildContext context) {
     final day = ref.watch(dailyCheckInProvider(widget.userId));
+    final requestedHabitId = ref.watch(homeCheckInRequestProvider);
     final health = ref.watch(backendHealthProvider);
     final sync = ref.watch(syncControllerProvider);
     return Theme(
@@ -64,7 +66,10 @@ class _DailyCheckInScreenState extends ConsumerState<DailyCheckInScreen> {
                     ),
                   ),
                 switch (day) {
-                  AsyncData(:final value) => _habitSliver(value),
+                  AsyncData(:final value) => _habitSliverForHomeRequest(
+                    value,
+                    requestedHabitId,
+                  ),
                   AsyncError() => SliverFillRemaining(
                     hasScrollBody: false,
                     child: _ErrorState(
@@ -84,6 +89,41 @@ class _DailyCheckInScreenState extends ConsumerState<DailyCheckInScreen> {
         ),
       ),
     );
+  }
+
+  Widget _habitSliverForHomeRequest(
+    DailyCheckInData data,
+    String? requestedHabitId,
+  ) {
+    if (requestedHabitId != null && !_openingHomeRequest) {
+      _openingHomeRequest = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        if (!mounted) return;
+        ref.read(homeCheckInRequestProvider.notifier).clear();
+        DailyHabitEntry? habit;
+        for (final item in data.habits) {
+          if (item.id == requestedHabitId) {
+            habit = item;
+            break;
+          }
+        }
+        if (habit == null) {
+          _openingHomeRequest = false;
+          return;
+        }
+        if (habit.checkIn?.locked == true) {
+          setState(() => _filter = TodayHabitFilter.all);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('This check-in is locked.')),
+          );
+          _openingHomeRequest = false;
+          return;
+        }
+        await _openForm(data, habit);
+        _openingHomeRequest = false;
+      });
+    }
+    return _habitSliver(data);
   }
 
   Widget _header(DailyCheckInData? data) => Padding(

@@ -85,6 +85,8 @@ final homeDashboardProvider = FutureProvider.family<HomeDashboardData, String>((
           habitName: habit.name,
           isCompleted: completed,
           awardedPoints: checkIn?.awardedPoints,
+          isLocked:
+              checkIn != null && now.toUtc().isAfter(checkIn.editableUntil),
         ),
       );
     }
@@ -228,12 +230,14 @@ class TodayHabitSummary {
     required this.habitName,
     required this.isCompleted,
     this.awardedPoints,
+    this.isLocked = false,
   });
 
   final String habitId;
   final String habitName;
   final bool isCompleted;
   final int? awardedPoints;
+  final bool isLocked;
 }
 
 class UpcomingReminder {
