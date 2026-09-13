@@ -7,6 +7,7 @@ import 'package:ruleup/core/config/app_config.dart';
 import 'package:ruleup/core/sync/sync_provider.dart';
 import 'package:ruleup/features/auth/presentation/auth_controller.dart';
 import 'package:ruleup/features/auth/presentation/login_screen.dart';
+import 'package:ruleup/features/auth/presentation/splash_screen.dart';
 import 'package:ruleup/features/home/presentation/home_screen.dart';
 
 class AuthGate extends ConsumerStatefulWidget {
@@ -19,11 +20,15 @@ class AuthGate extends ConsumerStatefulWidget {
 class _AuthGateState extends ConsumerState<AuthGate>
     with WidgetsBindingObserver {
   String? _activeUserId;
+  bool _initializationStarted = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) setState(() => _initializationStarted = true);
+    });
   }
 
   @override
@@ -42,6 +47,10 @@ class _AuthGateState extends ConsumerState<AuthGate>
 
   @override
   Widget build(BuildContext context) {
+    // Let the branded Flutter surface render once before beginning providers
+    // that may restore entirely from memory. This is frame-driven, not a delay.
+    if (!_initializationStarted) return const SplashScreen();
+
     final backendHealth = ref.watch(backendHealthProvider);
     final auth = ref.watch(authControllerProvider);
     auth.whenData((user) {
@@ -68,8 +77,7 @@ class _AuthGateState extends ConsumerState<AuthGate>
     }
 
     return auth.when(
-      loading: () =>
-          const Scaffold(body: Center(child: CircularProgressIndicator())),
+      loading: () => const SplashScreen(),
       data: (user) => user == null
           ? const LoginScreen()
           : HomeScreen(userId: user.id, username: user.username),
