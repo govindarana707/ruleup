@@ -13,12 +13,16 @@ class HomeDashboard extends ConsumerWidget {
     required this.userId,
     required this.username,
     required this.onQuickCheckIn,
+    required this.onOpenRewards,
+    required this.onOpenHistory,
     required this.onOpenSettings,
   });
 
   final String userId;
   final String username;
   final VoidCallback onQuickCheckIn;
+  final VoidCallback onOpenRewards;
+  final VoidCallback onOpenHistory;
   final VoidCallback onOpenSettings;
 
   @override
@@ -77,6 +81,8 @@ class HomeDashboard extends ConsumerWidget {
                                 data: data,
                                 now: now,
                                 onQuickCheckIn: onQuickCheckIn,
+                                onOpenRewards: onOpenRewards,
+                                onOpenHistory: onOpenHistory,
                                 onOpenSettings: onOpenSettings,
                               ),
                             ),
@@ -305,11 +311,15 @@ class _DashboardContent extends StatelessWidget {
     required this.data,
     required this.now,
     required this.onQuickCheckIn,
+    required this.onOpenRewards,
+    required this.onOpenHistory,
     required this.onOpenSettings,
   });
   final HomeDashboardData data;
   final DateTime now;
   final VoidCallback onQuickCheckIn;
+  final VoidCallback onOpenRewards;
+  final VoidCallback onOpenHistory;
   final VoidCallback onOpenSettings;
 
   @override
@@ -317,7 +327,11 @@ class _DashboardContent extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _CombinedMetricsCard(data: data),
+        _CombinedMetricsCard(
+          data: data,
+          onOpenRewards: onOpenRewards,
+          onOpenHistory: onOpenHistory,
+        ),
         const SizedBox(height: 16),
         _ProgressCard(data: data),
         const SizedBox(height: 16),
@@ -368,8 +382,14 @@ class _CheckInActionIcon extends StatelessWidget {
 }
 
 class _CombinedMetricsCard extends StatelessWidget {
-  const _CombinedMetricsCard({required this.data});
+  const _CombinedMetricsCard({
+    required this.data,
+    required this.onOpenRewards,
+    required this.onOpenHistory,
+  });
   final HomeDashboardData data;
+  final VoidCallback onOpenRewards;
+  final VoidCallback onOpenHistory;
 
   @override
   Widget build(BuildContext context) {
@@ -381,6 +401,7 @@ class _CombinedMetricsCard extends StatelessWidget {
           children: [
             Expanded(
               child: _Metric(
+                key: const Key('home-available-points-metric'),
                 icon: const PointCoinsIcon(
                   size: 24,
                   color: HomeDashboardTheme.mint,
@@ -390,17 +411,22 @@ class _CombinedMetricsCard extends StatelessWidget {
                 supporting: 'Ready to use on rewards',
                 iconColor: HomeDashboardTheme.mint,
                 iconBackground: const Color(0xFF12392F),
+                semanticLabel: 'Open rewards',
+                onTap: onOpenRewards,
               ),
             ),
             const VerticalDivider(width: 28),
             Expanded(
               child: _Metric(
+                key: const Key('home-current-streak-metric'),
                 icon: const Icon(Icons.local_fire_department_outlined),
                 label: 'Current streak',
                 value: '${data.currentStreak} days',
                 supporting: 'Keep going!',
                 iconColor: const Color(0xFFFFB83E),
                 iconBackground: const Color(0xFF3A3020),
+                semanticLabel: 'Open history',
+                onTap: onOpenHistory,
               ),
             ),
           ],
@@ -412,12 +438,15 @@ class _CombinedMetricsCard extends StatelessWidget {
 
 class _Metric extends StatelessWidget {
   const _Metric({
+    super.key,
     required this.icon,
     required this.label,
     required this.value,
     required this.supporting,
     required this.iconColor,
     required this.iconBackground,
+    required this.semanticLabel,
+    required this.onTap,
   });
   final Widget icon;
   final String label;
@@ -425,69 +454,82 @@ class _Metric extends StatelessWidget {
   final String supporting;
   final Color iconColor;
   final Color iconBackground;
+  final String semanticLabel;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Row(
+    return Semantics(
+      button: true,
+      label: semanticLabel,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: onTap,
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              width: 42,
-              height: 42,
-              decoration: BoxDecoration(
-                color: iconBackground,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: IconTheme(
-                data: IconThemeData(size: 24, color: iconColor),
-                child: icon,
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    label,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.labelMedium?.copyWith(
-                      color: HomeDashboardTheme.mutedText,
-                    ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    color: iconBackground,
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  const SizedBox(height: 2),
-                  FittedBox(
-                    fit: BoxFit.scaleDown,
-                    alignment: Alignment.centerLeft,
-                    child: Text(value, style: theme.textTheme.headlineSmall),
+                  child: IconTheme(
+                    data: IconThemeData(size: 24, color: iconColor),
+                    child: icon,
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        label,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          color: HomeDashboardTheme.mutedText,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          value,
+                          style: theme.textTheme.headlineSmall,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(
+                  Icons.chevron_right_rounded,
+                  size: 21,
+                  color: HomeDashboardTheme.mutedText,
+                ),
+              ],
             ),
-            const Icon(
-              Icons.chevron_right_rounded,
-              size: 21,
-              color: HomeDashboardTheme.mutedText,
+            const SizedBox(height: 8),
+            Padding(
+              padding: const EdgeInsets.only(left: 52),
+              child: Text(
+                supporting,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.bodySmall,
+              ),
             ),
           ],
         ),
-        const SizedBox(height: 8),
-        Padding(
-          padding: const EdgeInsets.only(left: 52),
-          child: Text(
-            supporting,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.bodySmall,
-          ),
-        ),
-      ],
+      ),
     );
   }
 }

@@ -119,6 +119,8 @@ class _AppShellState extends ConsumerState<AppShell> {
       userId: widget.userId,
       username: widget.username,
       onQuickCheckIn: () => _select(2),
+      onOpenRewards: () => _select(3),
+      onOpenHistory: () => _select(4),
       onOpenSettings: _openSettings,
     ),
     1 => HabitListScreen(userId: widget.userId),

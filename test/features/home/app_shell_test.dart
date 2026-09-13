@@ -58,6 +58,46 @@ void main() {
     expect(find.byKey(const Key('daily-check-in-screen')), findsOneWidget);
   });
 
+  testWidgets(
+    'home metric cards select existing Rewards and History tabs from every area',
+    (tester) async {
+      await _pumpShell(tester, dashboard: _dashboard);
+      final navigation = find.byKey(const Key('app-bottom-navigation'));
+      final navigator = Navigator.of(tester.element(navigation));
+
+      await tester.tap(find.text('Available points'));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('rewards-wallet-screen')), findsOneWidget);
+      expect(tester.widget<NavigationBar>(navigation).selectedIndex, 3);
+      expect(navigator.canPop(), isFalse);
+
+      await tester.tap(find.byType(NavigationDestination).at(0));
+      await tester.pumpAndSettle();
+      final streakMetric = find.byKey(const Key('home-current-streak-metric'));
+      await tester.tap(
+        find.descendant(
+          of: streakMetric,
+          matching: find.byIcon(Icons.local_fire_department_outlined),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('history-screen')), findsOneWidget);
+      expect(tester.widget<NavigationBar>(navigation).selectedIndex, 4);
+      expect(navigator.canPop(), isFalse);
+
+      await tester.tap(find.byType(NavigationDestination).at(0));
+      await tester.pumpAndSettle();
+      final pointsMetric = find.byKey(
+        const Key('home-available-points-metric'),
+      );
+      final metricBounds = tester.getRect(pointsMetric);
+      await tester.tapAt(metricBounds.bottomRight - const Offset(4, 4));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('rewards-wallet-screen')), findsOneWidget);
+      expect(tester.widget<NavigationBar>(navigation).selectedIndex, 3);
+    },
+  );
+
   testWidgets('home dashboard renders populated motivational summary', (
     tester,
   ) async {
